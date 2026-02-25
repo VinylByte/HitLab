@@ -37,35 +37,54 @@ const chunkAndFlip = (array: any[], size: number) => {
   return chunks;
 };
 
+// Hilfsfunktion: Teilt das Array in 12er Blöcke
+const createChunks = (array: Card[], size: number): Card[][] => {
+    const chunks: Card[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+        chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
+};
+
 export const PDFSheetDoubleSide = ({ cards }:  HitsterPDFProps ) => {
   const cardsPerRow = 3;
-  const flippedCards = chunkAndFlip(cards, cardsPerRow);
+  const CARDS_PER_PAGE = 12; // Dein Limit
+
+  const cardChunks = createChunks(cards, CARDS_PER_PAGE);
 
   return (
     <Document>
-      {/* SEITE 1: ALLE VORDERSEITEN */}
-      <Page size="A4" style={DoublePageStyles.page}>
-        <View style={DoublePageStyles.grid}>
-          {cards.map((card, i) => (
-            <View key={`front-${i}`} style={DoublePageStyles.card}>
-              <Text style={DoublePageStyles.artist}>{card.artist}</Text>
-              <Text style={DoublePageStyles.year}>{card.year}</Text>
-              <Text style={DoublePageStyles.title}>{card.title}</Text>
-            </View>
-          ))}
-        </View>
-      </Page>
+        {cardChunks.map((chunk, chunkIndex) => {
+            const flippedChunk = chunkAndFlip(chunk, cardsPerRow);
 
-      {/* SEITE 2: ALLE RÜCKSEITEN (GESPIEGELT) */}
-      <Page size="A4" style={DoublePageStyles.page}>
-        <View style={DoublePageStyles.grid}>
-          {flippedCards.map((card, i) => (
-            <View key={`back-${i}`} style={DoublePageStyles.card}>
-              <PDFQRCode url={card.url} />
-            </View>
-          ))}
-        </View>
-      </Page>
+            return (
+                <>
+                    {/* SEITE 1: ALLE VORDERSEITEN */}
+                    <Page size="A4" style={DoublePageStyles.page}>
+                        <View style={DoublePageStyles.grid}>
+                            {chunk.map((card, i) => (
+                                <View key={`front-${chunkIndex}-${i}`} style={DoublePageStyles.card}>
+                                    <Text style={DoublePageStyles.artist}>{card.artist}</Text>
+                                    <Text style={DoublePageStyles.year}>{card.year}</Text>
+                                    <Text style={DoublePageStyles.title}>{card.title}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </Page>
+
+                    {/* SEITE 2: ALLE RÜCKSEITEN (GESPIEGELT) */}
+                    <Page size="A4" style={DoublePageStyles.page}>
+                        <View style={DoublePageStyles.grid}>
+                            {flippedChunk.map((card, i) => (
+                                <View key={`back-${chunkIndex}-${i}`} style={DoublePageStyles.card}>
+                                    <PDFQRCode url={card.url} />
+                                </View>
+                            ))}
+                        </View>
+                    </Page>
+                </>
+            );
+        })}
     </Document>
   );
 };
