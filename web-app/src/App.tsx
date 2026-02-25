@@ -1,4 +1,3 @@
-import {Accordion, AccordionItem} from "@heroui/accordion";
 import { useState } from "react";
 import HeaderNav from "./components/elements/header/Header";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
