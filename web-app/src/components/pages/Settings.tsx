@@ -1,7 +1,8 @@
 import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/icons-react";
+import HomePage from "./HomePage/HomePage";
 
 export const Pages = [
-    { name: "Home", to: "/", page: <div className="h-170">Home</div>},
+    { name: "Home", to: "/", page: <HomePage />},
     { name: "Decks", to: "/decks", page: <div>Other Decks</div>},
 ]
 
