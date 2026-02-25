@@ -1,4 +1,3 @@
-import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from '@tabler/icons-react';
 import { ActionIcon, Container, Group } from '@mantine/core';
 import classes from './FooterSocial.module.css';
 import { Image } from "@heroui/react";

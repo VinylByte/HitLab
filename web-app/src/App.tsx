@@ -4,7 +4,7 @@ import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { Pages } from "./components/pages/Settings";
 import LoginPage from "./components/pages/Authentication/LoginPage";
 //import SignUpPage from "./components/pages/Authentication/SignUpPage";
-import { useMantineColorScheme, Center } from "@mantine/core";
+import { useMantineColorScheme } from "@mantine/core";
 import { FooterSocial } from "./components/elements/Footer/Footer";
 
 type Themes = "light" | "dark";
