@@ -1,6 +1,5 @@
 import { IconCheck } from "@tabler/icons-react";
 import {
-    Button,
     Container,
     Group,
     Image,
@@ -14,6 +13,8 @@ import classes from "./HeroBullets.module.css";
 import { useNavigate } from "react-router";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../Settings";
+
+import { Button } from "@heroui/react"
 
 export function HeroHeader() {
     const navigate = useNavigate();
@@ -62,19 +63,17 @@ export function HeroHeader() {
 
                     <Group mt={30}>
                         <Button
-                            radius="xl"
-                            size="md"
+                            size="lg"
+                            color="primary"
                             className={classes.control}
-                            onClick={()=>navigate("/login")}
+                            onPress={()=>navigate("/login")}
                         >
                             Loslegen
                         </Button>
                         <Button
-                            variant="default"
-                            radius="xl"
-                            size="md"
+                            size="lg"
                             className={classes.control}
-                            onClick={()=>navigate("/decks")}
+                            onPress={()=>navigate("/decks")}
                         >
                             Entdecken
                         </Button>
