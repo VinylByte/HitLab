@@ -19,7 +19,7 @@ import { Pages } from "../../pages/Settings";
 import { Center } from "@mantine/core";
 import { IconLogin, IconLogout } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
-import { supabase } from "../../../lib/supabase";
+import supabase from "../../../supabase";
 
 const Links = Pages.map(page => ({ name: page.name, to: page.to }));
 

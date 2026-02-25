@@ -4,7 +4,7 @@ import VinylLogo from "../../assets/VinylByteLogo.svg";
 import { IconBrandSpotify } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "./Settings";
-import { supabase } from "../../lib/supabase";
+import supabase from "../../supabase";
 import { useSession } from "../../hooks/useSession";
 import { Navigate } from "react-router";
 
