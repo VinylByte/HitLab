@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 import {Accordion, AccordionItem} from "@heroui/accordion";
 
 function App() {
