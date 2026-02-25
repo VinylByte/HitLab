@@ -27,3 +27,20 @@ Custom deck builder for Hitster
 - play_tokens: short-lived or persistent tokens encoded in QR that map to deck/card and optionally track play permissions (useful for short URLs).
 - spotify_tokens: store OAuth tokens for controlling Spotify on behalf of user (refresh tokens encrypted or accessible to server only). Marked restricted — only service_role or server-side functions should access.
 - optional: tags table if you want deck tags/search.
+
+## Table purposes
+
+Tabellen (10 + 1 Join-Tabelle):
+
+| Tabelle            | Zweck                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| profiles           | App-Metadaten pro User, 1:1 zu auth.users, inkl. potify_user_id    |
+| decks              | Deck-Datensatz mit Sichtbarkeit, Share-Token, Owner                |
+| deck_collaborators | M:N Zuordnung User <-> Deck mit Rolle (owner/editor/viewer)        |
+| songs              | Spotify-Track-Metadaten Snapshot (unique by spotify_track_id)      |
+| deck_songs         | Geordnete Song-Liste pro Deck (mit Position)                       |
+| tags / deck_tags   | Wiederverwendbare Tags fuer Deck-Kategorisierung                   |
+| pdf_exports        | Generierte PDF-Dateien (Pfad in Supabase Storage)                  |
+| play_tokens        | Kurzlebige/persistente Tokens fuer QR-Codes                        |
+| play_events        | Analytics: QR-Scans und Play-Requests                              |
+| spotify_tokens     | OAuth-Tokens (NUR per service_role zugreifbar, keine RLS-Policies) |
