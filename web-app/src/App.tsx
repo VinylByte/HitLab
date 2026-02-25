@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import HeaderNav from "./components/elements/header/Header";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { Pages } from "./components/pages/Settings";
-import LoginPage from "./components/pages/Authentication/LoginPage";
+import LoginPage from "./components/pages/LoginPage";
 import { useMantineColorScheme } from "@mantine/core";
 import { FooterSocial } from "./components/elements/Footer/Footer";
 

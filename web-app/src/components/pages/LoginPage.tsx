@@ -1,11 +1,11 @@
 import { Button, Image } from "@heroui/react";
 import { Center, Group, Paper, Stack } from "@mantine/core";
-import VinylLogo from "../../../assets/VinylByteLogo.svg";
+import VinylLogo from "../../assets/VinylByteLogo.svg";
 import { IconBrandSpotify } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../Settings";
-import { supabase } from "../../../lib/supabase";
-import { useSession } from "../../../hooks/useSession";
+import { MOBILE_BREAKPOINT } from "./Settings";
+import { supabase } from "../../lib/supabase";
+import { useSession } from "../../hooks/useSession";
 import { Navigate } from "react-router";
 
 const SPOTIFY_SCOPES = [
