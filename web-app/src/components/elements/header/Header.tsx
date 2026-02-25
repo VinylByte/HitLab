@@ -17,6 +17,7 @@ import { Link as RouterLink, useLocation } from "react-router";
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
 import { Pages } from "../../pages/Settings";
 import { Center } from "@mantine/core";
+import { IconLogin } from "@tabler/icons-react";
 
 const Links = Pages.map((page) => ({ name: page.name, to: page.to }))
 
@@ -83,12 +84,9 @@ export default function HeaderNav() {
                 }
             </NavbarContent>
             <NavbarContent justify="end">
-                <NavbarItem className="hidden lg:flex">
-                    <Link as={RouterLink} to="/login">Login</Link>
-                </NavbarItem>
                 <NavbarItem>
-                    <Button as={RouterLink} color="primary" to={"/signup"} variant="flat">
-                        Sign Up
+                    <Button startContent={<IconLogin />} as={RouterLink} color="primary" to={"/login"} variant="flat">
+                        <p className="text-md">Login</p>
                     </Button>
                 </NavbarItem>
             </NavbarContent>
