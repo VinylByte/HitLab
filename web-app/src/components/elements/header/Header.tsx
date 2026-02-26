@@ -14,7 +14,6 @@ import {
     Dropdown,
     DropdownTrigger,
     DropdownMenu,
-    DropdownSection,
     DropdownItem,
 } from "@heroui/react";
 
