@@ -10,16 +10,24 @@ import {
     Button,
     Image,
     Link,
+    User,
+    Dropdown,
+    DropdownTrigger,
+    DropdownMenu,
+    DropdownItem,
+    Divider,
 } from "@heroui/react";
 
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
-import { Pages } from "../../pages/Settings";
+import { MOBILE_BREAKPOINT, Pages } from "../../pages/Settings";
 import { Center } from "@mantine/core";
-import { IconLogin, IconLogout } from "@tabler/icons-react";
+import { IconLogin, IconLogout, IconUser, IconMoon, IconSun } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import supabase from "../../../supabase";
+import { useMediaQuery } from "@mantine/hooks";
 
 const Links = Pages.map(page => ({ name: page.name, to: page.to }));
 
@@ -28,6 +36,8 @@ export default function HeaderNav() {
     const navigate = useNavigate();
     const [expanded_nav, setExpanded_nav] = useState(false);
     const session = useSession();
+    const { theme, toggleTheme } = useAppTheme();
+    const isMobile = useMediaQuery(MOBILE_BREAKPOINT)
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -67,7 +77,7 @@ export default function HeaderNav() {
                 className="flex items-center"
             >
                 <Image src={VinylLogo} alt="VinylByte Logo" className="w-10 h-10 mr-2" />
-                <p className="font-bold text-inherit text-xl">HitLab</p>
+                {!isMobile && <p className="font-bold text-inherit text-xl">HitLab</p>}
             </NavbarBrand>
             <NavbarMenu>
                 {Links.map(item => (
@@ -106,16 +116,39 @@ export default function HeaderNav() {
                 ))}
             </NavbarContent>
             <NavbarContent justify="end">
+                {!session && (
+                    <NavbarItem>
+                    <Button
+                        isIconOnly
+                        variant="light"
+                        onPress={toggleTheme}
+                        title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+                    >
+                        {theme === 'light' ? <IconMoon size={20} /> : <IconSun size={20} />}
+                    </Button>
+                </NavbarItem>
+                )}
                 <NavbarItem>
                     {session ? (
-                        <Button
-                            startContent={<IconLogout />}
-                            color="danger"
-                            variant="flat"
-                            onPress={handleLogout}
-                        >
-                            <p className="text-md">Logout</p>
-                        </Button>
+                        <Dropdown>
+                            <DropdownTrigger>
+                                <User
+                                    name={session.user.user_metadata.full_name}
+                                    description={session.user.email}
+                                    avatarProps={{
+                                        src: session.user.user_metadata.avatar_url,
+                                    }}
+                                    className="hover:cursor-pointer hover:transition-transform hover:scale-95"
+                                />
+                            </DropdownTrigger>
+                            <DropdownMenu aria-label="User menu" >
+                                <DropdownItem startContent={theme === 'light' ? <IconMoon size={20} /> : <IconSun size={20} />} key="theme-toggle" onClick={toggleTheme}>Theme ändern</DropdownItem>
+                                <DropdownItem startContent={<IconUser />} key="account" showDivider>Account</DropdownItem>
+                                <DropdownItem onClick={() => handleLogout()} startContent={<IconLogout />} key="logout" className="text-danger" color="danger">
+                                    Logout
+                                </DropdownItem>
+                            </DropdownMenu>
+                        </Dropdown>
                     ) : (
                         <Button
                             startContent={<IconLogin />}
