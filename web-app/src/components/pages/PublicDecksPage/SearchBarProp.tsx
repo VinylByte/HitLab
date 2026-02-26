@@ -6,7 +6,7 @@ export default function SearchBar({search_str, setSearchStr}: {search_str: strin
     return (
         <div className="mb-4">
             <Input
-                placeholder="Search decks..."
+                placeholder="Decks durchsuchen..."
                 value={search_str}
                 startContent={<IconSearch size={16} />}
                 onChange={(e) => setSearchStr(e.target.value)}

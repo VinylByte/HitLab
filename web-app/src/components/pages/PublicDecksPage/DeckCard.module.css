@@ -9,6 +9,11 @@
   }
 }
 
+.card:hover{
+  cursor: pointer;
+  transform: scale(0.98);
+}
+
 .image {
   max-width: 200px;
 
