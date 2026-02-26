@@ -8,7 +8,9 @@ import { FooterSocial } from "./components/elements/Footer/Footer";
 import { useSession } from "./hooks/useSession";
 import { Center, Loader } from "@mantine/core";
 
+
 type Themes = "light" | "dark";
+
 
 function App() {
     const [theme] = useState<Themes>("light");
