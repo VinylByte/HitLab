@@ -8,6 +8,17 @@ import { useMantineColorScheme } from "@mantine/core";
 import { FooterSocial } from "./components/elements/Footer/Footer";
 
 type Themes = "light" | "dark";
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router";
+import { Pages, ProtectedPages } from "./components/pages/Settings";
+import LoginPage from "./components/pages/LoginPage";
+import { useMantineColorScheme } from "@mantine/core";
+import { FooterSocial } from "./components/elements/Footer/Footer";
+import { useSession } from "./hooks/useSession";
+import { Center, Loader } from "@mantine/core";
+
+
+type Themes = "light" | "dark";
+
 
 function App() {
     const [theme] = useState<Themes>("light");
@@ -37,6 +48,29 @@ function Layout() {
     );
 }
 
+/**
+ * Wrapper that requires authentication.
+ * Shows a loader while the session is resolving.
+ * Redirects to /login when no session exists.
+ */
+function ProtectedRoute() {
+    const session = useSession();
+
+    if (session === undefined) {
+        return (
+            <Center style={{ height: "100vh" }}>
+                <Loader size="lg" />
+            </Center>
+        );
+    }
+
+    if (session === null) {
+        return <Navigate to="/login" replace />;
+    }
+
+    return <Outlet />;
+}
+
 function Router() {
     return (
         <BrowserRouter>
@@ -52,6 +86,15 @@ function Router() {
                 </Route>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<LoginPage />} />
+                        <Route key={page.to} path={page.to} element={page.page} />
+                    ))}
+                    <Route element={<ProtectedRoute />}>
+                        {ProtectedPages.map(page => (
+                            <Route key={page.to} path={page.to} element={page.page} />
+                        ))}
+                    </Route>
+                </Route>
+                <Route path="/login" element={<LoginPage />} />
             </Routes>
         </BrowserRouter>
     );
