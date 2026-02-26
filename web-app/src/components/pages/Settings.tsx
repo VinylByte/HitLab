@@ -1,8 +1,9 @@
 import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/icons-react";
+import PublicDecksPageWrapper from "./PublicDecksPage/PublicDecksPage";
 
 export const Pages = [
     { name: "Home", to: "/", page: <div className="h-170">Home</div> },
-    { name: "Decks", to: "/decks", page: <div>Other Decks</div> },
+    { name: "Decks", to: "/public-decks", page: <PublicDecksPageWrapper /> },
 ];
 
 export const ProtectedPages = [
