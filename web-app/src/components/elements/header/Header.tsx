@@ -10,6 +10,11 @@ import {
     Button,
     Image,
     Link,
+    User,
+    Dropdown,
+    DropdownTrigger,
+    DropdownMenu,
+    DropdownItem,
 } from "@heroui/react";
 
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
@@ -17,7 +22,7 @@ import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
 import { Pages } from "../../pages/Settings";
 import { Center } from "@mantine/core";
-import { IconLogin, IconLogout } from "@tabler/icons-react";
+import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
 import supabase from "../../../supabase";
 
@@ -108,14 +113,24 @@ export default function HeaderNav() {
             <NavbarContent justify="end">
                 <NavbarItem>
                     {session ? (
-                        <Button
-                            startContent={<IconLogout />}
-                            color="danger"
-                            variant="flat"
-                            onPress={handleLogout}
-                        >
-                            <p className="text-md">Logout</p>
-                        </Button>
+                        <Dropdown>
+                            <DropdownTrigger>
+                                <User
+                                    name={session.user.user_metadata.full_name}
+                                    description={session.user.email}
+                                    avatarProps={{
+                                        src: session.user.user_metadata.avatar_url,
+                                    }}
+                                    className="hover:cursor-pointer hover:transition-transform hover:scale-95"
+                                />
+                            </DropdownTrigger>
+                            <DropdownMenu aria-label="Static Actions" >
+                                <DropdownItem startContent={<IconUser />} key="account">Account</DropdownItem>
+                                <DropdownItem onClick={() => handleLogout()} startContent={<IconLogout />} key="logout" className="text-danger" color="danger">
+                                    Logout
+                                </DropdownItem>
+                            </DropdownMenu>
+                        </Dropdown>
                     ) : (
                         <Button
                             startContent={<IconLogin />}
