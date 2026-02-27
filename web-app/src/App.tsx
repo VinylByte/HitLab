@@ -1,27 +1,15 @@
-import { useEffect, useState } from "react";
 import HeaderNav from "./components/elements/header/Header";
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router";
 import { Pages, ProtectedPages } from "./components/pages/Settings";
 import LoginPage from "./components/pages/LoginPage";
-import { useMantineColorScheme } from "@mantine/core";
 import { FooterSocial } from "./components/elements/Footer/Footer";
 import { useSession } from "./hooks/useSession";
-import { Center, Loader } from "@mantine/core";
-
-
-type Themes = "light" | "dark";
-
-
-function App() {
-    const [theme] = useState<Themes>("light");
-    const { setColorScheme } = useMantineColorScheme();
-
-    useEffect(() => {
-        setColorScheme(theme);
-    }, [theme, setColorScheme]);
+import { useAppTheme } from "./hooks/useAppTheme";
+import { Center, Loader } from "@mantine/core";function App() {
+    useAppTheme(); // Initialize theme hook
 
     return (
-        <main className={theme} style={{ height: "100%", width: "100%" }}>
+        <main style={{ height: "100%", width: "100%" }}>
             <Router />
         </main>
     );
