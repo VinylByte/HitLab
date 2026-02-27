@@ -1,67 +1,36 @@
 import { useState } from "react";
 import {
+    Button,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownTrigger,
+    Image,
+    Link,
     Navbar,
     NavbarBrand,
     NavbarContent,
-    NavbarMenuToggle,
+    NavbarItem,
     NavbarMenu,
     NavbarMenuItem,
-    NavbarItem,
-    Button,
-    Image,
-    Link
-} from "@heroui/react";
-
-import { Link as RouterLink, useLocation } from "react-router";
-    Link,
+    NavbarMenuToggle,
     User,
-    Dropdown,
-    DropdownTrigger,
-    DropdownMenu,
-    DropdownItem,
 } from "@heroui/react";
-
+import { Center } from "@mantine/core";
+import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
-import { Pages } from "../../pages/Settings";
-import { Center } from "@mantine/core";
-import { IconLogin } from "@tabler/icons-react";
-
-const Links = Pages.map((page) => ({ name: page.name, to: page.to }))
-
-
-export default function HeaderNav() {
-    const currentHref = useLocation().pathname;
-    const [expanded_nav, setExpanded_nav] = useState(false);
-
-    return (
-        <Navbar isBordered onMenuOpenChange={setExpanded_nav} isMenuOpen={expanded_nav} classNames={{
-            item: [
-            "flex",
-            "relative",
-            "h-full",
-            "items-center",
-            "data-[active=true]:after:content-['']",
-            "data-[active=true]:after:absolute",
-            "data-[active=true]:after:bottom-0",
-            "data-[active=true]:after:left-0",
-            "data-[active=true]:after:right-0",
-            "data-[active=true]:after:h-[2px]",
-            "data-[active=true]:after:rounded-[2px]",
-            "data-[active=true]:after:bg-primary",
-            ],
-        }}
-import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
 import supabase from "../../../supabase";
+import { Pages } from "../../pages/Settings";
 
-const Links = Pages.map(page => ({ name: page.name, to: page.to }));
+const links = Pages.map(page => ({ name: page.name, to: page.to }));
 
 export default function HeaderNav() {
     const currentHref = useLocation().pathname;
     const navigate = useNavigate();
-    const [expanded_nav, setExpanded_nav] = useState(false);
+    const [expandedNav, setExpandedNav] = useState(false);
     const session = useSession();
 
     const handleLogout = async () => {
@@ -72,8 +41,8 @@ export default function HeaderNav() {
     return (
         <Navbar
             isBordered
-            onMenuOpenChange={setExpanded_nav}
-            isMenuOpen={expanded_nav}
+            onMenuOpenChange={setExpandedNav}
+            isMenuOpen={expandedNav}
             classNames={{
                 item: [
                     "flex",
@@ -92,55 +61,24 @@ export default function HeaderNav() {
             }}
         >
             <NavbarMenuToggle
-                aria-label={expanded_nav ? "Close menu" : "Open menu"}
+                aria-label={expandedNav ? "Close menu" : "Open menu"}
                 className="sm:hidden"
             />
-            <NavbarBrand as={RouterLink} to="/" onClick={()=>setExpanded_nav(false)} className="flex items-center">
             <NavbarBrand
                 as={RouterLink}
                 to="/"
-                onClick={() => setExpanded_nav(false)}
+                onClick={() => setExpandedNav(false)}
                 className="flex items-center"
             >
-                <Image src={VinylLogo} alt="VinylByte Logo" className="w-10 h-10 mr-2" />
+                <Image
+                    src={VinylLogo}
+                    alt="VinylByte Logo"
+                    className="w-10 h-10 mr-2"
+                />
                 <p className="font-bold text-inherit text-xl">HitLab</p>
             </NavbarBrand>
             <NavbarMenu>
-                {Links.map(item => (
-                <NavbarMenuItem key={`${item.name}-${item.to}`} isActive={currentHref === item.to} className="pt-2 pb-2">
-                    <Link 
-                        as={RouterLink}
-                        className="w-full"
-                        to={item.to}
-                        size="lg"
-                        color={currentHref === item.to ? "primary" : "foreground"}
-                        onClick={()=>setExpanded_nav(false)}
-                    >       
-                        <Center w={"100vw"}>
-                            {item.name}
-                        </Center>
-                    </Link>
-                </NavbarMenuItem>
-                ))}
-            </NavbarMenu>
-            <NavbarContent className="hidden sm:flex gap-4" justify="center">
-                {
-                    Links.map((link) => (
-                        <NavbarItem isActive={currentHref === link.to} key={link.to}>
-                            <Link as={RouterLink} to={link.to} color={currentHref === link.to ? "primary" : "foreground"} className="w-30 h-15">
-                                <Center w={"100%"}>
-                                    <p className="text-md">{link.name}</p>
-                                </Center>
-                            </Link>
-                        </NavbarItem>
-                    ))
-                }
-            </NavbarContent>
-            <NavbarContent justify="end">
-                <NavbarItem>
-                    <Button startContent={<IconLogin />} as={RouterLink} color="primary" to={"/login"} variant="flat">
-                        <p className="text-md">Login</p>
-                    </Button>
+                {links.map(item => (
                     <NavbarMenuItem
                         key={`${item.name}-${item.to}`}
                         isActive={currentHref === item.to}
@@ -152,15 +90,15 @@ export default function HeaderNav() {
                             to={item.to}
                             size="lg"
                             color={currentHref === item.to ? "primary" : "foreground"}
-                            onClick={() => setExpanded_nav(false)}
+                            onClick={() => setExpandedNav(false)}
                         >
-                            <Center w={"100vw"}>{item.name}</Center>
+                            <Center w="100vw">{item.name}</Center>
                         </Link>
                     </NavbarMenuItem>
                 ))}
             </NavbarMenu>
             <NavbarContent className="hidden sm:flex gap-4" justify="center">
-                {Links.map(link => (
+                {links.map(link => (
                     <NavbarItem isActive={currentHref === link.to} key={link.to}>
                         <Link
                             as={RouterLink}
@@ -168,7 +106,7 @@ export default function HeaderNav() {
                             color={currentHref === link.to ? "primary" : "foreground"}
                             className="w-30 h-15"
                         >
-                            <Center w={"100%"}>
+                            <Center w="100%">
                                 <p className="text-md">{link.name}</p>
                             </Center>
                         </Link>
@@ -189,9 +127,17 @@ export default function HeaderNav() {
                                     className="hover:cursor-pointer hover:transition-transform hover:scale-95"
                                 />
                             </DropdownTrigger>
-                            <DropdownMenu aria-label="Static Actions" >
-                                <DropdownItem startContent={<IconUser />} key="account">Account</DropdownItem>
-                                <DropdownItem onClick={() => handleLogout()} startContent={<IconLogout />} key="logout" className="text-danger" color="danger">
+                            <DropdownMenu aria-label="User menu">
+                                <DropdownItem startContent={<IconUser />} key="account">
+                                    Account
+                                </DropdownItem>
+                                <DropdownItem
+                                    onClick={handleLogout}
+                                    startContent={<IconLogout />}
+                                    key="logout"
+                                    className="text-danger"
+                                    color="danger"
+                                >
                                     Logout
                                 </DropdownItem>
                             </DropdownMenu>
@@ -201,7 +147,7 @@ export default function HeaderNav() {
                             startContent={<IconLogin />}
                             as={RouterLink}
                             color="primary"
-                            to={"/login"}
+                            to="/login"
                             variant="flat"
                         >
                             <p className="text-md">Login</p>

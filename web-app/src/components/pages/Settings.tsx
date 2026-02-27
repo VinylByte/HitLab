@@ -6,11 +6,6 @@ export const Pages = [
     { name: "Decks", to: "/decks", page: <div>Other Decks</div>},
 ]
 
-export const Pages = [
-    { name: "Home", to: "/", page: <div className="h-170">Home</div> },
-    { name: "Decks", to: "/decks", page: <div>Other Decks</div> },
-];
-
 export const ProtectedPages = [
     { name: "Profile", to: "/profile", page: <div>Profile</div> },
     { name: "My Decks", to: "/mydecks", page: <div>My Decks</div> },
@@ -23,20 +18,15 @@ export const SOCIALS = [
         name: "Twitter",
         icon: <IconBrandTwitter size={18} stroke={1.5} />,
         url: "https://twitter.com/HitLabApp"
-        url: "https://twitter.com/HitLabApp",
     },
     {
         name: "YouTube",
         icon: <IconBrandYoutube size={18} stroke={1.5} />,
         url: "https://www.youtube.com/@HitLabApp"
-        url: "https://www.youtube.com/@HitLabApp",
     },
     {
         name: "Instagram",
         icon: <IconBrandInstagram size={18} stroke={1.5} />,
         url: "https://www.instagram.com/HitLabApp/"
     }
-]
-        url: "https://www.instagram.com/HitLabApp/",
-    },
 ];
