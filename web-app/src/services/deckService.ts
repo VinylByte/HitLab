@@ -56,6 +56,57 @@ export async function fetchPublicDecks(search_str: string, page: number): Promis
         cover_url: row.cover_url,
         created_at: row.created_at,
         owner: row.profiles ?? { display_name: null, avatar_url: null },
-        tags: (row.deck_tags ?? []).map((dt: { tags: DeckTag | null }) => dt.tags).filter((tag): tag is DeckTag => tag !== null),
+        tags: (row.deck_tags ?? [])
+            .map((dt: { tags: DeckTag | null }) => dt.tags)
+            .filter((tag): tag is DeckTag => tag !== null),
+    }));
+}
+
+type Song = {
+    id: string;
+    title: string;
+    artist: string;
+    year: number;
+    thumbnail_url: string | null;
+};
+
+type PublicDeckSongDTO = {
+    id: string;
+    deck_id: string;
+    song: Song;
+    card_note: string | null;
+    created_at: string;
+};
+
+export async function fetchPublicDeckSongs(publicDeckId: string): Promise<PublicDeckSongDTO[]> {
+    const { data, error } = await supabase
+        .from("deck_songs")
+        .select(
+            `
+        id,
+        deck_id,
+        songs!song_id ( id, title, artist, year, thumbnail_url ),
+        card_note,
+        created_at
+        `
+        )
+        .eq("deck_id", publicDeckId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    return (data ?? []).map(row => ({
+        id: row.id,
+        deck_id: row.deck_id,
+        song: {
+            id: row.songs.id,
+            title: row.songs.title,
+            artist: row.songs.artist,
+            year: row.songs.year,
+            thumbnail_url: row.songs.thumbnail_url,
+        },
+        card_note: row.card_note,
+        created_at: row.created_at,
     }));
 }

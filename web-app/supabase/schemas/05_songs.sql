@@ -4,7 +4,7 @@ create table public.songs (
   title             text not null,
   artist            text not null,
   album             text,
-  year              smallint,
+  year              smallint not null,
   thumbnail_url     text,
   duration_ms       integer,
   created_at        timestamptz not null default now(),

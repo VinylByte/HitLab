@@ -98,30 +98,30 @@ insert into public.songs (id, spotify_track_id, title, artist, album, year, thum
 on conflict (spotify_track_id) do nothing;
 
 -- ============================================================
--- 6. Deck songs (assign songs to decks with positions)
+-- 6. Deck songs (assign songs to decks)
 -- ============================================================
 -- 80s Classics
-insert into public.deck_songs (id, deck_id, song_id, position, card_note) values
-  ('ee000001-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dd000001-0000-0000-0000-000000000001', 1, 'The ultimate rickroll'),
-  ('ee000002-0000-0000-0000-000000000002', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dd000003-0000-0000-0000-000000000003', 2, 'Bless the rains'),
-  ('ee000003-0000-0000-0000-000000000003', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dd000005-0000-0000-0000-000000000005', 3, null),
-  ('ee000004-0000-0000-0000-000000000004', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dd000012-0000-0000-0000-000000000012', 4, 'Iconic music video')
+insert into public.deck_songs (id, deck_id, song_id, card_note) values
+  ('ee000001-0000-0000-0000-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dd000001-0000-0000-0000-000000000001', 'The ultimate rickroll'),
+  ('ee000002-0000-0000-0000-000000000002', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dd000003-0000-0000-0000-000000000003', 'Bless the rains'),
+  ('ee000003-0000-0000-0000-000000000003', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dd000005-0000-0000-0000-000000000005', null),
+  ('ee000004-0000-0000-0000-000000000004', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dd000012-0000-0000-0000-000000000012', 'Iconic music video')
 on conflict (deck_id, song_id) do nothing;
 
 -- 90s One Hit Wonders
-insert into public.deck_songs (id, deck_id, song_id, position, card_note) values
-  ('ee000005-0000-0000-0000-000000000005', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'dd000004-0000-0000-0000-000000000004', 1, 'Rolling Stones sample controversy'),
-  ('ee000006-0000-0000-0000-000000000006', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'dd000006-0000-0000-0000-000000000006', 2, 'Grunge anthem'),
-  ('ee000007-0000-0000-0000-000000000007', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'dd000002-0000-0000-0000-000000000002', 3, null)
+insert into public.deck_songs (id, deck_id, song_id, card_note) values
+  ('ee000005-0000-0000-0000-000000000005', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'dd000004-0000-0000-0000-000000000004', 'Rolling Stones sample controversy'),
+  ('ee000006-0000-0000-0000-000000000006', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'dd000006-0000-0000-0000-000000000006', 'Grunge anthem'),
+  ('ee000007-0000-0000-0000-000000000007', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'dd000002-0000-0000-0000-000000000002', null)
 on conflict (deck_id, song_id) do nothing;
 
 -- 2000s Party Mix
-insert into public.deck_songs (id, deck_id, song_id, position, card_note) values
-  ('ee000008-0000-0000-0000-000000000008', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000007-0000-0000-0000-000000000007', 1, null),
-  ('ee000009-0000-0000-0000-000000000009', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000008-0000-0000-0000-000000000008', 2, 'Iconic Britney'),
-  ('ee000010-0000-0000-0000-000000000010', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000009-0000-0000-0000-000000000009', 3, null),
-  ('ee000011-0000-0000-0000-000000000011', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000010-0000-0000-0000-000000000010', 4, 'Punk rock classic'),
-  ('ee000012-0000-0000-0000-000000000012', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000011-0000-0000-0000-000000000011', 5, 'Epic outro')
+insert into public.deck_songs (id, deck_id, song_id, card_note) values
+  ('ee000008-0000-0000-0000-000000000008', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000007-0000-0000-0000-000000000007', null),
+  ('ee000009-0000-0000-0000-000000000009', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000008-0000-0000-0000-000000000008', 'Iconic Britney'),
+  ('ee000010-0000-0000-0000-000000000010', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000009-0000-0000-0000-000000000009', null),
+  ('ee000011-0000-0000-0000-000000000011', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000010-0000-0000-0000-000000000010', 'Punk rock classic'),
+  ('ee000012-0000-0000-0000-000000000012', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'dd000011-0000-0000-0000-000000000011', 'Epic outro')
 on conflict (deck_id, song_id) do nothing;
 
 -- ============================================================
