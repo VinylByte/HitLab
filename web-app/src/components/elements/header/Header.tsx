@@ -3,14 +3,12 @@ import {
     Navbar,
     NavbarBrand,
     NavbarContent,
-    NavbarMenuToggle,
     NavbarMenu,
     NavbarMenuItem,
     NavbarItem,
     Button,
     Image,
     Link,
-    User,
     Dropdown,
     DropdownTrigger,
     DropdownMenu,
@@ -21,19 +19,17 @@ import {
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
-import { MOBILE_BREAKPOINT, Pages } from "../../pages/Settings";
+import { Pages } from "../../pages/Settings";
 import { Burger, Center } from "@mantine/core";
 import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
 import supabase from "../../../supabase";
-import { useMediaQuery } from "@mantine/hooks";
 
 const Links = Pages.map(page => ({ name: page.name, to: page.to }));
 
 export default function HeaderNav() {
     const currentHref = useLocation().pathname;
     const navigate = useNavigate();
-    const isMobile = useMediaQuery(MOBILE_BREAKPOINT)
     const [expanded_nav, setExpanded_nav] = useState(false);
     const session = useSession();
 
