@@ -15,7 +15,6 @@ import {
     DropdownTrigger,
     DropdownMenu,
     DropdownItem,
-    Divider,
 } from "@heroui/react";
 
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
