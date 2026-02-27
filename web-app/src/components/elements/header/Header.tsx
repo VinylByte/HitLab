@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
     Navbar,
     NavbarBrand,
@@ -20,19 +20,32 @@ import {
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
-import { Pages } from "../../pages/Settings";
+import { Pages, ProtectedPages } from "../../pages/Settings";
 import { Center } from "@mantine/core";
 import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
 import supabase from "../../../supabase";
-
-const Links = Pages.map(page => ({ name: page.name, to: page.to }));
 
 export default function HeaderNav() {
     const currentHref = useLocation().pathname;
     const navigate = useNavigate();
     const [expanded_nav, setExpanded_nav] = useState(false);
     const session = useSession();
+
+    const Links = useMemo(() => {
+        let pages = Pages.map(page => ({ name: page.name, to: page.to, location: page.location }));
+        if (session) {
+            pages = pages.concat(
+                ProtectedPages.map(page => ({
+                    name: page.name,
+                    to: page.to,
+                    location: page.location,
+                }))
+            );
+        }
+        pages = pages.filter(page => page.location === "header");
+        return pages;
+    }, [session]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -124,9 +137,22 @@ export default function HeaderNav() {
                                     className="hover:cursor-pointer hover:transition-transform hover:scale-95"
                                 />
                             </DropdownTrigger>
-                            <DropdownMenu aria-label="Static Actions" >
-                                <DropdownItem startContent={<IconUser />} key="account">Account</DropdownItem>
-                                <DropdownItem onClick={() => handleLogout()} startContent={<IconLogout />} key="logout" className="text-danger" color="danger">
+                            <DropdownMenu aria-label="Static Actions">
+                                <DropdownItem
+                                    as={RouterLink}
+                                    {...{ to: "/profile" }}
+                                    startContent={<IconUser />}
+                                    key="account"
+                                >
+                                    Account
+                                </DropdownItem>
+                                <DropdownItem
+                                    onClick={() => handleLogout()}
+                                    startContent={<IconLogout />}
+                                    key="logout"
+                                    className="text-danger"
+                                    color="danger"
+                                >
                                     Logout
                                 </DropdownItem>
                             </DropdownMenu>
