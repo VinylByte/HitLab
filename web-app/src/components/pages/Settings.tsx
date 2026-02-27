@@ -2,7 +2,7 @@ import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/
 import HomePage from "./HomePage/HomePage";
 
 export const Pages = [
-    { name: "Home", to: "/", location: "header", page: <div className="h-170">Home</div> },
+    { name: "Home", to: "/", location: "header", page: <HomePage /> },
     { name: "Decks", to: "/decks", location: "header", page: <div>Other Decks</div> },
 ];
 

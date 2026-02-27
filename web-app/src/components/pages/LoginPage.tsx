@@ -21,7 +21,7 @@ const SPOTIFY_SCOPES = [
 export default function LoginPage() {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const session = useSession();
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(false);
 
     // Already logged in — redirect to home
     if (session) {
@@ -41,7 +41,13 @@ export default function LoginPage() {
     return (
         <div>
             <Center style={{ height: "100vh" }}>
-                <Paper shadow={isMobile ? "" : "md"} p="xl" withBorder={!isMobile} radius={"lg"} maw={{base:"100%", md:"50%"}}>
+                <Paper
+                    shadow={isMobile ? "" : "md"}
+                    p="xl"
+                    withBorder={!isMobile}
+                    radius={"lg"}
+                    maw={{ base: "100%", md: "50%" }}
+                >
                     <Stack>
                         <Center ml={-20} mb={10}>
                             <Group>
@@ -53,19 +59,20 @@ export default function LoginPage() {
                                 <Title order={2}>HitLab</Title>
                             </Group>
                         </Center>
-
                         <Alert color="warning">
-                            Für die Nutzung unseres Services ist ein Spotify-Premium-Konto erforderlich, da dieser die Spotify API nutzt um Informationen über die Songs und Playlists zu erhalten.
+                            Für die Nutzung unseres Services ist ein Spotify-Premium-Konto
+                            erforderlich, da dieser die Spotify API nutzt um Informationen über die
+                            Songs und Playlists zu erhalten.
                         </Alert>
                         <Button
                             className={"w-full"}
-                            startContent={loading?null:<IconBrandSpotify />}
+                            startContent={loading ? null : <IconBrandSpotify />}
                             color="success"
                             variant="flat"
                             size="lg"
-                            onPress={()=>{
-                                setLoading(true)
-                                signInWithSpotify().then(()=>(setLoading(false)))
+                            onPress={() => {
+                                setLoading(true);
+                                signInWithSpotify().then(() => setLoading(false));
                             }}
                             isLoading={loading}
                         >
