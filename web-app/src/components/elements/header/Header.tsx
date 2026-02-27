@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
     Navbar,
     NavbarBrand,
@@ -20,15 +20,13 @@ import {
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
-import { MOBILE_BREAKPOINT, Pages } from "../../pages/Settings";
+import { Pages, ProtectedPages } from "../../pages/Settings";
 import { Center } from "@mantine/core";
 import { IconLogin, IconLogout, IconUser, IconMoon, IconSun } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
 import { useAppTheme } from "../../../hooks/useAppTheme";
 import supabase from "../../../supabase";
 import { useMediaQuery } from "@mantine/hooks";
-
-const Links = Pages.map(page => ({ name: page.name, to: page.to }));
 
 export default function HeaderNav() {
     const currentHref = useLocation().pathname;
@@ -37,6 +35,21 @@ export default function HeaderNav() {
     const session = useSession();
     const { theme, toggleTheme } = useAppTheme();
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT)
+
+    const Links = useMemo(() => {
+        let pages = Pages.map(page => ({ name: page.name, to: page.to, location: page.location }));
+        if (session) {
+            pages = pages.concat(
+                ProtectedPages.map(page => ({
+                    name: page.name,
+                    to: page.to,
+                    location: page.location,
+                }))
+            );
+        }
+        pages = pages.filter(page => page.location === "header");
+        return pages;
+    }, [session]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -140,7 +153,7 @@ export default function HeaderNav() {
                                     className="hover:cursor-pointer hover:transition-transform hover:scale-95"
                                 />
                             </DropdownTrigger>
-                            <DropdownMenu aria-label="User menu" >
+                            <DropdownMenu aria-label="Static Actions">
                                 <DropdownItem startContent={theme === 'light' ? <IconMoon size={20} /> : <IconSun size={20} />} key="theme-toggle" onClick={toggleTheme}>Theme ändern</DropdownItem>
                                 <DropdownItem startContent={<IconUser />} key="account" showDivider>Account</DropdownItem>
                                 <DropdownItem onClick={() => handleLogout()} startContent={<IconLogout />} key="logout" className="text-danger" color="danger">
