@@ -3,25 +3,24 @@ import {
     Navbar,
     NavbarBrand,
     NavbarContent,
-    NavbarMenuToggle,
     NavbarMenu,
     NavbarMenuItem,
     NavbarItem,
     Button,
     Image,
     Link,
-    User,
     Dropdown,
     DropdownTrigger,
     DropdownMenu,
     DropdownItem,
+    Avatar,
 } from "@heroui/react";
 
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
 import { Pages, ProtectedPages } from "../../pages/Settings";
-import { Center } from "@mantine/core";
+import { Burger, Center } from "@mantine/core";
 import { IconLogin, IconLogout, IconUser, IconMoon, IconSun } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
 import { useAppTheme } from "../../../hooks/useAppTheme";
@@ -78,10 +77,7 @@ export default function HeaderNav() {
                 ],
             }}
         >
-            <NavbarMenuToggle
-                aria-label={expanded_nav ? "Close menu" : "Open menu"}
-                className="sm:hidden"
-            />
+            <Burger opened={expanded_nav} onClick={()=>setExpanded_nav(!expanded_nav)}/>
             <NavbarBrand
                 as={RouterLink}
                 to="/"
@@ -144,14 +140,7 @@ export default function HeaderNav() {
                     {session ? (
                         <Dropdown>
                             <DropdownTrigger>
-                                <User
-                                    name={session.user.user_metadata.full_name}
-                                    description={session.user.email}
-                                    avatarProps={{
-                                        src: session.user.user_metadata.avatar_url,
-                                    }}
-                                    className="hover:cursor-pointer hover:transition-transform hover:scale-95"
-                                />
+                                <Avatar src={session.user.user_metadata.avatar_url} className="hover:cursor-pointer hover:transition-transform hover:scale-95"/>
                             </DropdownTrigger>
                             <DropdownMenu aria-label="Static Actions">
                                 <DropdownItem startContent={theme === 'light' ? <IconMoon size={20} /> : <IconSun size={20} />} key="theme-toggle" onClick={toggleTheme}>Theme ändern</DropdownItem>

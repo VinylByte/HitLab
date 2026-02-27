@@ -1,5 +1,5 @@
-import { Button, Image } from "@heroui/react";
-import { Center, Group, Paper, Stack } from "@mantine/core";
+import { Alert, Button, Image } from "@heroui/react";
+import { Center, Group, Paper, Stack, Title } from "@mantine/core";
 import VinylLogo from "../../assets/VinylByteLogo.svg";
 import { IconBrandSpotify } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
@@ -7,6 +7,7 @@ import { MOBILE_BREAKPOINT } from "./Settings";
 import supabase from "../../supabase";
 import { useSession } from "../../hooks/useSession";
 import { Navigate } from "react-router";
+import { useState } from "react";
 
 const SPOTIFY_SCOPES = [
     "user-read-email",
@@ -20,6 +21,7 @@ const SPOTIFY_SCOPES = [
 export default function LoginPage() {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const session = useSession();
+    const [loading, setLoading] = useState(false)
 
     // Already logged in — redirect to home
     if (session) {
@@ -39,27 +41,35 @@ export default function LoginPage() {
     return (
         <div>
             <Center style={{ height: "100vh" }}>
-                <Paper shadow={isMobile ? "" : "md"} p="xl" withBorder={!isMobile} radius={"lg"}>
+                <Paper shadow={isMobile ? "" : "md"} p="xl" withBorder={!isMobile} radius={"lg"} maw={{base:"100%", md:"50%"}}>
                     <Stack>
-                        <Center ml={-20}>
+                        <Center ml={-20} mb={10}>
                             <Group>
                                 <Image
                                     src={VinylLogo}
                                     alt="VinylByte Logo"
-                                    className="w-10 h-10 mr-2"
+                                    className="w-12 h-12 mr-2"
                                 />
-                                <p className="font-bold text-inherit text-xl">HitLab</p>
+                                <Title order={2}>HitLab</Title>
                             </Group>
                         </Center>
+
+                        <Alert color="warning">
+                            Für die Nutzung unseres Services ist ein Spotify-Premium-Konto erforderlich, da dieser die Spotify API nutzt um Informationen über die Songs und Playlists zu erhalten.
+                        </Alert>
                         <Button
-                            className={isMobile ? "w-80" : "w-100"}
-                            startContent={<IconBrandSpotify />}
+                            className={"w-full"}
+                            startContent={loading?null:<IconBrandSpotify />}
                             color="success"
                             variant="flat"
                             size="lg"
-                            onPress={signInWithSpotify}
+                            onPress={()=>{
+                                setLoading(true)
+                                signInWithSpotify().then(()=>(setLoading(false)))
+                            }}
+                            isLoading={loading}
                         >
-                            Login with Spotify
+                            Anmelden mit Spotify
                         </Button>
                     </Stack>
                 </Paper>
