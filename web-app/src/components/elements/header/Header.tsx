@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
     Button,
     Dropdown,
@@ -10,28 +10,53 @@ import {
     Navbar,
     NavbarBrand,
     NavbarContent,
-    NavbarItem,
     NavbarMenu,
     NavbarMenuItem,
-    NavbarMenuToggle,
-    User,
+    NavbarItem,
+    Button,
+    Image,
+    Link,
+    Dropdown,
+    DropdownTrigger,
+    DropdownMenu,
+    DropdownItem,
+    Avatar,
 } from "@heroui/react";
 import { Center } from "@mantine/core";
 import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
+import { Pages, ProtectedPages, MOBILE_BREAKPOINT } from "../../pages/Settings";
+import { Burger, Center } from "@mantine/core";
+import { IconLogin, IconLogout, IconUser, IconMoon, IconSun } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import supabase from "../../../supabase";
-import { Pages } from "../../pages/Settings";
-
-const links = Pages.map(page => ({ name: page.name, to: page.to }));
+import { useMediaQuery } from "@mantine/hooks";
 
 export default function HeaderNav() {
     const currentHref = useLocation().pathname;
     const navigate = useNavigate();
     const [expandedNav, setExpandedNav] = useState(false);
     const session = useSession();
+    const { theme, toggleTheme } = useAppTheme();
+    const isMobile = useMediaQuery(MOBILE_BREAKPOINT)
+
+    const Links = useMemo(() => {
+        let pages = Pages.map(page => ({ name: page.name, to: page.to, location: page.location }));
+        if (session) {
+            pages = pages.concat(
+                ProtectedPages.map(page => ({
+                    name: page.name,
+                    to: page.to,
+                    location: page.location,
+                }))
+            );
+        }
+        pages = pages.filter(page => page.location === "header");
+        return pages;
+    }, [session]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -60,22 +85,15 @@ export default function HeaderNav() {
                 ],
             }}
         >
-            <NavbarMenuToggle
-                aria-label={expandedNav ? "Close menu" : "Open menu"}
-                className="sm:hidden"
-            />
+            <Burger opened={expanded_nav} onClick={()=>setExpanded_nav(!expanded_nav)}/>
             <NavbarBrand
                 as={RouterLink}
                 to="/"
                 onClick={() => setExpandedNav(false)}
                 className="flex items-center"
             >
-                <Image
-                    src={VinylLogo}
-                    alt="VinylByte Logo"
-                    className="w-10 h-10 mr-2"
-                />
-                <p className="font-bold text-inherit text-xl">HitLab</p>
+                <Image src={VinylLogo} alt="VinylByte Logo" className="w-10 h-10 mr-2" />
+                {!isMobile && <p className="font-bold text-inherit text-xl">HitLab</p>}
             </NavbarBrand>
             <NavbarMenu>
                 {links.map(item => (
@@ -114,30 +132,28 @@ export default function HeaderNav() {
                 ))}
             </NavbarContent>
             <NavbarContent justify="end">
+                {!session && (
+                    <NavbarItem>
+                    <Button
+                        isIconOnly
+                        variant="light"
+                        onPress={toggleTheme}
+                        title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+                    >
+                        {theme === 'light' ? <IconMoon size={20} /> : <IconSun size={20} />}
+                    </Button>
+                </NavbarItem>
+                )}
                 <NavbarItem>
                     {session ? (
                         <Dropdown>
                             <DropdownTrigger>
-                                <User
-                                    name={session.user.user_metadata.full_name}
-                                    description={session.user.email}
-                                    avatarProps={{
-                                        src: session.user.user_metadata.avatar_url,
-                                    }}
-                                    className="hover:cursor-pointer hover:transition-transform hover:scale-95"
-                                />
+                                <Avatar src={session.user.user_metadata.avatar_url} className="hover:cursor-pointer hover:transition-transform hover:scale-95"/>
                             </DropdownTrigger>
-                            <DropdownMenu aria-label="User menu">
-                                <DropdownItem startContent={<IconUser />} key="account">
-                                    Account
-                                </DropdownItem>
-                                <DropdownItem
-                                    onClick={handleLogout}
-                                    startContent={<IconLogout />}
-                                    key="logout"
-                                    className="text-danger"
-                                    color="danger"
-                                >
+                            <DropdownMenu aria-label="Static Actions">
+                                <DropdownItem startContent={theme === 'light' ? <IconMoon size={20} /> : <IconSun size={20} />} key="theme-toggle" onClick={toggleTheme}>Theme ändern</DropdownItem>
+                                <DropdownItem startContent={<IconUser />} key="account" showDivider>Account</DropdownItem>
+                                <DropdownItem onClick={() => handleLogout()} startContent={<IconLogout />} key="logout" className="text-danger" color="danger">
                                     Logout
                                 </DropdownItem>
                             </DropdownMenu>
