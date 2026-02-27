@@ -1,7 +1,9 @@
 import HeaderNav from "./components/elements/header/Header";
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router";
 import { Pages, ProtectedPages } from "./components/pages/Settings";
-import LoginPage from "./components/pages/LoginPage";
+import LoginPage from "./components/pages/Authentication/LoginPage";
+//import SignUpPage from "./components/pages/Authentication/SignUpPage";
+import { useMantineColorScheme } from "@mantine/core";
 import { FooterSocial } from "./components/elements/Footer/Footer";
 import { useSession } from "./hooks/useSession";
 import { useAppTheme } from "./hooks/useAppTheme";
@@ -57,15 +59,24 @@ function Router() {
             <Routes>
                 <Route element={<Layout />}>
                     {Pages.map(page => (
-                        <Route key={page.to} path={page.to} element={page.page} />
+                        <Route
+                            key={page.to}
+                            path={page.to}
+                            element={page.page}
+                        />
                     ))}
                     <Route element={<ProtectedRoute />}>
                         {ProtectedPages.map(page => (
-                            <Route key={page.to} path={page.to} element={page.page} />
+                            <Route
+                                key={page.to}
+                                path={page.to}
+                                element={page.page}
+                            />
                         ))}
                     </Route>
                 </Route>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<LoginPage />} />
             </Routes>
         </BrowserRouter>
     );

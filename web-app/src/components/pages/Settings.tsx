@@ -1,4 +1,5 @@
 import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/icons-react";
+import HomePage from "./HomePage/HomePage";
 
 export const Pages = [
     { name: "Home", to: "/", location: "header", page: <div className="h-170">Home</div> },
@@ -16,16 +17,16 @@ export const SOCIALS = [
     {
         name: "Twitter",
         icon: <IconBrandTwitter size={18} stroke={1.5} />,
-        url: "https://twitter.com/HitLabApp",
+        url: "https://twitter.com/HitLabApp"
     },
     {
         name: "YouTube",
         icon: <IconBrandYoutube size={18} stroke={1.5} />,
-        url: "https://www.youtube.com/@HitLabApp",
+        url: "https://www.youtube.com/@HitLabApp"
     },
     {
         name: "Instagram",
         icon: <IconBrandInstagram size={18} stroke={1.5} />,
-        url: "https://www.instagram.com/HitLabApp/",
-    },
+        url: "https://www.instagram.com/HitLabApp/"
+    }
 ];

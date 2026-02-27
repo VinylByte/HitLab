@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
 import {
+    Button,
+    Dropdown,
+    DropdownItem,
+    DropdownMenu,
+    DropdownTrigger,
+    Image,
+    Link,
     Navbar,
     NavbarBrand,
     NavbarContent,
@@ -15,11 +22,12 @@ import {
     DropdownItem,
     Avatar,
 } from "@heroui/react";
-
+import { Center } from "@mantine/core";
+import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
-import { Pages, ProtectedPages } from "../../pages/Settings";
+import { Pages, ProtectedPages, MOBILE_BREAKPOINT } from "../../pages/Settings";
 import { Burger, Center } from "@mantine/core";
 import { IconLogin, IconLogout, IconUser, IconMoon, IconSun } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
@@ -30,7 +38,7 @@ import { useMediaQuery } from "@mantine/hooks";
 export default function HeaderNav() {
     const currentHref = useLocation().pathname;
     const navigate = useNavigate();
-    const [expanded_nav, setExpanded_nav] = useState(false);
+    const [expandedNav, setExpandedNav] = useState(false);
     const session = useSession();
     const { theme, toggleTheme } = useAppTheme();
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT)
@@ -58,8 +66,8 @@ export default function HeaderNav() {
     return (
         <Navbar
             isBordered
-            onMenuOpenChange={setExpanded_nav}
-            isMenuOpen={expanded_nav}
+            onMenuOpenChange={setExpandedNav}
+            isMenuOpen={expandedNav}
             classNames={{
                 item: [
                     "flex",
@@ -81,14 +89,14 @@ export default function HeaderNav() {
             <NavbarBrand
                 as={RouterLink}
                 to="/"
-                onClick={() => setExpanded_nav(false)}
+                onClick={() => setExpandedNav(false)}
                 className="flex items-center"
             >
                 <Image src={VinylLogo} alt="VinylByte Logo" className="w-10 h-10 mr-2" />
                 {!isMobile && <p className="font-bold text-inherit text-xl">HitLab</p>}
             </NavbarBrand>
             <NavbarMenu>
-                {Links.map(item => (
+                {links.map(item => (
                     <NavbarMenuItem
                         key={`${item.name}-${item.to}`}
                         isActive={currentHref === item.to}
@@ -100,15 +108,15 @@ export default function HeaderNav() {
                             to={item.to}
                             size="lg"
                             color={currentHref === item.to ? "primary" : "foreground"}
-                            onClick={() => setExpanded_nav(false)}
+                            onClick={() => setExpandedNav(false)}
                         >
-                            <Center w={"100vw"}>{item.name}</Center>
+                            <Center w="100vw">{item.name}</Center>
                         </Link>
                     </NavbarMenuItem>
                 ))}
             </NavbarMenu>
             <NavbarContent className="hidden sm:flex gap-4" justify="center">
-                {Links.map(link => (
+                {links.map(link => (
                     <NavbarItem isActive={currentHref === link.to} key={link.to}>
                         <Link
                             as={RouterLink}
@@ -116,7 +124,7 @@ export default function HeaderNav() {
                             color={currentHref === link.to ? "primary" : "foreground"}
                             className="w-30 h-15"
                         >
-                            <Center w={"100%"}>
+                            <Center w="100%">
                                 <p className="text-md">{link.name}</p>
                             </Center>
                         </Link>
@@ -155,7 +163,7 @@ export default function HeaderNav() {
                             startContent={<IconLogin />}
                             as={RouterLink}
                             color="primary"
-                            to={"/login"}
+                            to="/login"
                             variant="flat"
                         >
                             <p className="text-md">Login</p>
