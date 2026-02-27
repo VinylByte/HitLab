@@ -22,15 +22,19 @@ import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
 import { Pages, ProtectedPages } from "../../pages/Settings";
 import { Center } from "@mantine/core";
-import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react";
+import { IconLogin, IconLogout, IconUser, IconMoon, IconSun } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
+import { useAppTheme } from "../../../hooks/useAppTheme";
 import supabase from "../../../supabase";
+import { useMediaQuery } from "@mantine/hooks";
 
 export default function HeaderNav() {
     const currentHref = useLocation().pathname;
     const navigate = useNavigate();
     const [expanded_nav, setExpanded_nav] = useState(false);
     const session = useSession();
+    const { theme, toggleTheme } = useAppTheme();
+    const isMobile = useMediaQuery(MOBILE_BREAKPOINT)
 
     const Links = useMemo(() => {
         let pages = Pages.map(page => ({ name: page.name, to: page.to, location: page.location }));
@@ -85,7 +89,7 @@ export default function HeaderNav() {
                 className="flex items-center"
             >
                 <Image src={VinylLogo} alt="VinylByte Logo" className="w-10 h-10 mr-2" />
-                <p className="font-bold text-inherit text-xl">HitLab</p>
+                {!isMobile && <p className="font-bold text-inherit text-xl">HitLab</p>}
             </NavbarBrand>
             <NavbarMenu>
                 {Links.map(item => (
@@ -124,6 +128,18 @@ export default function HeaderNav() {
                 ))}
             </NavbarContent>
             <NavbarContent justify="end">
+                {!session && (
+                    <NavbarItem>
+                    <Button
+                        isIconOnly
+                        variant="light"
+                        onPress={toggleTheme}
+                        title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+                    >
+                        {theme === 'light' ? <IconMoon size={20} /> : <IconSun size={20} />}
+                    </Button>
+                </NavbarItem>
+                )}
                 <NavbarItem>
                     {session ? (
                         <Dropdown>
@@ -138,21 +154,9 @@ export default function HeaderNav() {
                                 />
                             </DropdownTrigger>
                             <DropdownMenu aria-label="Static Actions">
-                                <DropdownItem
-                                    as={RouterLink}
-                                    {...{ to: "/profile" }}
-                                    startContent={<IconUser />}
-                                    key="account"
-                                >
-                                    Account
-                                </DropdownItem>
-                                <DropdownItem
-                                    onClick={() => handleLogout()}
-                                    startContent={<IconLogout />}
-                                    key="logout"
-                                    className="text-danger"
-                                    color="danger"
-                                >
+                                <DropdownItem startContent={theme === 'light' ? <IconMoon size={20} /> : <IconSun size={20} />} key="theme-toggle" onClick={toggleTheme}>Theme ändern</DropdownItem>
+                                <DropdownItem startContent={<IconUser />} key="account" showDivider>Account</DropdownItem>
+                                <DropdownItem onClick={() => handleLogout()} startContent={<IconLogout />} key="logout" className="text-danger" color="danger">
                                     Logout
                                 </DropdownItem>
                             </DropdownMenu>
