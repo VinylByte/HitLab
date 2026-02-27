@@ -15,22 +15,25 @@ import {
     DropdownTrigger,
     DropdownMenu,
     DropdownItem,
+    Avatar,
 } from "@heroui/react";
 
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
 import VinylLogo from "../../../assets/VinylByteLogo.svg";
-import { Pages } from "../../pages/Settings";
-import { Center } from "@mantine/core";
+import { MOBILE_BREAKPOINT, Pages } from "../../pages/Settings";
+import { Burger, Center } from "@mantine/core";
 import { IconLogin, IconLogout, IconUser } from "@tabler/icons-react";
 import { useSession } from "../../../hooks/useSession";
 import supabase from "../../../supabase";
+import { useMediaQuery } from "@mantine/hooks";
 
 const Links = Pages.map(page => ({ name: page.name, to: page.to }));
 
 export default function HeaderNav() {
     const currentHref = useLocation().pathname;
     const navigate = useNavigate();
+    const isMobile = useMediaQuery(MOBILE_BREAKPOINT)
     const [expanded_nav, setExpanded_nav] = useState(false);
     const session = useSession();
 
@@ -61,10 +64,7 @@ export default function HeaderNav() {
                 ],
             }}
         >
-            <NavbarMenuToggle
-                aria-label={expanded_nav ? "Close menu" : "Open menu"}
-                className="sm:hidden"
-            />
+            <Burger opened={expanded_nav} onClick={()=>setExpanded_nav(!expanded_nav)}/>
             <NavbarBrand
                 as={RouterLink}
                 to="/"
@@ -115,18 +115,19 @@ export default function HeaderNav() {
                     {session ? (
                         <Dropdown>
                             <DropdownTrigger>
-                                <User
-                                    name={session.user.user_metadata.full_name}
-                                    description={session.user.email}
-                                    avatarProps={{
-                                        src: session.user.user_metadata.avatar_url,
-                                    }}
-                                    className="hover:cursor-pointer hover:transition-transform hover:scale-95"
-                                />
+                                <Avatar src={session.user.user_metadata.avatar_url} className="hover:cursor-pointer hover:transition-transform hover:scale-95"/>
                             </DropdownTrigger>
-                            <DropdownMenu aria-label="Static Actions" >
-                                <DropdownItem startContent={<IconUser />} key="account">Account</DropdownItem>
-                                <DropdownItem onClick={() => handleLogout()} startContent={<IconLogout />} key="logout" className="text-danger" color="danger">
+                            <DropdownMenu aria-label="Static Actions">
+                                <DropdownItem startContent={<IconUser />} key="account">
+                                    Account
+                                </DropdownItem>
+                                <DropdownItem
+                                    onClick={() => handleLogout()}
+                                    startContent={<IconLogout />}
+                                    key="logout"
+                                    className="text-danger"
+                                    color="danger"
+                                >
                                     Logout
                                 </DropdownItem>
                             </DropdownMenu>
