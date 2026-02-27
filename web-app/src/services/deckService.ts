@@ -27,7 +27,7 @@ export type PublicDeckDTO = {
  * Fetches all public, non-deleted decks with owner profile and tags.
  * Flattens the nested Supabase response into a clean PublicDeckDTO[].
  */
-export async function fetchPublicDecks(): Promise<PublicDeckDTO[]> {
+export async function fetchPublicDecks(search_str: string, page: number): Promise<PublicDeckDTO[]> {
     const { data, error } = await supabase
         .from("decks")
         .select(
@@ -43,7 +43,9 @@ export async function fetchPublicDecks(): Promise<PublicDeckDTO[]> {
         )
         .eq("visibility", "public")
         .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+        .ilike("name", "%" + search_str + "%")
+        .order("created_at", { ascending: false })
+        .range((page - 1) * 12, page * 12 - 1);
 
     if (error) throw error;
 
@@ -54,8 +56,6 @@ export async function fetchPublicDecks(): Promise<PublicDeckDTO[]> {
         cover_url: row.cover_url,
         created_at: row.created_at,
         owner: row.profiles ?? { display_name: null, avatar_url: null },
-        tags: (row.deck_tags ?? [])
-            .map((dt: { tags: DeckTag | null }) => dt.tags)
-            .filter((tag): tag is DeckTag => tag !== null),
+        tags: (row.deck_tags ?? []).map((dt: { tags: DeckTag | null }) => dt.tags).filter((tag): tag is DeckTag => tag !== null),
     }));
 }
