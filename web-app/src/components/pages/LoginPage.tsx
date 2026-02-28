@@ -1,12 +1,12 @@
 import { Alert, Button, Image } from "@heroui/react";
 import { Center, Group, Paper, Stack, Title } from "@mantine/core";
 import VinylLogo from "../../assets/VinylByteLogo.svg";
-import { IconBrandSpotify } from "@tabler/icons-react";
+import { IconArrowLeft, IconBrandSpotify } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "./Settings";
 import supabase from "../../supabase";
 import { useSession } from "../../hooks/useSession";
-import { Navigate } from "react-router";
+import { Link, Navigate } from "react-router";
 import { useState } from "react";
 
 const SPOTIFY_SCOPES = [
@@ -40,6 +40,16 @@ export default function LoginPage() {
 
     return (
         <div>
+            <div style={{ position: "absolute", top: "1rem", left: "1rem" }}>
+                <Button
+                    as={Link}
+                    to="/"
+                    variant="light"
+                    startContent={<IconArrowLeft />}
+                >
+                    Zurück zur Startseite
+                </Button>
+            </div>
             <Center style={{ height: "100vh" }}>
                 <Paper
                     shadow={isMobile ? "" : "md"}
