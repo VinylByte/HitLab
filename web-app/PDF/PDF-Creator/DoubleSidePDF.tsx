@@ -4,14 +4,13 @@ import { DoublePageStyles } from "../PDF-Template/Templates";
 import { CardFrontPage, CardBackPage } from "../PDF-Template/PageComponents";
 
 // Spiegeln an der langen Seite (Long-Edge / Buch-Bindung)
-// Die gesamte Reihenfolge wird umgekehrt UND jede Reihe wird umgekehrt
+// Bei Long-Edge wird das Papier vertikal umgedreht (wie ein Buch)
+// Jede Zeile muss horizontal gespiegelt werden
 const flipForLongEdgeBinding = (array: any[], size: number) => {
-    // Zuerst umkehren
-    const reversed = array.reverse();
-    // Dann jede Reihe innerhalb umkehren
     const chunks = [];
-    for (let i = 0; i < reversed.length; i += size) {
-        chunks.push(...reversed.slice(i, i + size).reverse());
+    for (let i = 0; i < array.length; i += size) {
+        // Jede Zeile (Chunk) wird umgekehrt
+        chunks.push(...array.slice(i, i + size).reverse());
     }
     return chunks;
 };

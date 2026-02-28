@@ -3,6 +3,8 @@ import { Document, Page, View } from "@react-pdf/renderer";
 import type { Card } from "../PDF-Template/PageComponents";
 import { CardFront, CardBack, CardFrontPage, CardBackPage } from "../PDF-Template/PageComponents";
 import { OnePageStyles, DoublePageStyles } from "../PDF-Template/Templates";
+import type { BackgroundConfig } from "../PDF-Template/BackgroundConfig";
+import { createBackgroundStyle } from "../PDF-Template/BackgroundConfig";
 
 // Typen für die verschiedenen PDF-Varianten
 export type PDFType = "one-sided" | "double-sided";
@@ -12,6 +14,8 @@ export interface PDFFactoryProps {
     cards: Card[];
     type: PDFType;
     bindingMode?: BindingMode; // Nur relevant für double-sided
+    frontBackground?: BackgroundConfig; // Hintergrund für Vorderseiten
+    backBackground?: BackgroundConfig; // Hintergrund für Rückseiten
 }
 
 // Hilfsfunktion: Teilt das Array in Blöcke
@@ -24,11 +28,13 @@ const createChunks = (array: Card[], size: number): Card[][] => {
 };
 
 // Spiegeln an der langen Seite (Long-Edge / Buch-Bindung)
+// Bei Long-Edge wird das Papier vertikal umgedreht (wie ein Buch)
+// Jede Zeile muss horizontal gespiegelt werden
 const flipForLongEdgeBinding = (array: Card[], size: number): Card[] => {
-    const reversed = [...array].reverse();
     const chunks = [];
-    for (let i = 0; i < reversed.length; i += size) {
-        chunks.push(...reversed.slice(i, i + size).reverse());
+    for (let i = 0; i < array.length; i += size) {
+        // Jede Zeile (Chunk) wird umgekehrt
+        chunks.push(...array.slice(i, i + size).reverse());
     }
     return chunks;
 };
@@ -40,26 +46,50 @@ const flipForLongEdgeBinding = (array: Card[], size: number): Card[] => {
  * @param cards - Array von Karten-Daten
  * @param type - "one-sided" für Faltkarten, "double-sided" für beidseitigen Druck
  * @param bindingMode - "short-edge" oder "long-edge" (nur für double-sided)
+ * @param frontBackground - Hintergrund-Konfiguration für Vorderseiten
+ * @param backBackground - Hintergrund-Konfiguration für Rückseiten
  */
-export const PDFFactory = ({ cards, type, bindingMode = "long-edge" }: PDFFactoryProps) => {
+export const PDFFactory = ({
+    cards,
+    type,
+    bindingMode = "long-edge",
+    frontBackground,
+    backBackground,
+}: PDFFactoryProps) => {
     // ONE-SIDED: Faltkarten auf einem Blatt
     if (type === "one-sided") {
         return (
             <Document>
                 <Page size="A4" style={OnePageStyles.page}>
                     <View style={OnePageStyles.grid}>
-                        {cards.map((card, index) => (
-                            <View key={index} style={OnePageStyles.cardContainer}>
-                                {/* Obere Hälfte: Vorderseite */}
-                                <View style={OnePageStyles.frontSide}>
-                                    <CardFront card={card} styles={OnePageStyles} />
+                        {cards.map((card, index) => {
+                            // Nutze kartenspezifischen Hintergrund, falls vorhanden, sonst den globalen
+                            const cardFrontBg = card.frontBackground ?? frontBackground;
+                            const cardBackBg = card.backBackground ?? backBackground;
+                            const frontBgStyle = createBackgroundStyle(cardFrontBg);
+                            const backBgStyle = createBackgroundStyle(cardBackBg);
+
+                            return (
+                                <View key={index} style={OnePageStyles.cardContainer}>
+                                    {/* Obere Hälfte: Vorderseite */}
+                                    <View style={[OnePageStyles.frontSide, frontBgStyle]}>
+                                        <CardFront
+                                            card={card}
+                                            styles={OnePageStyles}
+                                            background={cardFrontBg}
+                                        />
+                                    </View>
+                                    {/* Untere Hälfte: Rückseite (wird umgeknickt) */}
+                                    <View style={[OnePageStyles.backSide, backBgStyle]}>
+                                        <CardBack
+                                            card={card}
+                                            styles={OnePageStyles}
+                                            background={cardBackBg}
+                                        />
+                                    </View>
                                 </View>
-                                {/* Untere Hälfte: Rückseite (wird umgeknickt) */}
-                                <View style={OnePageStyles.backSide}>
-                                    <CardBack card={card} styles={OnePageStyles} />
-                                </View>
-                            </View>
-                        ))}
+                            );
+                        })}
                     </View>
                 </Page>
             </Document>
@@ -86,6 +116,7 @@ export const PDFFactory = ({ cards, type, bindingMode = "long-edge" }: PDFFactor
                             cards={chunk}
                             styles={DoublePageStyles}
                             chunkIndex={chunkIndex}
+                            frontBackground={frontBackground}
                         />
 
                         {/* SEITE 2: ALLE RÜCKSEITEN (GESPIEGELT) */}
@@ -93,6 +124,7 @@ export const PDFFactory = ({ cards, type, bindingMode = "long-edge" }: PDFFactor
                             cards={flippedChunk}
                             styles={DoublePageStyles}
                             chunkIndex={chunkIndex}
+                            backBackground={backBackground}
                         />
                     </React.Fragment>
                 );
