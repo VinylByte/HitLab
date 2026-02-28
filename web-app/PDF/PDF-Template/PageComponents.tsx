@@ -38,6 +38,7 @@ export const CardFront = ({ card, styles }: CardComponentProps) => {
  * Zeigt QR-Code
  */
 export const CardBack = ({ card, styles }: CardComponentProps) => {
+    styles
     return <PDFQRCode url={card.url} />;
 };
 

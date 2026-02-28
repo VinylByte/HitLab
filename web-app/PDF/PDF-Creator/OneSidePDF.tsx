@@ -3,6 +3,8 @@ import type { Card } from "../PDF-Template/PageComponents";
 import { CardFront, CardBack } from "../PDF-Template/PageComponents";
 import { OnePageStyles } from "../PDF-Template/Templates";
 
+
+
 export const PDFSheetOneSide = ({ cards }: { cards: Card[] }) => {
     return (
         <Document>
