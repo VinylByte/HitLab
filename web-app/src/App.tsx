@@ -6,7 +6,11 @@ import LoginPage from "./components/pages/LoginPage";
 import { FooterSocial } from "./components/elements/Footer/Footer";
 import { useSession } from "./hooks/useSession";
 import { useAppTheme } from "./hooks/useAppTheme";
-import { Center, Loader } from "@mantine/core";function App() {
+import { Center, Loader } from "@mantine/core";
+import Error404Page from "./components/pages/404ErrorPage/404ErrorPage";
+
+
+function App() {
     useAppTheme(); // Initialize theme hook
 
     return (
@@ -73,6 +77,8 @@ function Router() {
                             />
                         ))}
                     </Route>
+                    {/* Fallback-Route für alle nicht definierten Pfade, aber mit Header und Footer */}
+                    <Route path="*" element={<Error404Page />} />
                 </Route>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<LoginPage />} />
