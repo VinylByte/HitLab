@@ -1,4 +1,4 @@
-import { Page, View, Text } from "@react-pdf/renderer";
+import { Page, View, Text, Image } from "@react-pdf/renderer";
 import { PDFQRCode } from "../QR-Generator/qr-generator";
 import type { BackgroundConfig } from "./BackgroundConfig";
 import { createBackgroundStyle } from "./BackgroundConfig";
@@ -26,6 +26,41 @@ interface CardComponentProps {
     background?: BackgroundConfig;
 }
 
+const backgroundImageStyle = {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+};
+
+const cardContentStyle = {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    padding: 10,
+};
+
+export const CardBackgroundLayer = ({ background }: { background?: BackgroundConfig }) => {
+    if (!background || background.type !== "image") {
+        return null;
+    }
+
+    return (
+        <Image
+            src={background.url}
+            style={{
+                ...backgroundImageStyle,
+                opacity: background.opacity ?? 1,
+            }}
+        />
+    );
+};
+
 /**
  * Wiederverwendbare Komponente für einzelne Kartenvorderseite
  * Zeigt Artist, Jahr und Titel
@@ -45,8 +80,8 @@ export const CardFront = ({ card, styles }: CardComponentProps) => {
  * Zeigt QR-Code
  */
 export const CardBack = ({ card, styles, background }: CardComponentProps) => {
-    styles
-    background
+    styles;
+    background;
     return <PDFQRCode url={card.url} />;
 };
 
@@ -73,7 +108,14 @@ export const CardFrontPage = ({
                             key={`front-${chunkIndex}-${i}`}
                             style={[styles.card, backgroundStyle]}
                         >
-                            <CardFront card={card} styles={styles} background={cardBackground} />
+                            <CardBackgroundLayer background={cardBackground} />
+                            <View style={cardContentStyle}>
+                                <CardFront
+                                    card={card}
+                                    styles={styles}
+                                    background={cardBackground}
+                                />
+                            </View>
                         </View>
                     );
                 })}
@@ -100,7 +142,10 @@ export const CardBackPage = ({ cards, styles, chunkIndex, backBackground }: Page
                             key={`back-${chunkIndex}-${i}`}
                             style={[styles.card, backgroundStyle]}
                         >
-                            <CardBack card={card} styles={styles} background={cardBackground} />
+                            <CardBackgroundLayer background={cardBackground} />
+                            <View style={cardContentStyle}>
+                                <CardBack card={card} styles={styles} background={cardBackground} />
+                            </View>
                         </View>
                     );
                 })}

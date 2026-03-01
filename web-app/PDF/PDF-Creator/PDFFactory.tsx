@@ -1,10 +1,27 @@
 import React from "react";
 import { Document, Page, View } from "@react-pdf/renderer";
 import type { Card } from "../PDF-Template/PageComponents";
-import { CardFront, CardBack, CardFrontPage, CardBackPage } from "../PDF-Template/PageComponents";
+import {
+    CardFront,
+    CardBack,
+    CardFrontPage,
+    CardBackPage,
+    CardBackgroundLayer,
+} from "../PDF-Template/PageComponents";
 import { OnePageStyles, DoublePageStyles } from "../PDF-Template/Templates";
 import type { BackgroundConfig } from "../PDF-Template/BackgroundConfig";
 import { createBackgroundStyle } from "../PDF-Template/BackgroundConfig";
+
+const cardContentStyle = {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    padding: 10,
+};
 
 // Typen für die verschiedenen PDF-Varianten
 export type PDFType = "one-sided" | "double-sided";
@@ -73,19 +90,25 @@ export const PDFFactory = ({
                                 <View key={index} style={OnePageStyles.cardContainer}>
                                     {/* Obere Hälfte: Vorderseite */}
                                     <View style={[OnePageStyles.frontSide, frontBgStyle]}>
-                                        <CardFront
-                                            card={card}
-                                            styles={OnePageStyles}
-                                            background={cardFrontBg}
-                                        />
+                                        <CardBackgroundLayer background={cardFrontBg} />
+                                        <View style={cardContentStyle}>
+                                            <CardFront
+                                                card={card}
+                                                styles={OnePageStyles}
+                                                background={cardFrontBg}
+                                            />
+                                        </View>
                                     </View>
                                     {/* Untere Hälfte: Rückseite (wird umgeknickt) */}
                                     <View style={[OnePageStyles.backSide, backBgStyle]}>
-                                        <CardBack
-                                            card={card}
-                                            styles={OnePageStyles}
-                                            background={cardBackBg}
-                                        />
+                                        <CardBackgroundLayer background={cardBackBg} />
+                                        <View style={cardContentStyle}>
+                                            <CardBack
+                                                card={card}
+                                                styles={OnePageStyles}
+                                                background={cardBackBg}
+                                            />
+                                        </View>
                                     </View>
                                 </View>
                             );

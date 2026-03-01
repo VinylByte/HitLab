@@ -47,6 +47,8 @@ export const OnePageStyles = StyleSheet.create({
     frontSide: {
         flex: 1,
         padding: 10,
+        position: "relative",
+        overflow: "hidden",
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#fdfdfd",
@@ -55,6 +57,8 @@ export const OnePageStyles = StyleSheet.create({
     backSide: {
         flex: 1,
         padding: 10,
+        position: "relative",
+        overflow: "hidden",
         justifyContent: "center",
         alignItems: "center",
         borderTop: "1pt dashed #000", // Markierung zum Falten
@@ -77,6 +81,8 @@ export const DoublePageStyles = StyleSheet.create({
     card: {
         width: CARD_WIDTH,
         height: CARD_HEIGHT,
+        position: "relative",
+        overflow: "hidden",
         border: "0.5pt solid #000",
         display: "flex",
         justifyContent: "center",
