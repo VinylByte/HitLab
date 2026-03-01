@@ -1,3 +1,4 @@
+import { PAGINATION_BREAKPOINT } from "../components/pages/Settings";
 import supabase from "../supabase";
 
 /** Tag attached to a deck. */
@@ -27,8 +28,11 @@ export type PublicDeckDTO = {
  * Fetches all public, non-deleted decks with owner profile and tags.
  * Flattens the nested Supabase response into a clean PublicDeckDTO[].
  */
-export async function fetchPublicDecks(search_str: string, page: number): Promise<PublicDeckDTO[]> {
-    const { data, error } = await supabase
+export async function fetchPublicDecks(
+    search_str: string,
+    page: number
+): Promise<{ decks: PublicDeckDTO[]; totalCount: number }> {
+    const { data, error, count } = await supabase
         .from("decks")
         .select(
             `
@@ -39,17 +43,18 @@ export async function fetchPublicDecks(search_str: string, page: number): Promis
             created_at,
             profiles!owner_id ( display_name, avatar_url ),
             deck_tags ( tags ( id, name ) )
-            `
+            `,
+            { count: "exact" }
         )
         .eq("visibility", "public")
         .is("deleted_at", null)
         .ilike("name", "%" + search_str + "%")
         .order("created_at", { ascending: false })
-        .range((page - 1) * 12, page * 12 - 1);
+        .range((page - 1) * PAGINATION_BREAKPOINT, page * PAGINATION_BREAKPOINT - 1);
 
     if (error) throw error;
 
-    return (data ?? []).map(row => ({
+    const decks: PublicDeckDTO[] = (data ?? []).map(row => ({
         id: row.id,
         name: row.name,
         description: row.description,
@@ -60,6 +65,8 @@ export async function fetchPublicDecks(search_str: string, page: number): Promis
             .map((dt: { tags: DeckTag | null }) => dt.tags)
             .filter((tag): tag is DeckTag => tag !== null),
     }));
+
+    return { decks, totalCount: count ?? 0 };
 }
 
 /** Song info embedded in a deck song */
