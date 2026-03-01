@@ -62,7 +62,8 @@ export async function fetchPublicDecks(search_str: string, page: number): Promis
     }));
 }
 
-type Song = {
+/** Song info embedded in a deck song */
+export type Song = {
     id: string;
     title: string;
     artist: string;
@@ -70,7 +71,8 @@ type Song = {
     thumbnail_url: string | null;
 };
 
-type PublicDeckSongDTO = {
+//** DTO returned by fetchPublicDeckSongs - holds meta info about the addition of song to a deck */
+export type PublicDeckSongDTO = {
     id: string;
     deck_id: string;
     song: Song;
@@ -78,6 +80,9 @@ type PublicDeckSongDTO = {
     created_at: string;
 };
 
+/**
+ *
+ */
 export async function fetchPublicDeckSongs(publicDeckId: string): Promise<PublicDeckSongDTO[]> {
     const { data, error } = await supabase
         .from("deck_songs")

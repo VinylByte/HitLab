@@ -1,6 +1,6 @@
 import { Center, Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import classes from "./DeckCard.module.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
     Card,
@@ -21,45 +21,24 @@ import {
     TableCell,
     TableHeader,
     TableColumn,
-    User,
 } from "@heroui/react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../Settings";
 import { IconDownload } from "@tabler/icons-react";
+import type { PublicDeckDTO } from "../../../services/deckService";
+import { useDeckSong } from "../../../hooks/useDeckSong";
 
-interface Song {
-    id: string;
-    title: string;
-    artist: string;
-    cover_url: string;
-    year: number;
-}
-
-interface DeckCardProps {
-    tags: string[];
-    title: string;
-    authorName: string;
-    authorAvatar: string;
-    date: string;
-    image: string;
-    description: string;
-    songs: Song[];
-}
-
-function DeckModal({ isOpen, onOpenChange, data }: { isOpen: boolean; onOpenChange: (isOpen: boolean) => void; data: DeckCardProps }) {
+function DeckModal({
+    isOpen,
+    onOpenChange,
+    publicDeck,
+}: {
+    isOpen: boolean;
+    onOpenChange: (isOpen: boolean) => void;
+    publicDeck: PublicDeckDTO;
+}) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        if (isOpen) {
-            setLoading(true);
-            const timer = setTimeout(() => {
-                setLoading(false);
-            }, 2000);
-
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen]);
+    const { deck_songs, loading } = useDeckSong(publicDeck.id, isOpen);
 
     return (
         <div>
@@ -69,27 +48,48 @@ function DeckModal({ isOpen, onOpenChange, data }: { isOpen: boolean; onOpenChan
                         <>
                             <ModalHeader className="flex flex-col gap-1">
                                 {loading ? (
-                                    <Skeleton className={isMobile ? "h-8 w-85 mb-2 rounded-lg" : "h-8 w-2/3 mb-2 rounded-lg"} />
+                                    <Skeleton
+                                        className={
+                                            isMobile
+                                                ? "h-8 w-85 mb-2 rounded-lg"
+                                                : "h-8 w-2/3 mb-2 rounded-lg"
+                                        }
+                                    />
                                 ) : (
-                                    <Title order={2}>{data.title}</Title>
+                                    <Title order={2}>{publicDeck.name}</Title>
                                 )}
                             </ModalHeader>
                             <ModalBody>
                                 <SimpleGrid cols={{ base: 1, sm: 2 }}>
                                     <Stack>
                                         {loading ? (
-                                            <Skeleton className={isMobile ? "h-62 w-90 mb-2 rounded-md" : "h-62 w-100 mb-2 rounded-md"} />
+                                            <Skeleton
+                                                className={
+                                                    isMobile
+                                                        ? "h-62 w-90 mb-2 rounded-md"
+                                                        : "h-62 w-100 mb-2 rounded-md"
+                                                }
+                                            />
                                         ) : (
-                                            <Image src={data.image} alt={data.title} radius="md" />
+                                            <Image
+                                                src={publicDeck.cover_url ?? undefined}
+                                                alt={publicDeck.name}
+                                                radius="md"
+                                            />
                                         )}
 
                                         <Group gap={5} wrap="wrap">
                                             {loading
-                                                ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-6 w-16 mb-1 rounded-xl" />)
-                                                : data.tags.map(tag => (
-                                                      <Chip key={tag} color="primary" size="sm">
+                                                ? Array.from({ length: 3 }).map((_, i) => (
+                                                      <Skeleton
+                                                          key={i}
+                                                          className="h-6 w-16 mb-1 rounded-xl"
+                                                      />
+                                                  ))
+                                                : publicDeck.tags.map(tag => (
+                                                      <Chip key={tag.id} color="primary" size="sm">
                                                           <Text tt="uppercase" size="xs">
-                                                              {tag}
+                                                              {tag.name}
                                                           </Text>
                                                       </Chip>
                                                   ))}
@@ -102,9 +102,18 @@ function DeckModal({ isOpen, onOpenChange, data }: { isOpen: boolean; onOpenChan
                                                 </Group>
                                             ) : (
                                                 <Group gap={7}>
-                                                    <Avatar size={"md"} src={data.authorAvatar} alt={data.authorName} />
+                                                    <Avatar
+                                                        size={"md"}
+                                                        src={
+                                                            publicDeck.owner.avatar_url ?? undefined
+                                                        }
+                                                        alt={
+                                                            publicDeck.owner.display_name ??
+                                                            undefined
+                                                        }
+                                                    />
                                                     <Text size="xs" c="bright">
-                                                        {data.authorName}
+                                                        {publicDeck.owner.display_name}
                                                     </Text>
                                                 </Group>
                                             )}
@@ -119,7 +128,7 @@ function DeckModal({ isOpen, onOpenChange, data }: { isOpen: boolean; onOpenChan
                                                 <Skeleton className="h-4 w-12 rounded-md" />
                                             ) : (
                                                 <Text size="xs" opacity={0.8}>
-                                                    {data.date}
+                                                    {publicDeck.created_at}
                                                 </Text>
                                             )}
                                         </Group>
@@ -130,11 +139,16 @@ function DeckModal({ isOpen, onOpenChange, data }: { isOpen: boolean; onOpenChan
                                                 <Skeleton className="h-4 w-90 rounded-md" />
                                             </>
                                         ) : (
-                                            <Text mt="md">{data.description}</Text>
+                                            <Text mt="md">{publicDeck.description}</Text>
                                         )}
                                     </Stack>
                                     <Stack>
-                                        <Table maxTableHeight={isMobile ? 300 : 400} isVirtualized isHeaderSticky>
+                                        <Table
+                                            aria-label="Songs in this deck"
+                                            maxTableHeight={isMobile ? 300 : 400}
+                                            isVirtualized
+                                            isHeaderSticky
+                                        >
                                             <TableHeader>
                                                 <TableColumn>{""}</TableColumn>
                                                 <TableColumn>Name</TableColumn>
@@ -159,14 +173,28 @@ function DeckModal({ isOpen, onOpenChange, data }: { isOpen: boolean; onOpenChan
                                                               </TableCell>
                                                           </TableRow>
                                                       ))
-                                                    : data.songs.map(song => (
-                                                          <TableRow key={song.id}>
+                                                    : deck_songs.map(meta => (
+                                                          <TableRow key={meta.song.id}>
                                                               <TableCell>
-                                                                  <Avatar radius="full" size="sm" src={song.cover_url} className="rounded-md" />
+                                                                  <Avatar
+                                                                      radius="full"
+                                                                      size="sm"
+                                                                      src={
+                                                                          meta.song.thumbnail_url ??
+                                                                          undefined
+                                                                      }
+                                                                      className="rounded-md"
+                                                                  />
                                                               </TableCell>
-                                                              <TableCell>{song.title}</TableCell>
-                                                              <TableCell>{song.artist}</TableCell>
-                                                              <TableCell>{song.year}</TableCell>
+                                                              <TableCell>
+                                                                  {meta.song.title}
+                                                              </TableCell>
+                                                              <TableCell>
+                                                                  {meta.song.artist}
+                                                              </TableCell>
+                                                              <TableCell>
+                                                                  {meta.song.year}
+                                                              </TableCell>
                                                           </TableRow>
                                                       ))}
                                             </TableBody>
@@ -178,7 +206,11 @@ function DeckModal({ isOpen, onOpenChange, data }: { isOpen: boolean; onOpenChan
                                 <Button color="danger" variant="light" onPress={onClose}>
                                     Schließen
                                 </Button>
-                                <Button color="primary" startContent={<IconDownload />} onPress={() => alert("Download started")}>
+                                <Button
+                                    color="primary"
+                                    startContent={<IconDownload />}
+                                    onPress={() => alert("Download started")}
+                                >
                                     Herunterladen
                                 </Button>
                             </ModalFooter>
@@ -190,7 +222,7 @@ function DeckModal({ isOpen, onOpenChange, data }: { isOpen: boolean; onOpenChan
     );
 }
 
-export function DeckCard({ data }: { data: DeckCardProps }) {
+export function DeckCard({ data }: { data: PublicDeckDTO }) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const [modalOpen, setModalOpen] = useState(false);
 
@@ -204,27 +236,35 @@ export function DeckCard({ data }: { data: DeckCardProps }) {
                 <CardBody onClick={handleClick}>
                     <Group>
                         <Center w={isMobile ? "100%" : ""}>
-                            <Image src={data.image} className={classes.image} alt={data.title} />
+                            <Image
+                                src={data.cover_url ?? undefined}
+                                className={classes.image}
+                                alt={data.name}
+                            />
                         </Center>
 
                         <div className={classes.body}>
                             <Group gap={5} wrap="wrap">
                                 {data.tags.map(tag => (
-                                    <Chip key={tag} color="primary" size="sm">
+                                    <Chip key={tag.id} color="primary" size="sm">
                                         <Text tt="uppercase" size="xs">
-                                            {tag}
+                                            {tag.name}
                                         </Text>
                                     </Chip>
                                 ))}
                             </Group>
                             <Text className={classes.title} mt="xs" mb="md">
-                                {data.title}
+                                {data.name}
                             </Text>
                             <Group gap="xs">
                                 <Group gap={7}>
-                                    <Avatar size={"md"} src={data.authorAvatar} alt={data.authorName} />
+                                    <Avatar
+                                        size={"md"}
+                                        src={data.owner.avatar_url ?? undefined}
+                                        alt={data.owner.display_name ?? undefined}
+                                    />
                                     <Text size="xs" c="bright">
-                                        {data.authorName}
+                                        {data.owner.display_name}
                                     </Text>
                                 </Group>
 
@@ -233,14 +273,14 @@ export function DeckCard({ data }: { data: DeckCardProps }) {
                                 </Text>
 
                                 <Text size="xs" opacity={0.8}>
-                                    {data.date}
+                                    {data.created_at}
                                 </Text>
                             </Group>
                         </div>
                     </Group>
                 </CardBody>
             </Card>
-            <DeckModal isOpen={modalOpen} onOpenChange={setModalOpen} data={data} />
+            <DeckModal isOpen={modalOpen} onOpenChange={setModalOpen} publicDeck={data} />
         </div>
     );
 }
@@ -252,7 +292,13 @@ export function DeckCardSkeleton() {
             <CardBody>
                 <Group w={"100%"}>
                     <Center w={isMobile ? "100%" : ""}>
-                        <Skeleton className={isMobile ? "w-70 h-42 rounded-lg mb-2 mt-2" : "h-27 w-50 rounded-lg mb-4 mt-4"} />
+                        <Skeleton
+                            className={
+                                isMobile
+                                    ? "w-70 h-42 rounded-lg mb-2 mt-2"
+                                    : "h-27 w-50 rounded-lg mb-4 mt-4"
+                            }
+                        />
                     </Center>
                     <div className={classes.body}>
                         <Skeleton className="h-4 w-1/2 mb-2" />
