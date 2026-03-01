@@ -39,14 +39,35 @@ const flipForLongEdgeBinding = (array: Card[], rowSize: number): Card[] => {
 };
 
 /**
- * PDF Factory - Universelle PDF-Komponente
- * Kann sowohl one-sided (Faltkarten) als auch double-sided (beidseitig gedruckte Karten) PDFs erstellen
+ * PDFFactory - Universelle PDF-Komponente für Musikquiz-Karten
  *
- * @param cards - Array von Karten-Daten
- * @param type - "one-sided" für Faltkarten, "double-sided" für beidseitigen Druck
- * @param bindingMode - "short-edge" oder "long-edge" (nur für double-sided)
- * @param frontBackground - Hintergrund-Konfiguration für Vorderseiten
- * @param backBackground - Hintergrund-Konfiguration für Rückseiten
+ * Erstellt PDF-Dokumente in zwei Modi:
+ * - ONE-SIDED: Faltkarten mit Vorder- und Rückseite auf einem Blatt (gestrichelte Faltlinie)
+ * - DOUBLE-SIDED: Separate Seiten für beidseitigen Druck (3x4 Layout, 12 Karten/Blatt)
+ *   • long-edge: Blatt an langer Kante umdrehen (Rückseiten horizontal gespiegelt)
+ *   • short-edge: Blatt an kurzer Kante umdrehen (keine Spiegelung)
+ *
+ * Unterstützt Hintergründe: solid, gradient (CSS → PNG via Canvas), image
+ * Card-spezifische Hintergründe überschreiben globale Hintergründe.
+ *
+ * @param {Card[]} cards - Array von Karten mit artist, title, year, url
+ * @param {PDFType} type - "one-sided" oder "double-sided"
+ * @param {BindingMode} [bindingMode="long-edge"] - "long-edge" oder "short-edge" (nur für double-sided)
+ * @param {BackgroundConfig} [frontBackground] - Globaler Vorderseiten-Hintergrund
+ * @param {BackgroundConfig} [backBackground] - Globaler Rückseiten-Hintergrund
+ *
+ * @example
+ * <PDFFactory
+ *   type="double-sided"
+ *   bindingMode="long-edge"
+ *   frontBackground={{ type: 'gradient', gradient: 'linear-gradient(90deg, #2A7B9B 0%, #57C785 100%)' }}
+ *   backBackground={{ type: 'solid', color: '#ffffff' }}
+ *   cards={[
+ *     { artist: 'Beatles', title: 'Hey Jude', year: '1968', url: 'https://...' },
+ *     { artist: 'Queen', title: 'Bohemian Rhapsody', year: '1975', url: 'https://...',
+ *       frontBackground: { type: 'image', url: '/special.jpg', opacity: 0.3 } }
+ *   ]}
+ * />
  */
 export const PDFFactory = ({
     cards,
