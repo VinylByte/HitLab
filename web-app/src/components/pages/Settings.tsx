@@ -1,14 +1,15 @@
 import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/icons-react";
+import HomePage from "./HomePage/HomePage";
 import PublicDecksPageWrapper from "./PublicDecksPage/PublicDecksPage";
 
 export const Pages = [
-    { name: "Home", to: "/", page: <div className="h-170">Home</div> },
-    { name: "Decks", to: "/public-decks", page: <PublicDecksPageWrapper /> },
+    { name: "Home", to: "/", location: "header", page: <HomePage /> },
+    { name: "Decks", to: "/decks", location: "header", page: <PublicDecksPageWrapper /> },
 ];
 
 export const ProtectedPages = [
-    { name: "Profile", to: "/profile", page: <div>Profile</div> },
-    { name: "My Decks", to: "/mydecks", page: <div>My Decks</div> },
+    { name: "Profile", to: "/profile", location: "avatar", page: <div>Profile</div> },
+    { name: "Lab", to: "/lab", location: "header", page: <div>My Decks</div> },
 ];
 
 export const MOBILE_BREAKPOINT = "(max-width: 768px)";
