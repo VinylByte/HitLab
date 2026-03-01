@@ -57,6 +57,7 @@ as $$
       and deleted_at is null
       and (
         owner_id = auth.uid()
+        or (p_min_role = 'viewer' and visibility = 'public')
         or exists (
           select 1 from public.deck_collaborators
           where deck_id = p_deck_id
