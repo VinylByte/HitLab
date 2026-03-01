@@ -7,21 +7,11 @@ import {
     CardFrontPage,
     CardBackPage,
     CardBackgroundLayer,
+    cardContentStyle,
 } from "../PDF-Template/PageComponents";
 import { OnePageStyles, DoublePageStyles } from "../PDF-Template/Templates";
 import type { BackgroundConfig } from "../PDF-Template/BackgroundConfig";
 import { createBackgroundStyle } from "../PDF-Template/BackgroundConfig";
-
-const cardContentStyle = {
-    position: "absolute" as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center" as const,
-    alignItems: "center" as const,
-    padding: 10,
-};
 
 // Typen für die verschiedenen PDF-Varianten
 export type PDFType = "one-sided" | "double-sided";
@@ -35,25 +25,17 @@ export interface PDFFactoryProps {
     backBackground?: BackgroundConfig; // Hintergrund für Rückseiten
 }
 
-// Hilfsfunktion: Teilt das Array in Blöcke
-const createChunks = (array: Card[], size: number): Card[][] => {
-    const chunks: Card[][] = [];
-    for (let i = 0; i < array.length; i += size) {
-        chunks.push(array.slice(i, i + size));
-    }
-    return chunks;
-};
+const createChunks = <T,>(array: T[], size: number): T[][] =>
+    Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
+        array.slice(i * size, i * size + size)
+    );
 
-// Spiegeln an der langen Seite (Long-Edge / Buch-Bindung)
-// Bei Long-Edge wird das Papier vertikal umgedreht (wie ein Buch)
-// Jede Zeile muss horizontal gespiegelt werden
-const flipForLongEdgeBinding = (array: Card[], size: number): Card[] => {
-    const chunks = [];
-    for (let i = 0; i < array.length; i += size) {
-        // Jede Zeile (Chunk) wird umgekehrt
-        chunks.push(...array.slice(i, i + size).reverse());
+const flipForLongEdgeBinding = (array: Card[], rowSize: number): Card[] => {
+    const result: Card[] = [];
+    for (let i = 0; i < array.length; i += rowSize) {
+        result.push(...array.slice(i, i + rowSize).reverse());
     }
-    return chunks;
+    return result;
 };
 
 /**
@@ -80,34 +62,31 @@ export const PDFFactory = ({
                 <Page size="A4" style={OnePageStyles.page}>
                     <View style={OnePageStyles.grid}>
                         {cards.map((card, index) => {
-                            // Nutze kartenspezifischen Hintergrund, falls vorhanden, sonst den globalen
                             const cardFrontBg = card.frontBackground ?? frontBackground;
                             const cardBackBg = card.backBackground ?? backBackground;
-                            const frontBgStyle = createBackgroundStyle(cardFrontBg);
-                            const backBgStyle = createBackgroundStyle(cardBackBg);
 
                             return (
                                 <View key={index} style={OnePageStyles.cardContainer}>
-                                    {/* Obere Hälfte: Vorderseite */}
-                                    <View style={[OnePageStyles.frontSide, frontBgStyle]}>
+                                    <View
+                                        style={[
+                                            OnePageStyles.frontSide,
+                                            createBackgroundStyle(cardFrontBg),
+                                        ]}
+                                    >
                                         <CardBackgroundLayer background={cardFrontBg} />
                                         <View style={cardContentStyle}>
-                                            <CardFront
-                                                card={card}
-                                                styles={OnePageStyles}
-                                                background={cardFrontBg}
-                                            />
+                                            <CardFront card={card} styles={OnePageStyles} />
                                         </View>
                                     </View>
-                                    {/* Untere Hälfte: Rückseite (wird umgeknickt) */}
-                                    <View style={[OnePageStyles.backSide, backBgStyle]}>
+                                    <View
+                                        style={[
+                                            OnePageStyles.backSide,
+                                            createBackgroundStyle(cardBackBg),
+                                        ]}
+                                    >
                                         <CardBackgroundLayer background={cardBackBg} />
                                         <View style={cardContentStyle}>
-                                            <CardBack
-                                                card={card}
-                                                styles={OnePageStyles}
-                                                background={cardBackBg}
-                                            />
+                                            <CardBack card={card} styles={OnePageStyles} />
                                         </View>
                                     </View>
                                 </View>
@@ -134,15 +113,12 @@ export const PDFFactory = ({
 
                 return (
                     <React.Fragment key={chunkIndex}>
-                        {/* SEITE 1: ALLE VORDERSEITEN */}
                         <CardFrontPage
                             cards={chunk}
                             styles={DoublePageStyles}
                             chunkIndex={chunkIndex}
                             frontBackground={frontBackground}
                         />
-
-                        {/* SEITE 2: ALLE RÜCKSEITEN (GESPIEGELT) */}
                         <CardBackPage
                             cards={flippedChunk}
                             styles={DoublePageStyles}

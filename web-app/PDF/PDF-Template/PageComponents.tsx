@@ -1,7 +1,11 @@
-import { Page, View, Text, Image } from "@react-pdf/renderer";
+import { Image, Page, Text, View } from "@react-pdf/renderer";
 import { PDFQRCode } from "../QR-Generator/qr-generator";
 import type { BackgroundConfig } from "./BackgroundConfig";
-import { createBackgroundStyle } from "./BackgroundConfig";
+import {
+    createBackgroundStyle,
+    createGradientDataUrl,
+    resolveGradientBackground,
+} from "./BackgroundConfig";
 
 export interface Card {
     artist: string;
@@ -32,9 +36,11 @@ const backgroundImageStyle = {
     left: 0,
     right: 0,
     bottom: 0,
+    width: "100%",
+    height: "100%",
 };
 
-const cardContentStyle = {
+export const cardContentStyle = {
     position: "absolute" as const,
     top: 0,
     left: 0,
@@ -46,7 +52,23 @@ const cardContentStyle = {
 };
 
 export const CardBackgroundLayer = ({ background }: { background?: BackgroundConfig }) => {
-    if (!background || background.type !== "image") {
+    if (!background) {
+        return null;
+    }
+
+    if (background.type === "gradient") {
+        const resolvedGradient = resolveGradientBackground(background);
+
+        if (!resolvedGradient) {
+            return null;
+        }
+
+        const gradientDataUrl = createGradientDataUrl(resolvedGradient);
+
+        return <Image src={gradientDataUrl} style={backgroundImageStyle} />;
+    }
+
+    if (background.type !== "image") {
         return null;
     }
 
@@ -61,95 +83,78 @@ export const CardBackgroundLayer = ({ background }: { background?: BackgroundCon
     );
 };
 
-/**
- * Wiederverwendbare Komponente für einzelne Kartenvorderseite
- * Zeigt Artist, Jahr und Titel
- */
-export const CardFront = ({ card, styles }: CardComponentProps) => {
-    return (
-        <>
-            <Text style={styles.artist}>{card.artist}</Text>
-            <Text style={styles.year}>{card.year}</Text>
-            <Text style={styles.title}>{card.title}</Text>
-        </>
-    );
-};
+export const CardFront = ({ card, styles }: CardComponentProps) => (
+    <>
+        <Text style={styles.artist}>{card.artist}</Text>
+        <Text style={styles.year}>{card.year}</Text>
+        <Text style={styles.title}>{card.title}</Text>
+    </>
+);
 
-/**
- * Wiederverwendbare Komponente für einzelne Kartenrückseite
- * Zeigt QR-Code
- */
-export const CardBack = ({ card, styles, background }: CardComponentProps) => {
-    styles;
-    background;
-    return <PDFQRCode url={card.url} />;
-};
+export const CardBack = ({ card }: CardComponentProps) => <PDFQRCode url={card.url} />;
 
-/**
- * Generische Komponente für eine Vorderseiten-Seite
- * Zeigt Artist, Jahr und Titel für alle Karten auf der Seite an
- */
+const CardWithBackground = ({
+    background,
+    backgroundStyle,
+    styles,
+    cardKey,
+    children,
+}: {
+    background?: BackgroundConfig;
+    backgroundStyle: any;
+    styles: any;
+    cardKey: string;
+    children: React.ReactNode;
+}) => (
+    <View key={cardKey} style={[styles.card, backgroundStyle]}>
+        <CardBackgroundLayer background={background} />
+        <View style={cardContentStyle}>{children}</View>
+    </View>
+);
+
 export const CardFrontPage = ({
     cards,
     styles,
     chunkIndex,
     frontBackground,
-}: PageComponentProps) => {
-    return (
-        <Page size="A4" style={styles.page}>
-            <View style={styles.grid}>
-                {cards.map((card, i) => {
-                    // Nutze kartenspezifischen Hintergrund, falls vorhanden, sonst den globalen
-                    const cardBackground = card.frontBackground ?? frontBackground;
-                    const backgroundStyle = createBackgroundStyle(cardBackground);
+}: PageComponentProps) => (
+    <Page size="A4" style={styles.page}>
+        <View style={styles.grid}>
+            {cards.map((card, i) => {
+                const cardBackground = card.frontBackground ?? frontBackground;
+                return (
+                    <CardWithBackground
+                        key={`front-${chunkIndex}-${i}`}
+                        cardKey={`front-${chunkIndex}-${i}`}
+                        background={cardBackground}
+                        backgroundStyle={createBackgroundStyle(cardBackground)}
+                        styles={styles}
+                    >
+                        <CardFront card={card} styles={styles} />
+                    </CardWithBackground>
+                );
+            })}
+        </View>
+    </Page>
+);
 
-                    return (
-                        <View
-                            key={`front-${chunkIndex}-${i}`}
-                            style={[styles.card, backgroundStyle]}
-                        >
-                            <CardBackgroundLayer background={cardBackground} />
-                            <View style={cardContentStyle}>
-                                <CardFront
-                                    card={card}
-                                    styles={styles}
-                                    background={cardBackground}
-                                />
-                            </View>
-                        </View>
-                    );
-                })}
-            </View>
-        </Page>
-    );
-};
-
-/**
- * Generische Komponente für eine Rückseiten-Seite
- * Zeigt QR-Code und optional Titel für alle Karten auf der Seite an
- */
-export const CardBackPage = ({ cards, styles, chunkIndex, backBackground }: PageComponentProps) => {
-    return (
-        <Page size="A4" style={styles.page}>
-            <View style={styles.grid}>
-                {cards.map((card, i) => {
-                    // Nutze kartenspezifischen Hintergrund, falls vorhanden, sonst den globalen
-                    const cardBackground = card.backBackground ?? backBackground;
-                    const backgroundStyle = createBackgroundStyle(cardBackground);
-
-                    return (
-                        <View
-                            key={`back-${chunkIndex}-${i}`}
-                            style={[styles.card, backgroundStyle]}
-                        >
-                            <CardBackgroundLayer background={cardBackground} />
-                            <View style={cardContentStyle}>
-                                <CardBack card={card} styles={styles} background={cardBackground} />
-                            </View>
-                        </View>
-                    );
-                })}
-            </View>
-        </Page>
-    );
-};
+export const CardBackPage = ({ cards, styles, chunkIndex, backBackground }: PageComponentProps) => (
+    <Page size="A4" style={styles.page}>
+        <View style={styles.grid}>
+            {cards.map((card, i) => {
+                const cardBackground = card.backBackground ?? backBackground;
+                return (
+                    <CardWithBackground
+                        key={`back-${chunkIndex}-${i}`}
+                        cardKey={`back-${chunkIndex}-${i}`}
+                        background={cardBackground}
+                        backgroundStyle={createBackgroundStyle(cardBackground)}
+                        styles={styles}
+                    >
+                        <CardBack card={card} styles={styles} />
+                    </CardWithBackground>
+                );
+            })}
+        </View>
+    </Page>
+);
