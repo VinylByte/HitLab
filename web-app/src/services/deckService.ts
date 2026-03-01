@@ -26,7 +26,7 @@ export type PublicDeckDTO = {
 
 /**
  * Fetches all public, non-deleted decks with owner profile and tags.
- * Flattens the nested Supabase response into a clean PublicDeckDTO[].
+ * Transforms Supabase response into properly typed PublicDeckDTO[].
  */
 export async function fetchPublicDecks(
     search_str: string,
@@ -59,10 +59,13 @@ export async function fetchPublicDecks(
         name: row.name,
         description: row.description,
         cover_url: row.cover_url,
-        created_at: row.created_at,
+        created_at: new Date(row.created_at).toLocaleDateString("de-DE"),
         owner: row.profiles ?? { display_name: null, avatar_url: null },
         tags: (row.deck_tags ?? [])
-            .map((dt: { tags: DeckTag | null }) => dt.tags)
+            .map((dt: { tags: { id: string; name: string } | null }) => ({
+                id: dt.tags!.id,
+                name: dt.tags!.name,
+            }))
             .filter((tag): tag is DeckTag => tag !== null),
     }));
 
@@ -78,17 +81,17 @@ export type Song = {
     thumbnail_url: string | null;
 };
 
-//** DTO returned by fetchPublicDeckSongs - holds meta info about the addition of song to a deck */
+/** DTO returned by fetchPublicDeckSongs - holds meta info about the addition of song to a deck */
 export type PublicDeckSongDTO = {
     id: string;
     deck_id: string;
     song: Song;
     card_note: string | null;
-    created_at: string;
+    created_at: Date;
 };
 
 /**
- *
+ * Fetches songs for a public deck and transforms into properly typed DTOs.
  */
 export async function fetchPublicDeckSongs(publicDeckId: string): Promise<PublicDeckSongDTO[]> {
     const { data, error } = await supabase
@@ -119,6 +122,6 @@ export async function fetchPublicDeckSongs(publicDeckId: string): Promise<Public
             thumbnail_url: row.songs.thumbnail_url,
         },
         card_note: row.card_note,
-        created_at: row.created_at,
+        created_at: new Date(row.created_at),
     }));
 }
