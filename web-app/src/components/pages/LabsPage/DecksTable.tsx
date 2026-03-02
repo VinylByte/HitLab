@@ -1,0 +1,241 @@
+import type { SVGProps } from "react";
+import type { ChipProps } from "@heroui/react";
+
+import React, { useMemo, useState } from "react";
+import {
+    Table,
+    TableHeader,
+    TableColumn,
+    TableBody,
+    TableRow,
+    TableCell,
+    User,
+    Chip,
+    Tooltip,
+} from "@heroui/react";
+import { IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
+import { Center } from "@mantine/core";
+import SearchBar from "../PublicDecksPage/SearchBarProp";
+
+export type IconSvgProps = SVGProps<SVGSVGElement> & {
+    size?: number;
+};
+
+export const columns = [
+    { name: "TITLE", uid: "title" },
+    { name: "SONG ANZAHL", uid: "song_count" },
+    { name: "STATUS", uid: "status" },
+    { name: "ERSTELLT AM", uid: "created_at" },
+    { name: "ACTIONS", uid: "actions" },
+];
+
+const statusColorMap: Record<string, ChipProps["color"]> = {
+    private: "success",
+    public: "danger",
+};
+
+interface DECK {
+    id: number;
+    title: string;
+    song_count: number;
+    status: string;
+    created_at: string;
+    cover_url: string;
+}
+
+
+export default function DecksTable({decks}: {decks: DECK[]}) {
+    const [sortKey, setSortKey] = useState<string>("created_at");
+    const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+    const [search_str, setSearchStr] = useState<string>("");
+
+    const titleCollator = React.useMemo(
+        () =>
+            new Intl.Collator("de-DE", {
+                usage: "sort",
+                sensitivity: "base",
+                ignorePunctuation: true,
+                numeric: false,
+            }),
+        []
+    );
+
+    const handleSort = React.useCallback(
+        (uid: string) => {
+            if (uid === "actions") return;
+            if (uid === sortKey) {
+                setSortDir(prev => (prev === "asc" ? "desc" : "asc"));
+            } else {
+                setSortKey(uid);
+                setSortDir("asc");
+            }
+        },
+        [sortKey]
+    );
+
+    const renderCell = React.useCallback((deck: DECK, columnKey: React.Key) => {
+        const cellValue = deck[columnKey as keyof DECK];
+
+        switch (columnKey) {
+            case "title":
+                return (
+                    <User
+                        avatarProps={{ radius: "lg", src: deck.cover_url }}
+                        name={cellValue}
+                    ></User>
+                );
+            case "song_count":
+                return (
+                    <div className="flex flex-col">
+                        <Center>
+                            <p className="text-bold text-sm capitalize">{cellValue}</p>
+                        </Center>
+                        <Center>
+                            <p className="text-bold text-sm capitalize text-default-400">Songs</p>
+                        </Center>
+                    </div>
+                );
+            case "status":
+                return (
+                    <Center>
+                        <Chip
+                            className="capitalize"
+                            color={statusColorMap[deck.status]}
+                            size="sm"
+                            variant="flat"
+                        >
+                            {cellValue}
+                        </Chip>
+                    </Center>
+                );
+            case "created_at":
+                const date = new Date(String(cellValue));
+                return (
+                    <Center>
+                        <p className="text-bold text-sm capitalize">
+                            {date.toLocaleDateString("de-DE", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "2-digit",
+                            })}
+                        </p>
+                    </Center>
+                );
+            case "actions":
+                return (
+                    <Center className="relative flex items-center gap-2">
+                        <Tooltip content="Deck ansehen">
+                            <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                                <IconEye />
+                            </span>
+                        </Tooltip>
+                        <Tooltip content="Deck bearbeiten">
+                            <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                                <IconEdit />
+                            </span>
+                        </Tooltip>
+                        <Tooltip color="danger" content="Deck löschen">
+                            <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                                <IconTrash />
+                            </span>
+                        </Tooltip>
+                    </Center>
+                );
+            default:
+                return cellValue;
+        }
+    }, []);
+
+    const sortedDecks = useMemo(() => {
+        const arr = [...decks];
+        arr.sort((a, b) => {
+            const aVal = a[sortKey as keyof DECK];
+            const bVal = b[sortKey as keyof DECK];
+
+            if (sortKey === "song_count") {
+                return sortDir === "asc"
+                    ? Number(aVal) - Number(bVal)
+                    : Number(bVal) - Number(aVal);
+            }
+
+            if (sortKey === "created_at") {
+                const ad = new Date(String(aVal)).getTime();
+                const bd = new Date(String(bVal)).getTime();
+                return sortDir === "asc" ? ad - bd : bd - ad;
+            }
+
+            if (sortKey === "title") {
+                const compare = titleCollator.compare(String(a.title), String(b.title));
+                return sortDir === "asc" ? compare : -compare;
+            }
+
+            const sa = String(aVal).toLowerCase();
+            const sb = String(bVal).toLowerCase();
+            if (sa < sb) return sortDir === "asc" ? -1 : 1;
+            if (sa > sb) return sortDir === "asc" ? 1 : -1;
+            return 0;
+        });
+        return arr;
+    }, [sortKey, sortDir, titleCollator]);
+
+    const filteredDecks = useMemo(() => {
+        const query = search_str.trim().toLocaleLowerCase("de-DE");
+        if (!query) return sortedDecks;
+
+        return sortedDecks.filter(deck => {
+            const title = deck.title.toLocaleLowerCase("de-DE");
+            const status = deck.status.toLocaleLowerCase("de-DE");
+            const createdAt = deck.created_at.toLocaleLowerCase("de-DE");
+
+            return title.includes(query) || status.includes(query) || createdAt.includes(query);
+        });
+    }, [search_str, sortedDecks]);
+
+    return (
+        <div>
+            <SearchBar search_str={search_str} setSearchStr={setSearchStr} />
+            <Table
+                isStriped
+                aria-label="Example table with custom cells"
+                classNames={{ base: "w-full" }}
+            >
+                <TableHeader>
+                    {columns.map(column => (
+                        <TableColumn
+                            key={column.uid}
+                            align={column.uid === "actions" ? "center" : "start"}
+                        >
+                            <Center>
+                                <span
+                                    role={column.uid === "actions" ? undefined : "button"}
+                                    tabIndex={column.uid === "actions" ? -1 : 0}
+                                    onClick={() => handleSort(column.uid)}
+                                    onKeyDown={e => {
+                                        if (e.key === "Enter") handleSort(column.uid);
+                                    }}
+                                    style={{
+                                        cursor: column.uid === "actions" ? "default" : "pointer",
+                                    }}
+                                >
+                                    {column.name}
+                                    {sortKey === column.uid
+                                        ? sortDir === "asc"
+                                            ? " ▲"
+                                            : " ▼"
+                                        : null}
+                                </span>
+                            </Center>
+                        </TableColumn>
+                    ))}
+                </TableHeader>
+                <TableBody items={filteredDecks} emptyContent={"Keine Decks gefunden"}>
+                    {item => (
+                        <TableRow key={item.id}>
+                            {columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+        </div>
+    );
+}

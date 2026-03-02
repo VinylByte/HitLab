@@ -1,6 +1,7 @@
 import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/icons-react";
 import HomePage from "./HomePage/HomePage";
 import PublicDecksPageWrapper from "./PublicDecksPage/PublicDecksPage";
+import LabsPage from "./LabsPage/LabsPage";
 
 export const Pages = [
     { name: "Home", to: "/", location: "header", page: <HomePage /> },
@@ -9,7 +10,7 @@ export const Pages = [
 
 export const ProtectedPages = [
     { name: "Profile", to: "/profile", location: "avatar", page: <div>Profile</div> },
-    { name: "Lab", to: "/lab", location: "header", page: <div>My Decks</div> },
+    { name: "Lab", to: "/lab", location: "header", page: <LabsPage /> },
 ];
 
 export const MOBILE_BREAKPOINT = "(max-width: 768px)";
