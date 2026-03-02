@@ -1,6 +1,6 @@
 import { Image, Page, Text, View } from "@react-pdf/renderer";
 import type { ReactNode } from "react";
-import type { BackgroundConfig, Card, PageComponentProps, CardComponentProps } from "../interfaces";
+import type { BackgroundConfig, PageComponentProps, CardComponentProps } from "../interfaces";
 import {
     createBackgroundStyle,
     createGradientDataUrl,
