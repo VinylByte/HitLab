@@ -44,7 +44,7 @@ interface DECK {
     cover_url: string;
 }
 
-export default function DecksTable({ decks }: { decks: DECK[] }) {
+export default function DecksTable({ decks, viewDeck, downloadDeck, editDeck, deleteDeck }: { decks: DECK[], viewDeck: (deck: DECK) => void, downloadDeck: (deck: DECK) => void, editDeck: (deck: DECK) => void, deleteDeck: (deck: DECK) => void }) {
     const [sortKey, setSortKey] = useState<string>("created_at");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
     const [search_str, setSearchStr] = useState<string>("");
@@ -89,6 +89,7 @@ export default function DecksTable({ decks }: { decks: DECK[] }) {
         },
         [sortKey]
     );
+
 
     const renderCell = React.useCallback(
         (deck: DECK, columnKey: React.Key) => {
@@ -147,19 +148,16 @@ export default function DecksTable({ decks }: { decks: DECK[] }) {
                             {isMobile ? (
                                 <Dropdown>
                                     <DropdownTrigger>
-                                        <Button
-                                            startContent={<IconDotsVertical />}
-                                            variant="light"
-                                            size="sm"
-                                        />
+                                        <IconDotsVertical className="text-lg text-default-400 cursor-pointer active:opacity-50" />
                                     </DropdownTrigger>
                                     <DropdownMenu>
-                                        <DropdownItem key="view-deck" startContent={<IconEye />}>
+                                        <DropdownItem key="view-deck" startContent={<IconEye />} onClick={() => viewDeck(deck)}>
                                             Deck ansehen
                                         </DropdownItem>
                                         <DropdownItem
                                             key="download-deck"
                                             startContent={<IconDownload />}
+                                            onClick={() => downloadDeck(deck)}
                                         >
                                             Deck herunterladen
                                         </DropdownItem>
@@ -167,6 +165,7 @@ export default function DecksTable({ decks }: { decks: DECK[] }) {
                                             key="edit-deck"
                                             startContent={<IconEdit />}
                                             showDivider
+                                            onClick={() => editDeck(deck)}
                                         >
                                             Deck bearbeiten
                                         </DropdownItem>
@@ -175,6 +174,7 @@ export default function DecksTable({ decks }: { decks: DECK[] }) {
                                             startContent={<IconTrash />}
                                             className="text-danger"
                                             color="danger"
+                                            onClick={() => deleteDeck(deck)}
                                         >
                                             Deck löschen
                                         </DropdownItem>
@@ -183,22 +183,23 @@ export default function DecksTable({ decks }: { decks: DECK[] }) {
                             ) : (
                                 <Group>
                                     <Tooltip content="Deck ansehen">
-                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50" onClick={()=> viewDeck(deck)}>
+
                                             <IconEye />
                                         </span>
                                     </Tooltip>
                                     <Tooltip content="Deck herunterladen">
-                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50" onClick={()=> downloadDeck(deck)}>
                                             <IconDownload />
                                         </span>
                                     </Tooltip>
                                     <Tooltip content="Deck bearbeiten">
-                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50" onClick={()=> editDeck(deck)}>
                                             <IconEdit />
                                         </span>
                                     </Tooltip>
                                     <Tooltip color="danger" content="Deck löschen">
-                                        <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                                        <span className="text-lg text-danger cursor-pointer active:opacity-50" onClick={()=> deleteDeck(deck)}>
                                             <IconTrash />
                                         </span>
                                     </Tooltip>

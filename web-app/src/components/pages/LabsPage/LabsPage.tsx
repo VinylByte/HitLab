@@ -165,13 +165,42 @@ export const decks = [
     },
 ];
 
+interface DECK {
+    id: number;
+    title: string;
+    song_count: number;
+    status: string;
+    created_at: string;
+    cover_url: string;
+}
+
 export default function LabsPage() {
     const isLoading = false;
+
+    const viewDeck = (deck: DECK) => {
+        console.log("Viewing deck:", deck);
+    }
+
+    const downloadDeck = (deck: DECK) => {
+        console.log("Downloading deck:", deck);
+    }
+
+    const editDeck = (deck: DECK) => {
+        console.log("Editing deck:", deck);
+    }
+
+    const createDeck = () => {
+        console.log("Creating new deck");
+    }
+    
+    const deleteDeck = (deck: DECK) => {
+        console.log("Deleting deck:", deck);
+    }
 
     return (
         <div className="labs-page">
             <Stack mt={"lg"} p={"xl"}>
-                {isLoading ? <DecksTableSkeleton /> : <DecksTable decks={decks} />}
+                {isLoading ? <DecksTableSkeleton /> : <DecksTable decks={decks} viewDeck={viewDeck} downloadDeck={downloadDeck} editDeck={editDeck} deleteDeck={deleteDeck} />}
             </Stack>
         </div>
     );
