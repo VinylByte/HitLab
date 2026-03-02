@@ -1,35 +1,11 @@
 import { Image, Page, Text, View } from "@react-pdf/renderer";
 import type { ReactNode } from "react";
-import { PDFQRCode } from "../QR-Generator/qr-generator";
-import type { BackgroundConfig } from "./BackgroundConfig";
+import type { BackgroundConfig, PageComponentProps, CardComponentProps } from "../interfaces";
 import {
     createBackgroundStyle,
     createGradientDataUrl,
     resolveGradientBackground,
 } from "./BackgroundConfig";
-
-export interface Card {
-    artist: string;
-    title: string;
-    year: string;
-    url: string;
-    frontBackground?: BackgroundConfig; // Optionaler Hintergrund für diese spezifische Kartenvorderseite
-    backBackground?: BackgroundConfig; // Optionaler Hintergrund für diese spezifische Kartenrückseite
-}
-
-interface PageComponentProps {
-    cards: Card[];
-    styles: any;
-    chunkIndex: number;
-    frontBackground?: BackgroundConfig;
-    backBackground?: BackgroundConfig;
-}
-
-interface CardComponentProps {
-    card: Card;
-    styles: any;
-    background?: BackgroundConfig;
-}
 
 const backgroundImageStyle = {
     position: "absolute" as const,
@@ -92,7 +68,12 @@ export const CardFront = ({ card, styles }: CardComponentProps) => (
     </>
 );
 
-export const CardBack = ({ card }: CardComponentProps) => <PDFQRCode url={card.url} />;
+export const CardBack = ({ card }: CardComponentProps) => {
+    if (card.qrDataUri) {
+        return <Image src={card.qrDataUri} style={{ width: 100, height: 100 }} />;
+    }
+    return null;
+};
 
 const CardWithBackground = ({
     background,

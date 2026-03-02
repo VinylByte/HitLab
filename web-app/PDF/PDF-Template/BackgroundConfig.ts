@@ -1,31 +1,4 @@
-﻿// Background-Konfiguration für PDF-Karten
-
-export type BackgroundType = "solid" | "image" | "gradient";
-
-export interface SolidBackground {
-    type: "solid";
-    color: string;
-}
-
-export interface ImageBackground {
-    type: "image";
-    url: string;
-    opacity?: number;
-}
-
-export interface GradientColorStop {
-    color: string;
-    position: number; // Prozentwert 0-100
-}
-
-export interface GradientBackground {
-    type: "gradient";
-    angle?: number; // CSS-Grad (z. B. 90 für links -> rechts)
-    colorStops?: GradientColorStop[];
-    css?: string; // z. B. linear-gradient(90deg, rgba(...) 0%, ...)
-}
-
-export type BackgroundConfig = SolidBackground | GradientBackground | ImageBackground;
+﻿import type { GradientBackground, GradientColorStop, SolidBackground, BackgroundConfig } from "../interfaces";
 
 const parseGradientAngleFromCss = (css: string): number | undefined => {
     const angleMatch = css.match(/linear-gradient\(\s*(-?\d+(?:\.\d+)?)deg/i);
