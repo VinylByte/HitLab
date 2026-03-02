@@ -14,6 +14,18 @@ export const ProtectedPages = [
 
 export const MOBILE_BREAKPOINT = "(max-width: 768px)";
 export const PAGINATION_BREAKPOINT = 12;
+/**
+const SPOTIFY_SCOPES = [
+    "user-read-email",
+    "user-read-private",
+    "streaming",
+    "user-modify-playback-state",
+    "user-read-playback-state",
+    "user-read-currently-playing",
+ ].join(" ");
+ */
+export const SPOTIFY_SCOPES =
+    "user-read-email user-read-private streaming user-modify-playback-state user-read-playback-state user-read-currently-playing";
 
 export const SOCIALS = [
     {

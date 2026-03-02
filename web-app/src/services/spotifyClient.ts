@@ -1,0 +1,93 @@
+import supabase from "../supabase";
+import { SpotifyApi } from "@spotify/web-api-ts-sdk";
+import type { AccessToken, Device, MaxInt, Track } from "@spotify/web-api-ts-sdk";
+import { mapSpotifyError, SpotifyApiError } from "./spotifyErrorMapper";
+import type { Song } from "./deckService";
+
+async function getSpotifySdk(): Promise<SpotifyApi> {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+
+    const session = data.session;
+    const providerToken = session?.provider_token;
+
+    if (!providerToken) {
+        throw new Error("Kein Spotify Access Token in der Session");
+    }
+
+    const accessToken: AccessToken = {
+        access_token: providerToken,
+        token_type: "Bearer",
+        expires_in: session.expires_at
+            ? Math.max(0, session.expires_at - Math.floor(Date.now() / 1000))
+            : 3600,
+        refresh_token: session.provider_refresh_token ?? "",
+    };
+
+    const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+    if (!clientId) {
+        throw new Error("VITE_SPOTIFY_CLIENT_ID fehlt in den Frontend-Umgebungsvariablen");
+    }
+
+    return SpotifyApi.withAccessToken(clientId, accessToken);
+}
+
+function toSpotifyTrack(item: Track): Song {
+    return {
+        id: item.id,
+        title: item.name,
+        artist: item.artists.map(artist => artist.name).join(", ") || "Unknown",
+        year: Number((item.album.release_date ?? "1900").slice(0, 4)),
+        thumbnail_url: item.album.images[0]?.url ?? null,
+    };
+}
+
+export async function searchTracks(query: string, limit = 20): Promise<Song[]> {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return [];
+
+    const sdk = await getSpotifySdk();
+    // stellt sicher, dass limit zwischen 1 und 50 ist, da Spotify nur maximal 50 tracks pro request returned
+    const cappedLimit = Math.min(Math.max(limit, 1), 50) as MaxInt<50>;
+
+    try {
+        const response = await sdk.search(trimmedQuery, ["track"], undefined, cappedLimit);
+        return response.tracks.items.map(toSpotifyTrack);
+    } catch (error) {
+        throw mapSpotifyError(error);
+    }
+}
+export type SpotifyDevice = Device;
+
+export async function getDevices(): Promise<SpotifyDevice[]> {
+    const sdk = await getSpotifySdk();
+
+    try {
+        const response = await sdk.player.getAvailableDevices();
+        return response.devices;
+    } catch (error) {
+        throw mapSpotifyError(error);
+    }
+}
+
+export async function startPlayback(trackId: string, deviceId?: string) {
+    const sdk = await getSpotifySdk();
+    try {
+        let targetDevice = deviceId;
+
+        if (!targetDevice) {
+            const { devices } = await sdk.player.getAvailableDevices();
+            targetDevice = devices.find(d => d.is_active)?.id ?? undefined;
+            if (!targetDevice) {
+                throw new SpotifyApiError(
+                    "NO_ACTIVE_DEVICE",
+                    "Kein aktives Spotify-Gerät gefunden."
+                );
+            }
+        }
+
+        await sdk.player.startResumePlayback(targetDevice, undefined, [`spotify:track:${trackId}`]);
+    } catch (error) {
+        throw mapSpotifyError(error);
+    }
+}
