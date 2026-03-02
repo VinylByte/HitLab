@@ -1,4 +1,3 @@
-import type { SVGProps } from "react";
 import type { ChipProps } from "@heroui/react";
 
 import React, { useMemo, useState } from "react";
@@ -12,22 +11,24 @@ import {
     User,
     Chip,
     Tooltip,
+    Dropdown,
+    DropdownTrigger,
+    DropdownItem,
+    DropdownMenu,
+    Button,
 } from "@heroui/react";
-import { IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
-import { Center } from "@mantine/core";
+import {
+    IconDotsCircleHorizontal,
+    IconDotsVertical,
+    IconDownload,
+    IconEdit,
+    IconEye,
+    IconTrash,
+} from "@tabler/icons-react";
+import { Center, Group } from "@mantine/core";
 import SearchBar from "../PublicDecksPage/SearchBarProp";
-
-export type IconSvgProps = SVGProps<SVGSVGElement> & {
-    size?: number;
-};
-
-export const columns = [
-    { name: "TITLE", uid: "title" },
-    { name: "SONG ANZAHL", uid: "song_count" },
-    { name: "STATUS", uid: "status" },
-    { name: "ERSTELLT AM", uid: "created_at" },
-    { name: "ACTIONS", uid: "actions" },
-];
+import { useMediaQuery } from "@mantine/hooks";
+import { MOBILE_BREAKPOINT } from "../Settings";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
     private: "success",
@@ -43,11 +44,27 @@ interface DECK {
     cover_url: string;
 }
 
-
-export default function DecksTable({decks}: {decks: DECK[]}) {
+export default function DecksTable({ decks }: { decks: DECK[] }) {
     const [sortKey, setSortKey] = useState<string>("created_at");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
     const [search_str, setSearchStr] = useState<string>("");
+    const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
+
+    const columns = useMemo(() => {
+        if (isMobile) {
+            return [
+                { name: "TITLE", uid: "title" },
+                { name: "ACTIONS", uid: "actions" },
+            ];
+        }
+        return [
+            { name: "TITLE", uid: "title" },
+            { name: "SONG ANZAHL", uid: "song_count" },
+            { name: "STATUS", uid: "status" },
+            { name: "ERSTELLT AM", uid: "created_at" },
+            { name: "ACTIONS", uid: "actions" },
+        ];
+    }, [isMobile]);
 
     const titleCollator = React.useMemo(
         () =>
@@ -73,78 +90,128 @@ export default function DecksTable({decks}: {decks: DECK[]}) {
         [sortKey]
     );
 
-    const renderCell = React.useCallback((deck: DECK, columnKey: React.Key) => {
-        const cellValue = deck[columnKey as keyof DECK];
+    const renderCell = React.useCallback(
+        (deck: DECK, columnKey: React.Key) => {
+            const cellValue = deck[columnKey as keyof DECK];
 
-        switch (columnKey) {
-            case "title":
-                return (
-                    <User
-                        avatarProps={{ radius: "lg", src: deck.cover_url }}
-                        name={cellValue}
-                    ></User>
-                );
-            case "song_count":
-                return (
-                    <div className="flex flex-col">
+            switch (columnKey) {
+                case "title":
+                    return (
+                        <User
+                            avatarProps={{ radius: "lg", src: deck.cover_url }}
+                            name={cellValue}
+                        ></User>
+                    );
+                case "song_count":
+                    return (
+                        <div className="flex flex-col">
+                            <Center>
+                                <p className="text-bold text-sm capitalize">{cellValue}</p>
+                            </Center>
+                            <Center>
+                                <p className="text-bold text-sm capitalize text-default-400">
+                                    Songs
+                                </p>
+                            </Center>
+                        </div>
+                    );
+                case "status":
+                    return (
                         <Center>
-                            <p className="text-bold text-sm capitalize">{cellValue}</p>
+                            <Chip
+                                className="capitalize"
+                                color={statusColorMap[deck.status]}
+                                size="sm"
+                                variant="flat"
+                            >
+                                {cellValue}
+                            </Chip>
                         </Center>
+                    );
+                case "created_at":
+                    const date = new Date(String(cellValue));
+                    return (
                         <Center>
-                            <p className="text-bold text-sm capitalize text-default-400">Songs</p>
+                            <p className="text-bold text-sm capitalize">
+                                {date.toLocaleDateString("de-DE", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "2-digit",
+                                })}
+                            </p>
                         </Center>
-                    </div>
-                );
-            case "status":
-                return (
-                    <Center>
-                        <Chip
-                            className="capitalize"
-                            color={statusColorMap[deck.status]}
-                            size="sm"
-                            variant="flat"
-                        >
-                            {cellValue}
-                        </Chip>
-                    </Center>
-                );
-            case "created_at":
-                const date = new Date(String(cellValue));
-                return (
-                    <Center>
-                        <p className="text-bold text-sm capitalize">
-                            {date.toLocaleDateString("de-DE", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "2-digit",
-                            })}
-                        </p>
-                    </Center>
-                );
-            case "actions":
-                return (
-                    <Center className="relative flex items-center gap-2">
-                        <Tooltip content="Deck ansehen">
-                            <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                                <IconEye />
-                            </span>
-                        </Tooltip>
-                        <Tooltip content="Deck bearbeiten">
-                            <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                                <IconEdit />
-                            </span>
-                        </Tooltip>
-                        <Tooltip color="danger" content="Deck löschen">
-                            <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                                <IconTrash />
-                            </span>
-                        </Tooltip>
-                    </Center>
-                );
-            default:
-                return cellValue;
-        }
-    }, []);
+                    );
+                case "actions":
+                    return (
+                        <Center className="relative flex items-center gap-2">
+                            {isMobile ? (
+                                <Dropdown>
+                                    <DropdownTrigger>
+                                        <Button
+                                            startContent={<IconDotsVertical />}
+                                            variant="light"
+                                            size="sm"
+                                        />
+                                    </DropdownTrigger>
+                                    <DropdownMenu>
+                                        <DropdownItem key="view-deck" startContent={<IconEye />}>
+                                            Deck ansehen
+                                        </DropdownItem>
+                                        <DropdownItem
+                                            key="download-deck"
+                                            startContent={<IconDownload />}
+                                        >
+                                            Deck herunterladen
+                                        </DropdownItem>
+                                        <DropdownItem
+                                            key="edit-deck"
+                                            startContent={<IconEdit />}
+                                            showDivider
+                                        >
+                                            Deck bearbeiten
+                                        </DropdownItem>
+                                        <DropdownItem
+                                            key="delete-deck"
+                                            startContent={<IconTrash />}
+                                            className="text-danger"
+                                            color="danger"
+                                        >
+                                            Deck löschen
+                                        </DropdownItem>
+                                    </DropdownMenu>
+                                </Dropdown>
+                            ) : (
+                                <Group>
+                                    <Tooltip content="Deck ansehen">
+                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                                            <IconEye />
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip content="Deck herunterladen">
+                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                                            <IconDownload />
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip content="Deck bearbeiten">
+                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                                            <IconEdit />
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip color="danger" content="Deck löschen">
+                                        <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                                            <IconTrash />
+                                        </span>
+                                    </Tooltip>
+                                </Group>
+                            )}
+                        </Center>
+                    );
+                default:
+                    return cellValue;
+            }
+        },
+        [isMobile]
+    );
 
     const sortedDecks = useMemo(() => {
         const arr = [...decks];
