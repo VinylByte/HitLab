@@ -1,6 +1,6 @@
 ﻿// Background-Konfiguration für PDF-Karten
 
-export type BackgroundType = "solid" | "image";
+export type BackgroundType = "solid" | "image" | "gradient";
 
 export interface SolidBackground {
     type: "solid";
