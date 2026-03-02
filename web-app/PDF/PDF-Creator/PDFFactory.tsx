@@ -21,8 +21,8 @@ export interface PDFFactoryProps {
     cards: Card[];
     type: PDFType;
     bindingMode?: BindingMode; // Nur relevant für double-sided
-    frontBackground?: BackgroundConfig; // Hintergrund für Vorderseiten
-    backBackground?: BackgroundConfig; // Hintergrund für Rückseiten
+    frontBackground?: BackgroundConfig | BackgroundConfig[]; // Hintergrund für Vorderseiten
+    backBackground?: BackgroundConfig | BackgroundConfig[]; // Hintergrund für Rückseiten
 }
 
 const createChunks = <T,>(array: T[], size: number): T[][] =>
@@ -38,6 +38,36 @@ const flipForLongEdgeBinding = (array: Card[], rowSize: number): Card[] => {
     return result;
 };
 
+const getAlternatingBackground = (
+    backgrounds: BackgroundConfig | BackgroundConfig[] | undefined,
+    index: number
+): BackgroundConfig | undefined => {
+    if (!backgrounds) {
+        return undefined;
+    }
+
+    if (!Array.isArray(backgrounds)) {
+        return backgrounds;
+    }
+
+    if (!backgrounds.length) {
+        return undefined;
+    }
+
+    return backgrounds[index % backgrounds.length];
+};
+
+const applyGlobalAlternatingBackgrounds = (
+    cards: Card[],
+    frontBackgrounds: BackgroundConfig | BackgroundConfig[] | undefined,
+    backBackgrounds: BackgroundConfig | BackgroundConfig[] | undefined
+): Card[] =>
+    cards.map((card, index) => ({
+        ...card,
+        frontBackground: card.frontBackground ?? getAlternatingBackground(frontBackgrounds, index),
+        backBackground: card.backBackground ?? getAlternatingBackground(backBackgrounds, index),
+    }));
+
 /**
  * PDFFactory - Universelle PDF-Komponente für Musikquiz-Karten
  *
@@ -48,13 +78,15 @@ const flipForLongEdgeBinding = (array: Card[], rowSize: number): Card[] => {
  *   • short-edge: Blatt an kurzer Kante umdrehen (keine Spiegelung)
  *
  * Unterstützt Hintergründe: solid, gradient (CSS → PNG via Canvas), image
+ * Globale Hintergründe können als einzelnes Design oder als Array übergeben werden.
+ * Bei Arrays werden die Designs pro Karte abwechselnd verwendet.
  * Card-spezifische Hintergründe überschreiben globale Hintergründe.
  *
  * @param {Card[]} cards - Array von Karten mit artist, title, year, url
  * @param {PDFType} type - "one-sided" oder "double-sided"
  * @param {BindingMode} [bindingMode="long-edge"] - "long-edge" oder "short-edge" (nur für double-sided)
- * @param {BackgroundConfig} [frontBackground] - Globaler Vorderseiten-Hintergrund
- * @param {BackgroundConfig} [backBackground] - Globaler Rückseiten-Hintergrund
+ * @param {BackgroundConfig | BackgroundConfig[]} [frontBackground] - Globaler Vorderseiten-Hintergrund (einzeln oder alternierend)
+ * @param {BackgroundConfig | BackgroundConfig[]} [backBackground] - Globaler Rückseiten-Hintergrund (einzeln oder alternierend)
  *
  * @example
  * <PDFFactory
@@ -76,15 +108,21 @@ export const PDFFactory = ({
     frontBackground,
     backBackground,
 }: PDFFactoryProps) => {
+    const cardsWithGlobalBackgrounds = applyGlobalAlternatingBackgrounds(
+        cards,
+        frontBackground,
+        backBackground
+    );
+
     // ONE-SIDED: Faltkarten auf einem Blatt
     if (type === "one-sided") {
         return (
             <Document>
                 <Page size="A4" style={OnePageStyles.page}>
                     <View style={OnePageStyles.grid}>
-                        {cards.map((card, index) => {
-                            const cardFrontBg = card.frontBackground ?? frontBackground;
-                            const cardBackBg = card.backBackground ?? backBackground;
+                        {cardsWithGlobalBackgrounds.map((card, index) => {
+                            const cardFrontBg = card.frontBackground;
+                            const cardBackBg = card.backBackground;
 
                             return (
                                 <View key={index} style={OnePageStyles.cardContainer}>
@@ -122,7 +160,7 @@ export const PDFFactory = ({
     // DOUBLE-SIDED: Beidseitig gedruckte Karten
     const cardsPerRow = 3;
     const CARDS_PER_PAGE = 12;
-    const cardChunks = createChunks(cards, CARDS_PER_PAGE);
+    const cardChunks = createChunks(cardsWithGlobalBackgrounds, CARDS_PER_PAGE);
 
     return (
         <Document>
@@ -138,13 +176,11 @@ export const PDFFactory = ({
                             cards={chunk}
                             styles={DoublePageStyles}
                             chunkIndex={chunkIndex}
-                            frontBackground={frontBackground}
                         />
                         <CardBackPage
                             cards={flippedChunk}
                             styles={DoublePageStyles}
                             chunkIndex={chunkIndex}
-                            backBackground={backBackground}
                         />
                     </React.Fragment>
                 );
