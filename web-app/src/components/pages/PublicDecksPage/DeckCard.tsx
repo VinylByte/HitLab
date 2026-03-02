@@ -28,6 +28,8 @@ import { IconDownload } from "@tabler/icons-react";
 import type { PublicDeckDTO } from "../../../services/deckService";
 import { useDeckSong } from "../../../hooks/useDeckSong";
 
+import DownloadModal from "../../../../PDF/DownloadModal";
+
 function DeckModal({
     isOpen,
     onOpenChange,
@@ -39,9 +41,15 @@ function DeckModal({
 }) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const { deck_songs, loading } = useDeckSong(publicDeck.id, isOpen);
+    const [downloadModalOpen, setDownloadModalOpen] = useState(false);
+
+    const handleDownload = () => {
+        setDownloadModalOpen(true);
+    };
 
     return (
         <div>
+            <DownloadModal isOpen={downloadModalOpen} onOpenChange={setDownloadModalOpen} songs={deck_songs.map(ds => ds.song)} deck={publicDeck} />
             <Modal size="5xl" isOpen={isOpen} onOpenChange={onOpenChange}>
                 <ModalContent>
                     {onClose => (
@@ -209,7 +217,7 @@ function DeckModal({
                                 <Button
                                     color="primary"
                                     startContent={<IconDownload />}
-                                    onPress={() => alert("Download started")}
+                                    onPress={handleDownload}
                                 >
                                     Herunterladen
                                 </Button>

@@ -1,6 +1,6 @@
 import React from "react";
 import { Document, Page, View } from "@react-pdf/renderer";
-import type { Card } from "../PDF-Template/PageComponents";
+import type { Card, PDFFactoryProps, BackgroundConfig } from "../interfaces";
 import {
     CardFront,
     CardBack,
@@ -10,20 +10,10 @@ import {
     cardContentStyle,
 } from "../PDF-Template/PageComponents";
 import { OnePageStyles, DoublePageStyles } from "../PDF-Template/Templates";
-import type { BackgroundConfig } from "../PDF-Template/BackgroundConfig";
 import { createBackgroundStyle } from "../PDF-Template/BackgroundConfig";
 
 // Typen für die verschiedenen PDF-Varianten
-export type PDFType = "one-sided" | "double-sided";
-export type BindingMode = "short-edge" | "long-edge";
-
-export interface PDFFactoryProps {
-    cards: Card[];
-    type: PDFType;
-    bindingMode?: BindingMode; // Nur relevant für double-sided
-    frontBackground?: BackgroundConfig | BackgroundConfig[]; // Hintergrund für Vorderseiten
-    backBackground?: BackgroundConfig | BackgroundConfig[]; // Hintergrund für Rückseiten
-}
+// PDFFactoryProps imported from ../interfaces
 
 const createChunks = <T,>(array: T[], size: number): T[][] =>
     Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>

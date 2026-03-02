@@ -45,7 +45,7 @@ function PublicDecksPage({ decks, totalCount, search_props, loading, page_props 
                 <SearchBar {...search_props!} />
                 <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
                     {loading
-                        ? Array.from({ length: 12 }).map((_, i) => <DeckCardSkeleton key={i} />)
+                        ? Array.from({ length: PAGINATION_BREAKPOINT }).map((_, i) => <DeckCardSkeleton key={i} />)
                         : decks?.map(deck => <DeckCard key={deck.id} data={deck} />)}
                 </SimpleGrid>
                 <Center>

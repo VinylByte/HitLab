@@ -19,9 +19,7 @@ const styles = StyleSheet.create({
     },
 });
 
-interface PDFQRCodeProps {
-    url: string;
-}
+import type { PDFQRCodeProps } from "../interfaces";
 
 export const PDFQRCode = ({ url }: PDFQRCodeProps) => {
     const [qrDataUri, setQrDataUri] = useState<string | null>(null);
