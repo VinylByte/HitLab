@@ -6,7 +6,7 @@ import { CardFrontPage, CardBackPage } from "../PDF-Template/PageComponents";
 // Spiegeln an der langen Seite (Long-Edge / Buch-Bindung)
 // Bei Long-Edge wird das Papier vertikal umgedreht (wie ein Buch)
 // Jede Zeile muss horizontal gespiegelt werden
-const flipForLongEdgeBinding = (array: any[], size: number) => {
+const flipForLongEdgeBinding = (array: Card[], size: number) => {
     const chunks = [];
     for (let i = 0; i < array.length; i += size) {
         // Jede Zeile (Chunk) wird umgekehrt
