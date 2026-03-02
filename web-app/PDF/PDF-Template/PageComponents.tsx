@@ -1,4 +1,5 @@
 import { Image, Page, Text, View } from "@react-pdf/renderer";
+import type { ReactNode } from "react";
 import { PDFQRCode } from "../QR-Generator/qr-generator";
 import type { BackgroundConfig } from "./BackgroundConfig";
 import {
@@ -104,7 +105,7 @@ const CardWithBackground = ({
     backgroundStyle: any;
     styles: any;
     cardKey: string;
-    children: React.ReactNode;
+    children: ReactNode;
 }) => (
     <View key={cardKey} style={[styles.card, backgroundStyle]}>
         <CardBackgroundLayer background={background} />
