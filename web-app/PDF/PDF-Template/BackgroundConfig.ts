@@ -1,4 +1,4 @@
-﻿import type { GradientBackground, GradientColorStop, SolidBackground, ImageBackground, BackgroundConfig } from "../interfaces";
+﻿import type { GradientBackground, GradientColorStop, SolidBackground, BackgroundConfig } from "../interfaces";
 
 const parseGradientAngleFromCss = (css: string): number | undefined => {
     const angleMatch = css.match(/linear-gradient\(\s*(-?\d+(?:\.\d+)?)deg/i);
