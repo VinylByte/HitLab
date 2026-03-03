@@ -5,6 +5,8 @@ import { DeckModal } from "./ViewDeckModal";
 import { useState } from "react";
 import DownloadModal from "../../../../PDF/DownloadModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import { Button } from "@heroui/react";
+import { IconPlus } from "@tabler/icons-react";
 
 export const decks = [
     {
@@ -441,6 +443,7 @@ export default function LabsPage() {
                         decks={decks}
                         viewDeck={viewDeck}
                         editDeck={editDeck}
+                        createDeck={createDeck}
                         deleteDeck={deleteDeck}
                     />
                 )}

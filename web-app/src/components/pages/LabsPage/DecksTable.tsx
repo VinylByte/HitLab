@@ -15,12 +15,21 @@ import {
     DropdownTrigger,
     DropdownItem,
     DropdownMenu,
+    Button,
 } from "@heroui/react";
-import { IconDotsVertical, IconDownload, IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
+import {
+    IconDotsVertical,
+    IconDownload,
+    IconEdit,
+    IconEye,
+    IconPlus,
+    IconTrash,
+} from "@tabler/icons-react";
 import { Center, Group } from "@mantine/core";
 import SearchBar from "../PublicDecksPage/SearchBarProp";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../Settings";
+import { useSearchParams } from "react-router";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
     private: "success",
@@ -46,16 +55,18 @@ export default function DecksTable({
     decks,
     viewDeck,
     editDeck,
+    createDeck,
     deleteDeck,
 }: {
     decks: DECK[];
     viewDeck: (deck: DECK) => void;
+    createDeck: () => void;
     editDeck: (deck: DECK) => void;
     deleteDeck: (deck: DECK) => void;
 }) {
     const [sortKey, setSortKey] = useState<string>("created_at");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-    const [search_str, setSearchStr] = useState<string>("");
+    const [searchParams,] = useSearchParams();
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
 
     const columns = useMemo(() => {
@@ -252,7 +263,7 @@ export default function DecksTable({
     }, [sortKey, sortDir, titleCollator]);
 
     const filteredDecks = useMemo(() => {
-        const query = search_str.trim().toLocaleLowerCase("de-DE");
+        const query = searchParams.get("query")?.trim().toLocaleLowerCase("de-DE") || "";
         if (!query) return sortedDecks;
 
         return sortedDecks.filter(deck => {
@@ -262,11 +273,20 @@ export default function DecksTable({
 
             return title.includes(query) || status.includes(query) || createdAt.includes(query);
         });
-    }, [search_str, sortedDecks]);
+    }, [searchParams, sortedDecks]);
 
     return (
         <div>
-            <SearchBar search_str={search_str} setSearchStr={setSearchStr} />
+            <SearchBar />
+            <Button
+                variant="shadow"
+                color="primary"
+                startContent={<IconPlus />}
+                className="w-full mb-4"
+                onPress={createDeck}
+            >
+                Neues Deck erstellen
+            </Button>
             <Table
                 isStriped
                 aria-label="Example table with custom cells"
