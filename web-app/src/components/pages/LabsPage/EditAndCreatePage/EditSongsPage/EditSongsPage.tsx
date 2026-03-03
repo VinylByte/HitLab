@@ -138,17 +138,20 @@ export default function EditSongsPage() {
     const [songsInSearchResults, setSongsInSearchResults] = useState<Song[]>(mockSearchResults);
 
     // "all" in explizite IDs umwandeln, damit nur angezeigte Songs selektiert werden
-    const handleSearchSelectionChange = useCallback((keys: Selection) => {
-        if (keys === "all") {
-            // Alle Songs außer ladenden auswählen
-            const selectableIds = songsInSearchResults
-                .filter(s => !loadingDeckIds.has(s.id))
-                .map(s => s.id);
-            setSelectedSearchKeys(new Set(selectableIds));
-        } else {
-            setSelectedSearchKeys(keys);
-        }
-    }, [songsInSearchResults, loadingDeckIds]);
+    const handleSearchSelectionChange = useCallback(
+        (keys: Selection) => {
+            if (keys === "all") {
+                // Alle Songs außer ladenden auswählen
+                const selectableIds = songsInSearchResults
+                    .filter(s => !loadingDeckIds.has(s.id))
+                    .map(s => s.id);
+                setSelectedSearchKeys(new Set(selectableIds));
+            } else {
+                setSelectedSearchKeys(keys);
+            }
+        },
+        [songsInSearchResults, loadingDeckIds]
+    );
 
     // Cache für Song-Objekte, damit ausgewählte Songs auch nach Query-Wechsel verfügbar bleiben
     const songCacheRef = useRef<Map<string, Song>>(new Map());
@@ -201,17 +204,20 @@ export default function EditSongsPage() {
         return [...pinnedSongs, ...nonSelected];
     }, [selectedDeckKeys, filteredSongsInDeck, songsInDeck]);
 
-    const handleDeckSelectionChange = useCallback((keys: Selection) => {
-        if (keys === "all") {
-            // Alle Songs außer ladenden auswählen
-            const selectableIds = filteredSongsInDeck
-                .filter(s => !loadingDeckIds.has(s.id))
-                .map(s => s.id);
-            setSelectedDeckKeys(new Set(selectableIds));
-        } else {
-            setSelectedDeckKeys(keys);
-        }
-    }, [filteredSongsInDeck, loadingDeckIds]);
+    const handleDeckSelectionChange = useCallback(
+        (keys: Selection) => {
+            if (keys === "all") {
+                // Alle Songs außer ladenden auswählen
+                const selectableIds = filteredSongsInDeck
+                    .filter(s => !loadingDeckIds.has(s.id))
+                    .map(s => s.id);
+                setSelectedDeckKeys(new Set(selectableIds));
+            } else {
+                setSelectedDeckKeys(keys);
+            }
+        },
+        [filteredSongsInDeck, loadingDeckIds]
+    );
 
     useEffect(() => {
         searchSongsSpotify(searchResultsValue).then(results => {
@@ -361,23 +367,15 @@ export default function EditSongsPage() {
 
             {!isMobile ? (
                 <SimpleGrid cols={2} spacing="lg">
-                    <div>
-                        {SongsSearchTable}
-                    </div>
-                    <div>
-                        {SongsInDeckTable}
-                    </div>
+                    <div>{SongsSearchTable}</div>
+                    <div>{SongsInDeckTable}</div>
                 </SimpleGrid>
             ) : (
                 <Center>
                     <Stack>
                         <Tabs>
-                            <Tab title="Songs hinzufügen">
-                                {SongsSearchTable}
-                            </Tab>
-                            <Tab title="Songs im Deck">
-                                {SongsInDeckTable}
-                            </Tab>
+                            <Tab title="Songs hinzufügen">{SongsSearchTable}</Tab>
+                            <Tab title="Songs im Deck">{SongsInDeckTable}</Tab>
                         </Tabs>
                     </Stack>
                 </Center>
