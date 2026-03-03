@@ -77,6 +77,7 @@ export type Song = {
     id: string;
     title: string;
     artist: string;
+    album: string | null;
     year: number;
     thumbnail_url: string | null;
 };
@@ -100,7 +101,7 @@ export async function fetchPublicDeckSongs(publicDeckId: string): Promise<Public
             `
         id,
         deck_id,
-        songs!song_id ( id, spotify_track_id, title, artist, year, thumbnail_url ),
+        songs!song_id ( id, spotify_track_id, title, artist, album, year, thumbnail_url ),
         card_note,
         created_at
         `
@@ -119,6 +120,7 @@ export async function fetchPublicDeckSongs(publicDeckId: string): Promise<Public
             spotify_track_id: row.songs.spotify_track_id,
             title: row.songs.title,
             artist: row.songs.artist,
+            album: row.songs.album,
             year: row.songs.year,
             thumbnail_url: row.songs.thumbnail_url,
         },
