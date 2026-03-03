@@ -24,6 +24,10 @@ export type PublicDeckDTO = {
     tags: DeckTag[];
 };
 
+export type OwnDeckDTO = PublicDeckDTO & {
+    songs: Song[];
+};
+
 /**
  * Fetches all public, non-deleted decks with owner profile and tags.
  * Transforms Supabase response into properly typed PublicDeckDTO[].
@@ -147,6 +151,70 @@ export async function fetchOwnDeckSongs(deckId: string): Promise<Song[]> {
         album: row.songs.album,
         year: row.songs.year,
         thumbnail_url: row.songs.thumbnail_url,
+    }));
+}
+
+export async function fetchOwnDecks(): Promise<OwnDeckDTO[]> {
+    const {
+        data: { session },
+    } = await supabase.auth.getSession();
+
+    const userId = session?.user.id;
+    if (!userId) throw new Error("Nicht eingeloggt");
+
+    const { data, error } = await supabase
+        .from("decks")
+        .select(
+            `
+        id,
+        name,
+        description,
+        cover_url,
+        created_at,
+        profiles!owner_id ( display_name, avatar_url ),
+        deck_tags ( tags ( id, name ) ),
+        deck_songs ( songs!song_id ( id, spotify_track_id, title, artist, album, year, thumbnail_url ) )
+        `
+        )
+        .eq("owner_id", userId)
+        .is("deleted_at", null)
+        .is("deck_songs.deleted_at", null)
+        .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    return (data ?? []).map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        cover_url: row.cover_url,
+        created_at: new Date(row.created_at).toLocaleDateString("de-DE"),
+        owner: row.profiles ?? { display_name: null, avatar_url: null },
+        tags: (row.deck_tags ?? [])
+            .map((dt: { tags: { id: string; name: string } | null }) => ({
+                id: dt.tags!.id,
+                name: dt.tags!.name,
+            }))
+            .filter((tag): tag is DeckTag => tag !== null),
+        songs: (row.deck_songs ?? []).map(
+            (ds: {
+                songs: {
+                    id: string;
+                    title: string;
+                    artist: string;
+                    album: string | null;
+                    year: number;
+                    thumbnail_url: string | null;
+                } | null;
+            }) => ({
+                id: ds.songs!.id,
+                title: ds.songs!.title,
+                artist: ds.songs!.artist,
+                album: ds.songs!.album,
+                year: ds.songs!.year,
+                thumbnail_url: ds.songs!.thumbnail_url,
+            })
+        ),
     }));
 }
 
