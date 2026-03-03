@@ -1,8 +1,18 @@
-import { Container, Title, Text, Stack, Group } from "@mantine/core";
+import { Container, Title, Stack, Group } from "@mantine/core";
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { useForm } from "@mantine/form";
-import { Input, Textarea, Switch, Button, Alert } from "@heroui/react";
+import {
+    Input,
+    Textarea,
+    Switch,
+    Button,
+    Alert,
+    Chip,
+    Select,
+    SelectItem,
+    type Selection,
+} from "@heroui/react";
 import { IconLock, IconLockOpen, IconPencilPlus, IconX } from "@tabler/icons-react";
 import { DropzoneField } from "./Dropzone";
 
@@ -26,6 +36,11 @@ interface Song {
     cover_url?: string;
 }
 
+interface DeckTagOption {
+    key: string;
+    label: string;
+}
+
 export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePageProps) {
     const navigate = useNavigate();
     const form = useForm({
@@ -39,9 +54,18 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
         },
     });
 
-    const [songList, setSongList] = useState<Song[]>([]);
+    const [, setSongList] = useState<Song[]>([]);
     const [coverBlob, setCoverBlob] = useState<Blob | null>(null);
     const [dropZoneError, setDropZoneError] = useState<string | null>(null);
+    const [availableTags] = useState<DeckTagOption[]>([
+        { key: "rock", label: "Rock" },
+        { key: "pop", label: "Pop" },
+        { key: "hiphop", label: "Hip-Hop" },
+        { key: "jazz", label: "Jazz" },
+        { key: "electronic", label: "Electronic" },
+    ]);
+    const [selectedTagKeys, setSelectedTagKeys] = useState<Selection>(new Set());
+    const [tagError, setTagError] = useState<string | null>(null);
 
     // Lade Deck-Daten für Edit-Modus
     useEffect(() => {
@@ -81,13 +105,28 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
         // uploadToStorage(blob);
     };
 
+    const handleTagSelectionChange = (keys: Selection) => {
+        setTagError(null);
+        setSelectedTagKeys(keys);
+    };
+
     const handleSubmit = (data: DeckFormData) => {
+        const selectedTags =
+            selectedTagKeys === "all"
+                ? availableTags.map(tag => tag.key)
+                : Array.from(selectedTagKeys as Set<string>);
+
+        if (mode === "create" && selectedTags.length === 0) {
+            setTagError("Bitte wähle mindestens einen Tag aus.");
+            return;
+        }
+
         if (!coverBlob) {
             setDropZoneError("Bitte lade ein Coverbild hoch.");
             return;
         }
         if (mode === "create") {
-            console.log("Creating deck:", data);
+            console.log("Creating deck:", data, { tags: selectedTags });
             // TODO: Deck zu Datenbank hinzufügen und die neue ID erhalten
             // Nach dem Erstellen zur EditSongsPage mit der neuen Deck ID navigieren
             // const newDeckId = await createDeck(data);
@@ -96,7 +135,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
             // Für jetzt: Platzhalter Navigation (würde mit echter ID ersetzt)
             alert("Deck würde jetzt erstellt und Songs-Bearbeitung würde folgen");
         } else {
-            console.log("Updating deck:", deckId, data);
+            console.log("Updating deck:", deckId, data, { tags: selectedTags });
             // TODO: Deck in Datenbank aktualisieren
             // await updateDeck(deckId, data);
 
@@ -138,6 +177,29 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                             </p>
                         </Switch>
                     </Group>
+
+                    <Select
+                        label="Tags"
+                        placeholder="Wähle Tags für dein Deck"
+                        selectionMode="multiple"
+                        selectedKeys={selectedTagKeys}
+                        onSelectionChange={handleTagSelectionChange}
+                        isInvalid={!!tagError}
+                        errorMessage={tagError ?? undefined}
+                        renderValue={items => (
+                            <div className="flex flex-wrap gap-2">
+                                {items.map(item => (
+                                    <Chip key={item.key} size="sm" variant="flat" color="primary">
+                                        {item.textValue}
+                                    </Chip>
+                                ))}
+                            </div>
+                        )}
+                    >
+                        {availableTags.map(tag => (
+                            <SelectItem key={tag.key}>{tag.label}</SelectItem>
+                        ))}
+                    </Select>
 
                     <Textarea
                         label="Beschreibung"
