@@ -3,6 +3,8 @@ import DecksTableSkeleton from "./DecksTableSkeleton";
 import DecksTable from "./DecksTable";
 import { DeckModal } from "./ViewDeckModal";
 import { useState } from "react";
+import DownloadModal from "../../../../PDF/DownloadModal";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
 export const decks = [
     {
@@ -388,6 +390,8 @@ export default function LabsPage() {
     const [selectedDeck, setSelectedDeck] = useState<DECK | null>(null);
     const [isDeckModalOpen, setIsDeckModalOpen] = useState(false);
 
+    const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
+
     const ViewDeckModal = () => {
         return (
             <div>
@@ -406,10 +410,6 @@ export default function LabsPage() {
         setIsDeckModalOpen(true);
     };
 
-    const downloadDeck = (deck: DECK) => {
-        console.log("Downloading deck:", deck);
-    };
-
     const editDeck = (deck: DECK) => {
         console.log("Editing deck:", deck);
     };
@@ -419,12 +419,20 @@ export default function LabsPage() {
     };
 
     const deleteDeck = (deck: DECK) => {
+        setSelectedDeck(deck);
+        setIsConfirmDeleteModalOpen(true);
         console.log("Deleting deck:", deck);
     };
+
+    const deleteDeckConfirmed = () => {
+        console.log("Deck deleted:", selectedDeck);
+        setSelectedDeck(null);
+    }
 
     return (
         <div className="labs-page">
             <ViewDeckModal />
+            <ConfirmDeleteModal isOpen={isConfirmDeleteModalOpen} onOpenChange={setIsConfirmDeleteModalOpen} onConfirm={deleteDeckConfirmed} deckName={selectedDeck?.name || ""} />
             <Stack mt={"lg"} p={"xl"}>
                 {isLoading ? (
                     <DecksTableSkeleton />
@@ -432,7 +440,6 @@ export default function LabsPage() {
                     <DecksTable
                         decks={decks}
                         viewDeck={viewDeck}
-                        downloadDeck={downloadDeck}
                         editDeck={editDeck}
                         deleteDeck={deleteDeck}
                     />

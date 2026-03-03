@@ -45,13 +45,11 @@ interface DECK {
 export default function DecksTable({
     decks,
     viewDeck,
-    downloadDeck,
     editDeck,
     deleteDeck,
 }: {
     decks: DECK[];
     viewDeck: (deck: DECK) => void;
-    downloadDeck: (deck: DECK) => void;
     editDeck: (deck: DECK) => void;
     deleteDeck: (deck: DECK) => void;
 }) {
@@ -166,13 +164,6 @@ export default function DecksTable({
                                             Deck ansehen
                                         </DropdownItem>
                                         <DropdownItem
-                                            key="download-deck"
-                                            startContent={<IconDownload />}
-                                            onClick={() => downloadDeck(deck)}
-                                        >
-                                            Deck herunterladen
-                                        </DropdownItem>
-                                        <DropdownItem
                                             key="edit-deck"
                                             startContent={<IconEdit />}
                                             showDivider
@@ -199,14 +190,6 @@ export default function DecksTable({
                                             onClick={() => viewDeck(deck)}
                                         >
                                             <IconEye />
-                                        </span>
-                                    </Tooltip>
-                                    <Tooltip content="Deck herunterladen">
-                                        <span
-                                            className="text-lg text-default-400 cursor-pointer active:opacity-50"
-                                            onClick={() => downloadDeck(deck)}
-                                        >
-                                            <IconDownload />
                                         </span>
                                     </Tooltip>
                                     <Tooltip content="Deck bearbeiten">
