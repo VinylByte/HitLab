@@ -3,20 +3,11 @@ import { Center, Group, Paper, Stack, Title } from "@mantine/core";
 import VinylLogo from "../../assets/VinylByteLogo.svg";
 import { IconArrowLeft, IconBrandSpotify } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "./Settings";
+import { MOBILE_BREAKPOINT, SPOTIFY_SCOPES } from "./Settings";
 import supabase from "../../supabase";
 import { useSession } from "../../hooks/useSession";
 import { Link, Navigate } from "react-router";
 import { useState } from "react";
-
-const SPOTIFY_SCOPES = [
-    "user-read-email",
-    "user-read-private",
-    "streaming",
-    "user-modify-playback-state",
-    "user-read-playback-state",
-    "user-read-currently-playing",
-].join(" ");
 
 export default function LoginPage() {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
@@ -41,12 +32,7 @@ export default function LoginPage() {
     return (
         <div>
             <div style={{ position: "absolute", top: "1rem", left: "1rem" }}>
-                <Button
-                    as={Link}
-                    to="/"
-                    variant="light"
-                    startContent={<IconArrowLeft />}
-                >
+                <Button as={Link} to="/" variant="light" startContent={<IconArrowLeft />}>
                     Zurück zur Startseite
                 </Button>
             </div>

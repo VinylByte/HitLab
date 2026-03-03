@@ -77,6 +77,7 @@ export type Song = {
     id: string;
     title: string;
     artist: string;
+    album: string | null;
     year: number;
     thumbnail_url: string | null;
 };
@@ -100,7 +101,7 @@ export async function fetchPublicDeckSongs(publicDeckId: string): Promise<Public
             `
         id,
         deck_id,
-        songs!song_id ( id, title, artist, year, thumbnail_url ),
+        songs!song_id ( id, spotify_track_id, title, artist, album, year, thumbnail_url ),
         card_note,
         created_at
         `
@@ -118,10 +119,43 @@ export async function fetchPublicDeckSongs(publicDeckId: string): Promise<Public
             id: row.songs.id,
             title: row.songs.title,
             artist: row.songs.artist,
+            album: row.songs.album,
             year: row.songs.year,
             thumbnail_url: row.songs.thumbnail_url,
         },
         card_note: row.card_note,
         created_at: new Date(row.created_at),
     }));
+}
+
+export async function fetchOwnDeckSongs(deckId: string): Promise<Song[]> {
+    const { data, error } = await supabase
+        .from("deck_songs")
+        .select(
+            `deck_id, songs!song_id ( id, spotify_track_id, title, artist, album, year, thumbnail_url ), created_at`
+        )
+        .eq("deck_id", deckId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    return (data ?? []).map(row => ({
+        id: row.songs.id,
+        title: row.songs.title,
+        artist: row.songs.artist,
+        album: row.songs.album,
+        year: row.songs.year,
+        thumbnail_url: row.songs.thumbnail_url,
+    }));
+}
+
+export async function removeDeckSongs(deckId: string, songIds: string[]) {
+    const { error } = await supabase
+        .from("deck_songs")
+        .delete()
+        .eq("deck_id", deckId)
+        .in("song_id", songIds);
+
+    if (error) throw error;
 }
