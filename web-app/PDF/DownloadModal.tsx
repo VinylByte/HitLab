@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import type { PublicDeckDTO, Song } from "../src/services/deckService";
 import {
     Button,
@@ -38,6 +38,13 @@ export default function DownloadModal(props: DownloadModalProps) {
         "long-edge" | "short-edge"
     >("long-edge");
 
+    const [downloadStarted, setDownloadStarted] = React.useState(false);
+
+    // Reset download state when modal is opened/closed
+    useEffect(() => {
+        setDownloadStarted(false);
+    }, [isOpen]);
+
     // QR codes are generated on-demand in startDownload
 
     const cards = useMemo(() => {
@@ -74,6 +81,7 @@ export default function DownloadModal(props: DownloadModalProps) {
 
     const startDownload = async () => {
         // Generate QR codes and create PDF blob
+        setDownloadStarted(true);
         const sourceCards = await generateQRCodes(cards);
         const selectedDesignPresets = selectedDesign
             .map((k: string) => DESIGNS.at(Number(k)))
@@ -105,6 +113,7 @@ export default function DownloadModal(props: DownloadModalProps) {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+        setDownloadStarted(false);
     };
 
     // no background pre-generation; QR codes are generated on-demand
@@ -206,8 +215,9 @@ export default function DownloadModal(props: DownloadModalProps) {
                             </Button>
                             <Button
                                 color="primary"
-                                startContent={<IconDownload />}
+                                startContent={downloadStarted? null : <IconDownload size={18} />}
                                 onPress={() => startDownload().then(onClose)}
+                                isLoading={downloadStarted}
                             >
                                 PDF herunterladen
                             </Button>
