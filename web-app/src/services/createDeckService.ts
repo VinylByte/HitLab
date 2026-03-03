@@ -30,7 +30,7 @@ export async function createDeck(metaDeck: MetaDeckDTO): Promise<string> {
         .single();
 
     if (error) throw error;
-    return data.id; // Deck ID zurückgeben für nächsten Schritt (Songs hinzufügen)
+    return data.id;
 }
 
 export type BucketName = "deck-covers";
@@ -64,17 +64,31 @@ async function persistPublicFile(bucket: BucketName, file: Blob, userId: string)
  * @param deckId Deck to which the songs should be added to
  * @param tracks the spotify songs that should be added to a deck
  */
-export async function addDeckSong(deckId: string, tracks: SpotifyTrack[]) {
+export async function addDeckSong(
+    deckId: string,
+    tracks: SpotifyTrack[],
+    onSongSettled: (spotifyTrackId: string) => void
+): Promise<void> {
     const addedTracks = await addSong(tracks);
-    const { error } = await supabase.from("deck_songs").upsert(
-        addedTracks.map(t => ({
-            deck_id: deckId,
-            song_id: t.id,
-        })),
-        { onConflict: "deck_id,song_id" }
-    );
+    // const { error } = await supabase.from("deck_songs").upsert(
+    //     addedTracks.map(t => ({
+    //         deck_id: deckId,
+    //         song_id: t.id,
+    //     })),
+    //     { onConflict: "deck_id,song_id" }
+    // );
 
-    if (error) throw error;
+    // if (error) throw error;
+
+    await Promise.allSettled(
+        addedTracks.map(async t => {
+            const { error } = await supabase
+                .from("deck_songs")
+                .upsert({ deck_id: deckId, song_id: t.id }, { onConflict: "deck_id,song_id" });
+            if (error) throw error;
+            onSongSettled(t.spotify_track_id);
+        })
+    );
 }
 
 async function addSong(
