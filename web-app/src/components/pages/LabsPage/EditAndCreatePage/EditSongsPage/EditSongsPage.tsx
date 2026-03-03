@@ -1,5 +1,5 @@
 import { Title, Text, Stack, Group, SimpleGrid, Center } from "@mantine/core";
-import { Button, Input } from "@heroui/react";
+import { Button, Input, Tab, Tabs } from "@heroui/react";
 import type { Selection } from "@heroui/react";
 import { useNavigate, useParams } from "react-router";
 import type { Song } from "../../../../../services/deckService";
@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../../Settings";
 import SongTable from "./SongTable";
-import { IconSearch, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconSearch, IconPlus, IconTrash, IconCheck } from "@tabler/icons-react";
 
 /**
  * Sucht Songs nach Name.
@@ -128,7 +128,7 @@ export default function EditSongsPage() {
 
     // Lade Songs im Deck beim Initialisieren
     useEffect(() => {
-        loadDeckSongsDB(id!).then(([songs, loading]) => {;
+        loadDeckSongsDB(id!).then(([songs, loading]) => {
             setSongsInDeck(songs);
             setLoading(loading);
         });
@@ -138,7 +138,7 @@ export default function EditSongsPage() {
     const [songsInSearchResults, setSongsInSearchResults] = useState<Song[]>(mockSearchResults);
 
     // "all" in explizite IDs umwandeln, damit nur angezeigte Songs selektiert werden
-    const handleSearchSelectionChange = (keys: Selection) => {
+    const handleSearchSelectionChange = useCallback((keys: Selection) => {
         if (keys === "all") {
             // Alle Songs außer ladenden auswählen
             const selectableIds = songsInSearchResults
@@ -148,7 +148,7 @@ export default function EditSongsPage() {
         } else {
             setSelectedSearchKeys(keys);
         }
-    };
+    }, [songsInSearchResults, loadingDeckIds]);
 
     // Cache für Song-Objekte, damit ausgewählte Songs auch nach Query-Wechsel verfügbar bleiben
     const songCacheRef = useRef<Map<string, Song>>(new Map());
@@ -201,7 +201,7 @@ export default function EditSongsPage() {
         return [...pinnedSongs, ...nonSelected];
     }, [selectedDeckKeys, filteredSongsInDeck, songsInDeck]);
 
-    const handleDeckSelectionChange = (keys: Selection) => {
+    const handleDeckSelectionChange = useCallback((keys: Selection) => {
         if (keys === "all") {
             // Alle Songs außer ladenden auswählen
             const selectableIds = filteredSongsInDeck
@@ -211,7 +211,7 @@ export default function EditSongsPage() {
         } else {
             setSelectedDeckKeys(keys);
         }
-    };
+    }, [filteredSongsInDeck, loadingDeckIds]);
 
     useEffect(() => {
         searchSongsSpotify(searchResultsValue).then(results => {
@@ -276,88 +276,121 @@ export default function EditSongsPage() {
         }
     }, [selectedDeckKeys, songsInDeck, id]);
 
+    const SongsSearchTable = (
+        <div>
+            <Center className="w-full">
+                <Title order={4} mb="sm" hidden={isMobile}>
+                    Songs hinzufügen
+                    <Center>
+                        <Text c={"dimmed"}>(Spotify)</Text>
+                    </Center>
+                </Title>
+            </Center>
+            <Input
+                isClearable
+                className="w-full mb-4"
+                placeholder="Nach Song-Namen suchen..."
+                startContent={<IconSearch />}
+                value={searchResultsValue}
+                onValueChange={setSearchResultsValue}
+            />
+            <SongTable
+                songs={displayedSearchSongs}
+                color="secondary"
+                selectedKeys={selectedSearchKeys}
+                onSelectionChange={handleSearchSelectionChange}
+                tableLoading={loading}
+            />
+            <Button
+                className="w-full mt-3"
+                color="secondary"
+                variant="flat"
+                isDisabled={!hasSearchSelection || loading}
+                onPress={handleAddToDeck}
+                startContent={<IconPlus size={18} />}
+            >
+                Zum Deck hinzufügen
+            </Button>
+        </div>
+    );
+
+    const SongsInDeckTable = (
+        <div>
+            <Center className="w-full">
+                <Title order={4} mb="sm" hidden={isMobile}>
+                    Songs im Deck
+                    <Center>
+                        <Text c={"dimmed"}>(Lokal)</Text>
+                    </Center>
+                </Title>
+            </Center>
+            <Input
+                isClearable
+                className="w-full mb-4"
+                placeholder="Nach Songs, Künstlern oder Jahr suchen..."
+                startContent={<IconSearch />}
+                value={searchDeckValue}
+                onValueChange={setSearchDeckValue}
+            />
+            <SongTable
+                songs={displayedDeckSongs}
+                color="primary"
+                selectedKeys={selectedDeckKeys}
+                onSelectionChange={handleDeckSelectionChange}
+                loadingIds={loadingDeckIds}
+                tableLoading={loading}
+            />
+            <Button
+                className="w-full mt-3"
+                color="danger"
+                variant="flat"
+                isDisabled={!hasDeckSelection || loading}
+                onPress={handleRemoveFromDeck}
+                startContent={<IconTrash size={18} />}
+            >
+                Aus Deck entfernen
+            </Button>
+        </div>
+    );
+
     return (
         <Stack gap="lg" p={"lg"}>
             <Center className="w-full">
                 <Title order={2}>Songs bearbeiten</Title>
             </Center>
 
-            <SimpleGrid cols={isMobile ? 1 : 2} spacing="lg">
-                <div>
-                    <Center className="w-full">
-                        <Title order={4} mb="sm">
-                            Songs hinzufügen
-                            <Center>
-                                <Text c={"dimmed"}>(Spotify)</Text>
-                            </Center>
-                        </Title>
-                    </Center>
-                    <Input
-                        isClearable
-                        className="w-full mb-4"
-                        placeholder="Nach Song-Namen suchen..."
-                        startContent={<IconSearch />}
-                        value={searchResultsValue}
-                        onValueChange={setSearchResultsValue}
-                    />
-                    <SongTable
-                        songs={displayedSearchSongs}
-                        color="secondary"
-                        selectedKeys={selectedSearchKeys}
-                        onSelectionChange={handleSearchSelectionChange}
-                        tableLoading={loading}
-                    />
-                    <Button
-                        className="w-full mt-3"
-                        color="secondary"
-                        variant="flat"
-                        isDisabled={!hasSearchSelection || loading}
-                        onPress={handleAddToDeck}
-                        startContent={<IconPlus size={18} />}
-                    >
-                        Zum Deck hinzufügen
-                    </Button>
-                </div>
-                <div>
-                    <Center className="w-full">
-                        <Title order={4} mb="sm">
-                            Songs im Deck
-                            <Center>
-                                <Text c={"dimmed"}>(Lokal)</Text>
-                            </Center>
-                        </Title>
-                    </Center>
-                    <Input
-                        isClearable
-                        className="w-full mb-4"
-                        placeholder="Nach Songs, Künstlern oder Jahr suchen..."
-                        startContent={<IconSearch />}
-                        value={searchDeckValue}
-                        onValueChange={setSearchDeckValue}
-                    />
-                    <SongTable
-                        songs={displayedDeckSongs}
-                        color="primary"
-                        selectedKeys={selectedDeckKeys}
-                        onSelectionChange={handleDeckSelectionChange}
-                        loadingIds={loadingDeckIds}
-                        tableLoading={loading}
-                    />
-                    <Button
-                        className="w-full mt-3"
-                        color="danger"
-                        variant="flat"
-                        isDisabled={!hasDeckSelection || loading}
-                        onPress={handleRemoveFromDeck}
-                        startContent={<IconTrash size={18} />}
-                    >
-                        Aus Deck entfernen
-                    </Button>
-                </div>
-            </SimpleGrid>
+            {!isMobile ? (
+                <SimpleGrid cols={2} spacing="lg">
+                    <div>
+                        {SongsSearchTable}
+                    </div>
+                    <div>
+                        {SongsInDeckTable}
+                    </div>
+                </SimpleGrid>
+            ) : (
+                <Center>
+                    <Stack>
+                        <Tabs>
+                            <Tab title="Songs hinzufügen">
+                                {SongsSearchTable}
+                            </Tab>
+                            <Tab title="Songs im Deck">
+                                {SongsInDeckTable}
+                            </Tab>
+                        </Tabs>
+                    </Stack>
+                </Center>
+            )}
 
             <Group justify="space-between" mt="xl">
-                <Button color="primary" className="w-full" onPress={() => navigate("/lab")} isLoading={loadingDeckIds.size > 0 || loading}>
+                <Button
+                    color="primary"
+                    className="w-full"
+                    onPress={() => navigate("/lab")}
+                    isLoading={loadingDeckIds.size > 0 || loading}
+                    startContent={!loading && <IconCheck size={18} />}
+                >
                     Fertig
                 </Button>
             </Group>

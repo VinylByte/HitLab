@@ -44,64 +44,62 @@ export default function SongTable({
             <Table
                 aria-label="Songs table"
                 color={color}
-                selectionMode="multiple"
+                selectionMode={tableLoading ? "none" : "multiple"}
                 selectedKeys={selectedKeys}
                 onSelectionChange={onSelectionChange}
                 disabledKeys={disabledKeys}
-                className={isMobile ? "h-62" : "h-100"}
+                className={isMobile ? "h-80" : "h-100"}
                 isHeaderSticky
             >
                 <TableHeader>
                     <TableColumn>NAME</TableColumn>
                     <TableColumn>ARTIST</TableColumn>
-                    <TableColumn>JAHR</TableColumn>
+                    <TableColumn hidden={isMobile}>JAHR</TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"Keine Songs vorhanden"}>
-                    {tableLoading ? (
-                        Array.from({ length: 5 }).map((_, index) => (
-                            <TableRow>
-                            <TableCell>
-                                <Group>
-                                    <Skeleton className="h-10 w-10 rounded-md" />
-                                    <Skeleton className="h-5 w-25 rounded-lg" />
-                                </Group>
-                            </TableCell>
-                            <TableCell>
-                                <Skeleton className="h-5 w-25 rounded-lg" />
-                            </TableCell>
-                            <TableCell>
-                                <Skeleton className="h-5 w-25 rounded-lg" />
-                            </TableCell>
-                        </TableRow>
-                        ))
-                    ) : (
-                        songs.map((song, index) => {
-                            const isLoading = loadingIds?.has(song.id) ?? false;
-                            return (
-                                <TableRow
-                                    key={song.id || index}
-                                    className={isLoading ? "opacity-50" : ""}
-                                >
-                                    <TableCell>
-                                        <Group gap="sm">
-                                            {isLoading ? (
-                                                <Spinner size="sm" />
-                                            ) : (
-                                                <Avatar
-                                                    src={song.thumbnail_url || undefined}
-                                                    alt={song.title}
-                                                    radius="md"
-                                                />
-                                            )}
-                                            <Text>{song.title}</Text>
-                                        </Group>
-                                    </TableCell>
-                                    <TableCell>{song.artist}</TableCell>
-                                    <TableCell>{song.year}</TableCell>
-                                </TableRow>
-                            );
-                        })
-                    )}
+                    {tableLoading
+                        ? Array.from({ length: 5 }).map((_, index) => (
+                              <TableRow>
+                                  <TableCell>
+                                      <Group>
+                                          <Skeleton className="h-10 w-10 rounded-md" />
+                                          <Skeleton className="h-5 w-15 rounded-lg" />
+                                      </Group>
+                                  </TableCell>
+                                  <TableCell>
+                                      <Skeleton className="h-5 w-20 rounded-lg" />
+                                  </TableCell>
+                                  <TableCell hidden={isMobile}>
+                                      <Skeleton className="h-5 w-25 rounded-lg" />
+                                  </TableCell>
+                              </TableRow>
+                          ))
+                        : songs.map((song, index) => {
+                              const isLoading = loadingIds?.has(song.id) ?? false;
+                              return (
+                                  <TableRow
+                                      key={song.id || index}
+                                      className={isLoading ? "opacity-50" : ""}
+                                  >
+                                      <TableCell>
+                                          <Group gap="sm">
+                                              {isLoading ? (
+                                                  <Spinner size="sm" />
+                                              ) : (
+                                                  <Avatar
+                                                      src={song.thumbnail_url || undefined}
+                                                      alt={song.title}
+                                                      radius="md"
+                                                  />
+                                              )}
+                                              <Text>{song.title}</Text>
+                                          </Group>
+                                      </TableCell>
+                                      <TableCell>{song.artist}</TableCell>
+                                      <TableCell hidden={isMobile}>{song.year}</TableCell>
+                                  </TableRow>
+                              );
+                          })}
                 </TableBody>
             </Table>
         </div>
