@@ -17,8 +17,9 @@ import { Center, Title, Text } from "@mantine/core";
 import QRCode from "qrcode";
 import { PDFFactory } from "./PDF-Creator/PDFFactory";
 import { pdf } from "@react-pdf/renderer";
-import type { Card } from "./interfaces";
+import type { Card, BackgroundConfig } from "./interfaces";
 import { DESIGNS } from "./HardDesigns";
+import type { HardDesignPreset } from "./HardDesigns";
 
 export interface DownloadModalProps {
     isOpen: boolean;
@@ -74,11 +75,22 @@ export default function DownloadModal(props: DownloadModalProps) {
     const startDownload = async () => {
         // Generate QR codes and create PDF blob
         const sourceCards = await generateQRCodes(cards);
+        const selectedDesignPresets = selectedDesign
+            .map((k: string) => DESIGNS.at(Number(k)))
+            .filter((design): design is HardDesignPreset => Boolean(design));
+
+        const frontBackgrounds: BackgroundConfig[] = selectedDesignPresets
+            .map(design => design.frontBackground ?? design.background)
+            .filter((background): background is BackgroundConfig => Boolean(background));
+
+        const backBackgrounds: BackgroundConfig[] = selectedDesignPresets
+            .map(design => design.backBackground ?? design.background ?? design.frontBackground)
+            .filter((background): background is BackgroundConfig => Boolean(background));
 
         const blob = await pdf(
             <PDFFactory
-                frontBackground={selectedDesign.map((k: string) => DESIGNS.at(Number(k)))}
-                backBackground={selectedDesign.map((k: string) => DESIGNS.at(Number(k)))}
+                frontBackground={frontBackgrounds}
+                backBackground={backBackgrounds}
                 cards={sourceCards}
                 type={selectedPrintType}
                 bindingMode={selectedBindingMode}

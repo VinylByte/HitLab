@@ -83,7 +83,7 @@ export const DoublePageStyles = StyleSheet.create({
         height: CARD_HEIGHT,
         position: "relative",
         overflow: "hidden",
-        border: "0.5pt solid #000",
+        border: "1pt solid #000",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
