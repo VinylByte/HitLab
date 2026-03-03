@@ -2,7 +2,6 @@ import supabase from "../supabase";
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import type { AccessToken, Device, MaxInt, Track } from "@spotify/web-api-ts-sdk";
 import { mapSpotifyError, SpotifyApiError } from "./spotifyErrorMapper";
-import type { Song } from "./deckService";
 
 async function getSpotifySdk(): Promise<SpotifyApi> {
     const { data, error } = await supabase.auth.getSession();
@@ -32,17 +31,18 @@ async function getSpotifySdk(): Promise<SpotifyApi> {
     return SpotifyApi.withAccessToken(clientId, accessToken);
 }
 
-function toSpotifyTrack(item: Track): Song {
+function toSpotifyTrack(item: Track): SpotifyTrack {
     return {
-        id: item.id,
+        spotify_track_id: item.id,
         title: item.name,
         artist: item.artists.map(artist => artist.name).join(", ") || "Unknown",
+        album: item.album.name,
         year: Number((item.album.release_date ?? "1900").slice(0, 4)),
         thumbnail_url: item.album.images[0]?.url ?? null,
     };
 }
 
-export async function searchTracks(query: string, limit = 20): Promise<Song[]> {
+export async function searchTracks(query: string, limit = 20): Promise<SpotifyTrack[]> {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return [];
 
@@ -91,3 +91,12 @@ export async function startPlayback(trackId: string, deviceId?: string) {
         throw mapSpotifyError(error);
     }
 }
+
+export type SpotifyTrack = {
+    spotify_track_id: string;
+    title: string;
+    artist: string;
+    album: string;
+    year: number;
+    thumbnail_url: string | null;
+};

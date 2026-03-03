@@ -100,7 +100,7 @@ export async function fetchPublicDeckSongs(publicDeckId: string): Promise<Public
             `
         id,
         deck_id,
-        songs!song_id ( id, title, artist, year, thumbnail_url ),
+        songs!song_id ( id, spotify_track_id, title, artist, year, thumbnail_url ),
         card_note,
         created_at
         `
@@ -116,6 +116,7 @@ export async function fetchPublicDeckSongs(publicDeckId: string): Promise<Public
         deck_id: row.deck_id,
         song: {
             id: row.songs.id,
+            spotify_track_id: row.songs.spotify_track_id,
             title: row.songs.title,
             artist: row.songs.artist,
             year: row.songs.year,
