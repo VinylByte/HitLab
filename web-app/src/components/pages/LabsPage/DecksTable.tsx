@@ -15,16 +15,8 @@ import {
     DropdownTrigger,
     DropdownItem,
     DropdownMenu,
-    Button,
 } from "@heroui/react";
-import {
-    IconDotsCircleHorizontal,
-    IconDotsVertical,
-    IconDownload,
-    IconEdit,
-    IconEye,
-    IconTrash,
-} from "@tabler/icons-react";
+import { IconDotsVertical, IconDownload, IconEdit, IconEye, IconTrash } from "@tabler/icons-react";
 import { Center, Group } from "@mantine/core";
 import SearchBar from "../PublicDecksPage/SearchBarProp";
 import { useMediaQuery } from "@mantine/hooks";
@@ -36,15 +28,33 @@ const statusColorMap: Record<string, ChipProps["color"]> = {
 };
 
 interface DECK {
-    id: number;
-    title: string;
+    id: string;
+    name: string;
     song_count: number;
     status: string;
     created_at: string;
     cover_url: string;
+    tags: { id: string; name: string }[];
+    description: string;
+    owner: {
+        display_name: string;
+        avatar_url: string;
+    };
 }
 
-export default function DecksTable({ decks, viewDeck, downloadDeck, editDeck, deleteDeck }: { decks: DECK[], viewDeck: (deck: DECK) => void, downloadDeck: (deck: DECK) => void, editDeck: (deck: DECK) => void, deleteDeck: (deck: DECK) => void }) {
+export default function DecksTable({
+    decks,
+    viewDeck,
+    downloadDeck,
+    editDeck,
+    deleteDeck,
+}: {
+    decks: DECK[];
+    viewDeck: (deck: DECK) => void;
+    downloadDeck: (deck: DECK) => void;
+    editDeck: (deck: DECK) => void;
+    deleteDeck: (deck: DECK) => void;
+}) {
     const [sortKey, setSortKey] = useState<string>("created_at");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
     const [search_str, setSearchStr] = useState<string>("");
@@ -90,24 +100,21 @@ export default function DecksTable({ decks, viewDeck, downloadDeck, editDeck, de
         [sortKey]
     );
 
-
     const renderCell = React.useCallback(
         (deck: DECK, columnKey: React.Key) => {
-            const cellValue = deck[columnKey as keyof DECK];
-
             switch (columnKey) {
                 case "title":
                     return (
                         <User
                             avatarProps={{ radius: "lg", src: deck.cover_url }}
-                            name={cellValue}
+                            name={deck.name}
                         ></User>
                     );
                 case "song_count":
                     return (
                         <div className="flex flex-col">
                             <Center>
-                                <p className="text-bold text-sm capitalize">{cellValue}</p>
+                                <p className="text-bold text-sm capitalize">{deck.song_count}</p>
                             </Center>
                             <Center>
                                 <p className="text-bold text-sm capitalize text-default-400">
@@ -125,12 +132,12 @@ export default function DecksTable({ decks, viewDeck, downloadDeck, editDeck, de
                                 size="sm"
                                 variant="flat"
                             >
-                                {cellValue}
+                                {deck.status}
                             </Chip>
                         </Center>
                     );
                 case "created_at":
-                    const date = new Date(String(cellValue));
+                    const date = new Date(deck.created_at);
                     return (
                         <Center>
                             <p className="text-bold text-sm capitalize">
@@ -151,7 +158,11 @@ export default function DecksTable({ decks, viewDeck, downloadDeck, editDeck, de
                                         <IconDotsVertical className="text-lg text-default-400 cursor-pointer active:opacity-50" />
                                     </DropdownTrigger>
                                     <DropdownMenu>
-                                        <DropdownItem key="view-deck" startContent={<IconEye />} onClick={() => viewDeck(deck)}>
+                                        <DropdownItem
+                                            key="view-deck"
+                                            startContent={<IconEye />}
+                                            onClick={() => viewDeck(deck)}
+                                        >
                                             Deck ansehen
                                         </DropdownItem>
                                         <DropdownItem
@@ -183,23 +194,34 @@ export default function DecksTable({ decks, viewDeck, downloadDeck, editDeck, de
                             ) : (
                                 <Group>
                                     <Tooltip content="Deck ansehen">
-                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50" onClick={()=> viewDeck(deck)}>
-
+                                        <span
+                                            className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                                            onClick={() => viewDeck(deck)}
+                                        >
                                             <IconEye />
                                         </span>
                                     </Tooltip>
                                     <Tooltip content="Deck herunterladen">
-                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50" onClick={()=> downloadDeck(deck)}>
+                                        <span
+                                            className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                                            onClick={() => downloadDeck(deck)}
+                                        >
                                             <IconDownload />
                                         </span>
                                     </Tooltip>
                                     <Tooltip content="Deck bearbeiten">
-                                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50" onClick={()=> editDeck(deck)}>
+                                        <span
+                                            className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                                            onClick={() => editDeck(deck)}
+                                        >
                                             <IconEdit />
                                         </span>
                                     </Tooltip>
                                     <Tooltip color="danger" content="Deck löschen">
-                                        <span className="text-lg text-danger cursor-pointer active:opacity-50" onClick={()=> deleteDeck(deck)}>
+                                        <span
+                                            className="text-lg text-danger cursor-pointer active:opacity-50"
+                                            onClick={() => deleteDeck(deck)}
+                                        >
                                             <IconTrash />
                                         </span>
                                     </Tooltip>
@@ -208,7 +230,7 @@ export default function DecksTable({ decks, viewDeck, downloadDeck, editDeck, de
                         </Center>
                     );
                 default:
-                    return cellValue;
+                    return null;
             }
         },
         [isMobile]
@@ -233,7 +255,7 @@ export default function DecksTable({ decks, viewDeck, downloadDeck, editDeck, de
             }
 
             if (sortKey === "title") {
-                const compare = titleCollator.compare(String(a.title), String(b.title));
+                const compare = titleCollator.compare(String(a.name), String(b.name));
                 return sortDir === "asc" ? compare : -compare;
             }
 
@@ -251,7 +273,7 @@ export default function DecksTable({ decks, viewDeck, downloadDeck, editDeck, de
         if (!query) return sortedDecks;
 
         return sortedDecks.filter(deck => {
-            const title = deck.title.toLocaleLowerCase("de-DE");
+            const title = deck.name.toLocaleLowerCase("de-DE");
             const status = deck.status.toLocaleLowerCase("de-DE");
             const createdAt = deck.created_at.toLocaleLowerCase("de-DE");
 
