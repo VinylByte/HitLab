@@ -24,7 +24,7 @@ async function searchSongsSpotify(query: string): Promise<Song[]> {
  * @param deckId - ID des Decks
  * @returns Array der Songs im Deck
  */
-async function loadDeckSongsDB(deckId: string): Promise<[Song[], boolean]> {
+async function loadDeckSongsDB(_deckId: string): Promise<[Song[], boolean]> {
     let loading = true;
     // TODO: Datenbank-Call implementieren
     await new Promise(resolve => setTimeout(resolve, 5000)); // Simuliere Netzwerkverzögerung
@@ -37,7 +37,7 @@ async function loadDeckSongsDB(deckId: string): Promise<[Song[], boolean]> {
  * @param deckId - ID des Decks
  * @param songs - Vollständige Song-Objekte
  */
-async function addSongsToDeckDB(deckId: string, songs: Song[]): Promise<void> {
+async function addSongsToDeckDB(_deckId: string, _songs: Song[]): Promise<void> {
     // TODO: Datenbank-Call implementieren
     await new Promise(resolve => setTimeout(resolve, 5000)); // Simuliere Netzwerkverzögerung
 }
@@ -47,7 +47,7 @@ async function addSongsToDeckDB(deckId: string, songs: Song[]): Promise<void> {
  * @param deckId - ID des Decks
  * @param songIds - IDs der zu entfernenden Songs
  */
-async function removeSongsFromDeckDB(deckId: string, songIds: string[]): Promise<void> {
+async function removeSongsFromDeckDB(_deckId: string, _songIds: string[]): Promise<void> {
     // TODO: Datenbank-Call implementieren
 }
 
@@ -56,6 +56,7 @@ const mockSongsInDeck: Song[] = [
         id: "1",
         title: "Song 1",
         artist: "Artist A",
+        album: null,
         year: 2020,
         thumbnail_url: "https://example.com/cover1.jpg",
     },
@@ -63,6 +64,7 @@ const mockSongsInDeck: Song[] = [
         id: "2",
         title: "Song 2",
         artist: "Artist B",
+        album: null,
         year: 2019,
         thumbnail_url: "https://example.com/cover2.jpg",
     },
@@ -70,6 +72,7 @@ const mockSongsInDeck: Song[] = [
         id: "3",
         title: "Song 3",
         artist: "Artist C",
+        album: null,
         year: 2021,
         thumbnail_url: "https://example.com/cover3.jpg",
     },
@@ -80,6 +83,7 @@ const mockSearchResults: Song[] = [
         id: "4",
         title: "Song 4",
         artist: "Artist D",
+        album: null,
         year: 2018,
         thumbnail_url: "https://example.com/cover4.jpg",
     },
@@ -87,6 +91,7 @@ const mockSearchResults: Song[] = [
         id: "5",
         title: "Song 5",
         artist: "Artist E",
+        album: null,
         year: 2022,
         thumbnail_url: "https://example.com/cover5.jpg",
     },
@@ -94,6 +99,7 @@ const mockSearchResults: Song[] = [
         id: "6",
         title: "Song 6",
         artist: "Artist F",
+        album: null,
         year: 2020,
         thumbnail_url: "https://example.com/cover6.jpg",
     },
@@ -101,6 +107,7 @@ const mockSearchResults: Song[] = [
         id: "7",
         title: "Song 7",
         artist: "Artist G",
+        album: null,
         year: 2019,
         thumbnail_url: "https://example.com/cover7.jpg",
     },
@@ -108,6 +115,7 @@ const mockSearchResults: Song[] = [
         id: "8",
         title: "Song 8",
         artist: "Artist H",
+        album: null,
         year: 2021,
         thumbnail_url: "https://example.com/cover8.jpg",
     },
