@@ -82,12 +82,29 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
     };
 
     const handleSubmit = (data: DeckFormData) => {
-        console.log("Form submitted with data:", data);
         if (!coverBlob) {
-            setDropZoneError("Bitte lade ein Cover-Bild hoch");
+            setDropZoneError("Bitte lade ein Coverbild hoch.");
             return;
         }
-        console.log("Cover Blob:", coverBlob);
+        if (mode === "create") {
+            console.log("Creating deck:", data);
+            // TODO: Deck zu Datenbank hinzufügen und die neue ID erhalten
+            // Nach dem Erstellen zur EditSongsPage mit der neuen Deck ID navigieren
+            // const newDeckId = await createDeck(data);
+            // navigate(`/decks/${newDeckId}/songs`);
+
+            // Für jetzt: Platzhalter Navigation (würde mit echter ID ersetzt)
+            alert("Deck würde jetzt erstellt und Songs-Bearbeitung würde folgen");
+        } else {
+            console.log("Updating deck:", deckId, data);
+            // TODO: Deck in Datenbank aktualisieren
+            // await updateDeck(deckId, data);
+
+            // Nach dem Bearbeiten zur EditSongsPage navigieren
+            if (deckId) {
+                navigate(`/decks/${deckId}/songs`);
+            }
+        }
     };
 
     return (
@@ -129,15 +146,16 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         minRows={3}
                         required
                     />
-                    {dropZoneError && (
-                        <Alert color="danger" >
-                            {dropZoneError}
-                        </Alert>
-                    )}
+                    {dropZoneError && <Alert color="danger">{dropZoneError}</Alert>}
                     <DropzoneField currentBlob={coverBlob} onFileUpload={handleFileUpload} />
 
                     <Group justify="space-between" mt="xl">
-                        <Button color="danger" startContent={<IconX />} onPress={() => navigate("/lab")} variant="light">
+                        <Button
+                            color="danger"
+                            startContent={<IconX />}
+                            onPress={() => navigate("/lab")}
+                            variant="light"
+                        >
                             Abbrechen
                         </Button>
                         <Button startContent={<IconPencilPlus />} type="submit" color="primary">

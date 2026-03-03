@@ -4,6 +4,7 @@ import PublicDecksPageWrapper from "./PublicDecksPage/PublicDecksPage";
 import LabsPage from "./LabsPage/LabsPage";
 import CreateDeckPage from "./LabsPage/EditAndCreatePage/CreateDeckPage";
 import EditDeckPage from "./LabsPage/EditAndCreatePage/EditDeckPage";
+import EditSongsPage from "./LabsPage/EditAndCreatePage/EditSongsPage/EditSongsPage";
 
 export const Pages = [
     { name: "Home", to: "/", location: "header", page: <HomePage /> },
@@ -15,6 +16,7 @@ export const ProtectedPages = [
     { name: "Lab", to: "/lab", location: "header", page: <LabsPage /> },
     { name: "Create Deck", to: "/decks/new", location: "none", page: <CreateDeckPage /> },
     { name: "Edit Deck", to: "/decks/:id/edit", location: "none", page: <EditDeckPage /> },
+    { name: "Edit Songs", to: "/decks/:id/songs", location: "none", page: <EditSongsPage /> },
 ];
 
 export const MOBILE_BREAKPOINT = "(max-width: 768px)";
