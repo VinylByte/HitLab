@@ -2,6 +2,8 @@ import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/
 import HomePage from "./HomePage/HomePage";
 import PublicDecksPageWrapper from "./PublicDecksPage/PublicDecksPage";
 import LabsPage from "./LabsPage/LabsPage";
+import CreateDeckPage from "./LabsPage/EditAndCreatePage/CreateDeckPage";
+import EditDeckPage from "./LabsPage/EditAndCreatePage/EditDeckPage";
 
 export const Pages = [
     { name: "Home", to: "/", location: "header", page: <HomePage /> },
@@ -11,6 +13,8 @@ export const Pages = [
 export const ProtectedPages = [
     { name: "Profile", to: "/profile", location: "avatar", page: <div>Profile</div> },
     { name: "Lab", to: "/lab", location: "header", page: <LabsPage /> },
+    { name: "Create Deck", to: "/decks/new", location: "none", page: <CreateDeckPage /> },
+    { name: "Edit Deck", to: "/decks/:id/edit", location: "none", page: <EditDeckPage /> },
 ];
 
 export const MOBILE_BREAKPOINT = "(max-width: 768px)";

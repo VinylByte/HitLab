@@ -1,0 +1,153 @@
+import { Container, Title, Text, Stack, Group } from "@mantine/core";
+import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useForm } from "@mantine/form";
+import { Input, Textarea, Switch, Button, Alert } from "@heroui/react";
+import { IconLock, IconLockOpen, IconPencilPlus, IconX } from "@tabler/icons-react";
+import { DropzoneField } from "./Dropzone";
+
+interface DeckFormData {
+    name: string;
+    description: string;
+    private: boolean;
+    cover_url: string;
+}
+
+interface EditAndCreatePageProps {
+    mode: "create" | "edit";
+    deckId?: string;
+}
+
+interface Song {
+    id: number;
+    title: string;
+    artist: string;
+    year?: number;
+    cover_url?: string;
+}
+
+export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePageProps) {
+    const navigate = useNavigate();
+    const form = useForm({
+        initialValues: {
+            name: "",
+            description: "",
+            private: true,
+        } as DeckFormData,
+        validate: {
+            name: value => (value.trim().length > 0 ? null : "Name ist erforderlich"),
+        },
+    });
+
+    const [songList, setSongList] = useState<Song[]>([]);
+    const [coverBlob, setCoverBlob] = useState<Blob | null>(null);
+    const [dropZoneError, setDropZoneError] = useState<string | null>(null);
+
+    // Lade Deck-Daten für Edit-Modus
+    useEffect(() => {
+        if (mode === "edit" && deckId) {
+            // TODO: Deck-Daten aus der Datenbank laden
+            console.log("Loading deck data for ID:", deckId);
+            // Beispieldaten für Demo:
+            form.setValues({
+                name: "Beispiel Deck",
+                description: "Dies ist ein Beispiel-Deck zum Bearbeiten",
+                private: false,
+                cover_url: "https://example.com/cover.jpg",
+            });
+            setSongList([
+                {
+                    id: 1,
+                    title: "Song 1",
+                    artist: "Artist A",
+                    year: 2020,
+                    cover_url: "https://example.com/song1.jpg",
+                },
+                {
+                    id: 2,
+                    title: "Song 2",
+                    artist: "Artist B",
+                    year: 2019,
+                    cover_url: "https://example.com/song2.jpg",
+                },
+            ]);
+        }
+    }, [mode, deckId]);
+
+    const handleFileUpload = (blob: Blob) => {
+        setDropZoneError(null);
+        setCoverBlob(blob);
+        // TODO: Hier können Sie den Blob zu Supabase hochladen
+        // uploadToStorage(blob);
+    };
+
+    const handleSubmit = (data: DeckFormData) => {
+        console.log("Form submitted with data:", data);
+        if (!coverBlob) {
+            setDropZoneError("Bitte lade ein Cover-Bild hoch");
+            return;
+        }
+        console.log("Cover Blob:", coverBlob);
+    };
+
+    return (
+        <Container size="md" py="xl">
+            <form onSubmit={form.onSubmit(handleSubmit)}>
+                <Stack gap="lg">
+                    <div>
+                        <Title order={2}>
+                            {mode === "create" ? "Neues Deck erstellen" : "Deck bearbeiten"}
+                        </Title>
+                    </div>
+
+                    <Group>
+                        <Input
+                            label="Deck Name"
+                            placeholder="z.B. Meine Lieblingssongs"
+                            {...form.getInputProps("name")}
+                            required
+                            className="w-150"
+                        />
+                        <Switch
+                            thumbIcon={form.values.private ? <IconLock /> : <IconLockOpen />}
+                            title="Privat"
+                            {...form.getInputProps("private", { type: "checkbox" })}
+                        >
+                            Privat
+                            <p className="text-small text-default-500">
+                                {!form.values.private
+                                    ? "Dieses Deck ist für alle sichtbar"
+                                    : "Dieses Deck ist privat"}
+                            </p>
+                        </Switch>
+                    </Group>
+
+                    <Textarea
+                        label="Beschreibung"
+                        placeholder="Beschreibe dein Deck..."
+                        {...form.getInputProps("description")}
+                        minRows={3}
+                        required
+                    />
+                    {dropZoneError && (
+                        <Alert color="danger" >
+                            {dropZoneError}
+                        </Alert>
+                    )}
+                    <DropzoneField currentBlob={coverBlob} onFileUpload={handleFileUpload} />
+
+                    <Group justify="space-between" mt="xl">
+                        <Button color="danger" startContent={<IconX />} onPress={() => navigate("/lab")} variant="light">
+                            Abbrechen
+                        </Button>
+                        <Button startContent={<IconPencilPlus />} type="submit" color="primary">
+                            {mode === "create"
+                                ? "Deck erstellen und Songs hinzufügen"
+                                : "Änderungen speichern und Songs bearbeiten"}
+                        </Button>
+                    </Group>
+                </Stack>
+            </form>
+        </Container>
+    );
+}

@@ -3,10 +3,9 @@ import DecksTableSkeleton from "./DecksTableSkeleton";
 import DecksTable from "./DecksTable";
 import { DeckModal } from "./ViewDeckModal";
 import { useState } from "react";
-import DownloadModal from "../../../../PDF/DownloadModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
-import { Button } from "@heroui/react";
-import { IconPlus } from "@tabler/icons-react";
+import { Navigate, useNavigate } from "react-router";
+
 
 export const decks = [
     {
@@ -393,6 +392,8 @@ export default function LabsPage() {
     const [isDeckModalOpen, setIsDeckModalOpen] = useState(false);
 
     const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
+    
+    const navigate = useNavigate();
 
     const ViewDeckModal = () => {
         return (
@@ -414,10 +415,12 @@ export default function LabsPage() {
 
     const editDeck = (deck: DECK) => {
         console.log("Editing deck:", deck);
+        navigate(`/decks/${deck.id}/edit`);
     };
 
     const createDeck = () => {
         console.log("Creating new deck");
+        navigate("/decks/new")
     };
 
     const deleteDeck = (deck: DECK) => {
