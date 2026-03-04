@@ -27,7 +27,8 @@ import supabase from "../../../supabase";
 import { useMediaQuery } from "@mantine/hooks";
 
 export default function HeaderNav() {
-    const currentHref = useLocation().pathname;
+    const location = useLocation();
+    const currentHref = location.pathname;
     const navigate = useNavigate();
     const [expandedNav, setExpandedNav] = useState(false);
     const session = useSession();
@@ -76,7 +77,11 @@ export default function HeaderNav() {
                 ],
             }}
         >
-            <Burger hidden={!isMobile} opened={expandedNav} onClick={() => setExpandedNav(!expandedNav)} />
+            <Burger
+                hidden={!isMobile}
+                opened={expandedNav}
+                onClick={() => setExpandedNav(!expandedNav)}
+            />
             <NavbarBrand
                 as={RouterLink}
                 to="/"
@@ -160,7 +165,13 @@ export default function HeaderNav() {
                                 >
                                     Theme ändern
                                 </DropdownItem>
-                                <DropdownItem startContent={<IconUser />} key="account" as={RouterLink} {...{to: "/profile"}} showDivider>
+                                <DropdownItem
+                                    startContent={<IconUser />}
+                                    key="account"
+                                    as={RouterLink}
+                                    {...{ to: "/profile" }}
+                                    showDivider
+                                >
                                     Account
                                 </DropdownItem>
                                 <DropdownItem
@@ -177,9 +188,8 @@ export default function HeaderNav() {
                     ) : (
                         <Button
                             startContent={<IconLogin />}
-                            as={RouterLink}
                             color="primary"
-                            to="/login"
+                            onPress={() => navigate("/login", { state: { from: location } })}
                             variant="flat"
                         >
                             <p className="text-md">Login</p>
