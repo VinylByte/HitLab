@@ -2,8 +2,7 @@ import HeaderNav from "./components/elements/header/Header";
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router";
 import { Pages, ProtectedPages } from "./components/pages/Settings";
 import LoginPage from "./components/pages/LoginPage";
-//import SignUpPage from "./components/pages/Authentication/SignUpPage";
-import { FooterSocial } from "./components/elements/Footer/Footer";
+//import { FooterSocial } from "./components/elements/Footer/Footer";
 import { useSession } from "./hooks/useSession";
 import { useAppTheme } from "./hooks/useAppTheme";
 import { Center, Loader } from "@mantine/core";
@@ -27,7 +26,7 @@ function Layout() {
             <div>
                 <Outlet />
             </div>
-            <FooterSocial />
+            {/* <FooterSocial /> */}
         </div>
     );
 }
@@ -57,7 +56,7 @@ function ProtectedRoute() {
 }
 
 function Router() {
-    
+
     return (
         <BrowserRouter>
             <Routes>
