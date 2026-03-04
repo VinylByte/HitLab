@@ -2,15 +2,15 @@ import type { HardDesignPreset } from "./DesignResolver";
 
 export const DESIGNS: HardDesignPreset[] = [
     {
-        id: "hitster-all",
-        name: "Hitster",
-        description: "Enthält alle Hitster-Designs und wechselt diese pro Karte ab.",
-        includes: ["hitster-blue", "hitster-green", "hitster-yellow", "hitster-purple", "hitster-red", "hitster-teal"],
+        id: "like-hitster",
+        name: "Like-Hitster",
+        description: "Enthält alle Like-Hitster-Designs und wechselt diese pro Karte ab.",
+        includes: ["like-hitster-blue", "like-hitster-green", "like-hitster-yellow", "like-hitster-purple", "like-hitster-red", "like-hitster-teal"],
     },
     {
-        id: "hitster-blue",
-        name: "Hitster Blue",
-        description: "Hitster-Rückseitendesign mit einem blauen Farbverlauf auf der Vorderseite.",
+        id: "like-hitster-blue",
+        name: "Like-Hitster Blue",
+        description: "Like-Hitster-Rückseitendesign mit einem blauen Farbverlauf auf der Vorderseite.",
         selectable: false,
         backBackground: {
             type: "image",
@@ -22,9 +22,9 @@ export const DESIGNS: HardDesignPreset[] = [
         },
     },
     {
-        id: "hitster-green",
-        name: "Hitster Green",
-        description: "Hitster-Rückseitendesign mit einem grünen Farbverlauf auf der Vorderseite.",
+        id: "like-hitster-green",
+        name: "Like-Hitster Green",
+        description: "Like-Hitster-Rückseitendesign mit einem grünen Farbverlauf auf der Vorderseite.",
         selectable: false,
         backBackground: {
             type: "image",
@@ -36,9 +36,9 @@ export const DESIGNS: HardDesignPreset[] = [
         },
     },
     {
-        id: "hitster-yellow",
-        name: "Hitster Yellow",
-        description: "Hitster-Rückseitendesign mit einem gelben Farbverlauf auf der Vorderseite.",
+        id: "like-hitster-yellow",
+        name: "Like-Hitster Yellow",
+        description: "Like-Hitster-Rückseitendesign mit einem gelben Farbverlauf auf der Vorderseite.",
         selectable: false,
         backBackground: {
             type: "image",
@@ -50,9 +50,9 @@ export const DESIGNS: HardDesignPreset[] = [
         },
     },
     {
-        id: "hitster-purple",
-        name: "Hitster Purple",
-        description: "Hitster-Rückseitendesign mit einem lila Farbverlauf auf der Vorderseite.",
+        id: "like-hitster-purple",
+        name: "Like-Hitster Purple",
+        description: "Like-Hitster-Rückseitendesign mit einem lila Farbverlauf auf der Vorderseite.",
         selectable: false,
         backBackground: {
             type: "image",
@@ -64,9 +64,9 @@ export const DESIGNS: HardDesignPreset[] = [
         },
     },
     {
-        id: "hitster-red",
-        name: "Hitster Red",
-        description: "Hitster-Rückseitendesign mit einem roten Farbverlauf auf der Vorderseite.",
+        id: "like-hitster-red",
+        name: "Like-Hitster Red",
+        description: "Like-Hitster-Rückseitendesign mit einem roten Farbverlauf auf der Vorderseite.",
         selectable: false,
         backBackground: {
             type: "image",
@@ -78,9 +78,9 @@ export const DESIGNS: HardDesignPreset[] = [
         },
     },
     {
-        id: "hitster-teal",
-        name: "Hitster Teal",
-        description: "Hitster-Rückseitendesign mit einem teal Farbverlauf auf der Vorderseite.",
+        id: "like-hitster-teal",
+        name: "Like-Hitster Teal",
+        description: "Like-Hitster-Rückseitendesign mit einem teal Farbverlauf auf der Vorderseite.",
         selectable: false,
         backBackground: {
             type: "image",

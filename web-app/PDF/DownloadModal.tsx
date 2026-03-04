@@ -30,7 +30,7 @@ export interface DownloadModalProps {
 
 export default function DownloadModal(props: DownloadModalProps) {
     const { isOpen, onOpenChange, songs, deck } = props;
-    const [selectedDesign, setSelectedDesign] = React.useState<Array<string>>(["hitster-all"]);
+    const [selectedDesign, setSelectedDesign] = React.useState<Array<string>>(["like-hitster"]);
     const [selectedPrintType, setSelectedPrintType] = React.useState<"one-sided" | "double-sided">(
         "one-sided"
     );
