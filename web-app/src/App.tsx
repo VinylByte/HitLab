@@ -7,6 +7,7 @@ import { useSession } from "./hooks/useSession";
 import { useAppTheme } from "./hooks/useAppTheme";
 import { Center, Loader } from "@mantine/core";
 import Error404Page from "./components/pages/404ErrorPage/404ErrorPage";
+import GeneralPlayPage from "./components/pages/PlayPage/GeneralPlayPage";
 
 function App() {
     useAppTheme(); // Initialize theme hook
@@ -56,7 +57,6 @@ function ProtectedRoute() {
 }
 
 function Router() {
-
     return (
         <BrowserRouter>
             <Routes>
@@ -64,6 +64,7 @@ function Router() {
                     {Pages.map(page => (
                         <Route key={page.to} path={page.to} element={page.page} />
                     ))}
+                    <Route path="/play/:currentTrackId" element={<GeneralPlayPage />} />
                     <Route element={<ProtectedRoute />}>
                         {ProtectedPages.map(page => (
                             <Route key={page.to} path={page.to} element={page.page} />

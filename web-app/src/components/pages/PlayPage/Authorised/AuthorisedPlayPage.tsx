@@ -3,18 +3,22 @@ import QrScanner from "./QRScanner/QRScannerElement";
 import { useState } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../Settings";
+import PlayerElement from "./Player/PlayerElement";
+import { useNavigate } from "react-router";
 
 export default function AuthorisedPlayPage() {
     const [scannerOpen, setScannerOpen] = useState(false);
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
+    const navigate = useNavigate();
 
     const onScan = (result: string) => {
         setScannerOpen(false);
-        alert("Scanned QR code:" + result);
+        navigate(result.replace(window.location.origin, ""));
     };
 
     return (
         <div>
+            <PlayerElement />
             <Button color="primary" onPress={() => setScannerOpen(true)}>
                 Open QR Scanner
             </Button>
