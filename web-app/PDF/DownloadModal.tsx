@@ -19,7 +19,7 @@ import { PDFFactory } from "./PDF-Creator/PDFFactory";
 import { pdf } from "@react-pdf/renderer";
 import type { Card, BackgroundConfig } from "./interfaces";
 import { DESIGNS } from "./HardDesigns";
-import type { HardDesignPreset } from "./HardDesigns";
+import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
 
 export interface DownloadModalProps {
     isOpen: boolean;
@@ -30,7 +30,7 @@ export interface DownloadModalProps {
 
 export default function DownloadModal(props: DownloadModalProps) {
     const { isOpen, onOpenChange, songs, deck } = props;
-    const [selectedDesign, setSelectedDesign] = React.useState<Array<string>>(["0"]);
+    const [selectedDesign, setSelectedDesign] = React.useState<Array<string>>(["hitster-all"]);
     const [selectedPrintType, setSelectedPrintType] = React.useState<"one-sided" | "double-sided">(
         "one-sided"
     );
@@ -39,6 +39,8 @@ export default function DownloadModal(props: DownloadModalProps) {
     >("long-edge");
 
     const [downloadStarted, setDownloadStarted] = React.useState(false);
+
+    const selectableDesigns = useMemo(() => getSelectableDesigns(DESIGNS), []);
 
     // Reset download state when modal is opened/closed
     useEffect(() => {
@@ -83,9 +85,7 @@ export default function DownloadModal(props: DownloadModalProps) {
         // Generate QR codes and create PDF blob
         setDownloadStarted(true);
         const sourceCards = await generateQRCodes(cards);
-        const selectedDesignPresets = selectedDesign
-            .map((k: string) => DESIGNS.at(Number(k)))
-            .filter((design): design is HardDesignPreset => Boolean(design));
+        const selectedDesignPresets = resolveDesignSelection(selectedDesign, DESIGNS);
 
         const frontBackgrounds: BackgroundConfig[] = selectedDesignPresets
             .map(design => design.frontBackground ?? design.background)
@@ -140,13 +140,13 @@ export default function DownloadModal(props: DownloadModalProps) {
                                         <div className="flex flex-wrap gap-2">
                                             {items.map(item => (
                                                 <Chip key={item.key}>
-                                                    {DESIGNS[item.key as any]?.name || "Design"}
+                                                    {DESIGNS.find(design => design.id === item.key)
+                                                        ?.name || "Design"}
                                                 </Chip>
                                             ))}
                                         </div>
                                     );
                                 }}
-                                items={DESIGNS}
                                 onSelectionChange={keys =>
                                     setSelectedDesign(
                                         keys instanceof Set
@@ -157,8 +157,8 @@ export default function DownloadModal(props: DownloadModalProps) {
                                     )
                                 }
                             >
-                                {DESIGNS.map((design, index) => (
-                                    <SelectItem key={index}>
+                                {selectableDesigns.map(design => (
+                                    <SelectItem key={design.id}>
                                         <div className="flex items-center gap-3">
                                             <div>
                                                 <Text fw={"600"}>{design.name}</Text>
@@ -215,7 +215,7 @@ export default function DownloadModal(props: DownloadModalProps) {
                             </Button>
                             <Button
                                 color="primary"
-                                startContent={downloadStarted? null : <IconDownload size={18} />}
+                                startContent={downloadStarted ? null : <IconDownload size={18} />}
                                 onPress={() => startDownload().then(onClose)}
                                 isLoading={downloadStarted}
                             >

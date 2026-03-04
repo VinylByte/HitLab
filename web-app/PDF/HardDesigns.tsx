@@ -1,17 +1,17 @@
-import type { BackgroundConfig } from "./interfaces";
-
-export interface HardDesignPreset {
-    name: string;
-    description: string;
-    background?: BackgroundConfig;
-    frontBackground?: BackgroundConfig;
-    backBackground?: BackgroundConfig;
-}
+import type { HardDesignPreset } from "./DesignResolver";
 
 export const DESIGNS: HardDesignPreset[] = [
     {
+        id: "hitster-all",
+        name: "Hitster",
+        description: "Enthält alle Hitster-Designs und wechselt diese pro Karte ab.",
+        includes: ["hitster-blue", "hitster-green", "hitster-yellow", "hitster-purple"],
+    },
+    {
+        id: "hitster-blue",
         name: "Hitster Blue",
         description: "Hitster-Rückseitendesign mit einem blauen Farbverlauf auf der Vorderseite.",
+        selectable: false,
         backBackground: {
             type: "image",
             url: "/PDFDesigns/HitsterBackground.png",
@@ -22,8 +22,10 @@ export const DESIGNS: HardDesignPreset[] = [
         },
     },
     {
+        id: "hitster-green",
         name: "Hitster Green",
         description: "Hitster-Rückseitendesign mit einem grünen Farbverlauf auf der Vorderseite.",
+        selectable: false,
         backBackground: {
             type: "image",
             url: "/PDFDesigns/HitsterBackground.png",
@@ -34,8 +36,10 @@ export const DESIGNS: HardDesignPreset[] = [
         },
     },
     {
+        id: "hitster-yellow",
         name: "Hitster Yellow",
         description: "Hitster-Rückseitendesign mit einem gelben Farbverlauf auf der Vorderseite.",
+        selectable: false,
         backBackground: {
             type: "image",
             url: "/PDFDesigns/HitsterBackground.png",
@@ -46,6 +50,7 @@ export const DESIGNS: HardDesignPreset[] = [
         },
     },
     {
+        id: "hitster-purple",
         name: "Hitster Purple",
         description: "Hitster-Rückseitendesign mit einem lila Farbverlauf auf der Vorderseite.",
         backBackground: {
