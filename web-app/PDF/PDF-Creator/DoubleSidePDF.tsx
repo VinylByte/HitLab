@@ -1,5 +1,5 @@
 import { Document } from "@react-pdf/renderer";
-import type { Card } from "../PDF-Template/PageComponents";
+import type { Card } from "../interfaces";
 import { DoublePageStyles } from "../PDF-Template/Templates";
 import { CardFrontPage, CardBackPage } from "../PDF-Template/PageComponents";
 

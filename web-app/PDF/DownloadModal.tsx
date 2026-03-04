@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import type { PublicDeckDTO, Song } from "../src/services/deckService";
 import {
     Button,
@@ -17,8 +17,9 @@ import { Center, Title, Text } from "@mantine/core";
 import QRCode from "qrcode";
 import { PDFFactory } from "./PDF-Creator/PDFFactory";
 import { pdf } from "@react-pdf/renderer";
-import type { Card } from "./interfaces";
+import type { Card, BackgroundConfig } from "./interfaces";
 import { DESIGNS } from "./HardDesigns";
+import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
 
 export interface DownloadModalProps {
     isOpen: boolean;
@@ -29,13 +30,22 @@ export interface DownloadModalProps {
 
 export default function DownloadModal(props: DownloadModalProps) {
     const { isOpen, onOpenChange, songs, deck } = props;
-    const [selectedDesign, setSelectedDesign] = React.useState<Array<string>>(["0"]);
+    const [selectedDesign, setSelectedDesign] = React.useState<Array<string>>(["like-hitster"]);
     const [selectedPrintType, setSelectedPrintType] = React.useState<"one-sided" | "double-sided">(
         "one-sided"
     );
     const [selectedBindingMode, setSelectedBindingMode] = React.useState<
         "long-edge" | "short-edge"
     >("long-edge");
+
+    const [downloadStarted, setDownloadStarted] = React.useState(false);
+
+    const selectableDesigns = useMemo(() => getSelectableDesigns(DESIGNS), []);
+
+    // Reset download state when modal is opened/closed
+    useEffect(() => {
+        setDownloadStarted(false);
+    }, [isOpen]);
 
     // QR codes are generated on-demand in startDownload
 
@@ -73,12 +83,22 @@ export default function DownloadModal(props: DownloadModalProps) {
 
     const startDownload = async () => {
         // Generate QR codes and create PDF blob
+        setDownloadStarted(true);
         const sourceCards = await generateQRCodes(cards);
+        const selectedDesignPresets = resolveDesignSelection(selectedDesign, DESIGNS);
+
+        const frontBackgrounds: BackgroundConfig[] = selectedDesignPresets
+            .map(design => design.frontBackground ?? design.background)
+            .filter((background): background is BackgroundConfig => Boolean(background));
+
+        const backBackgrounds: BackgroundConfig[] = selectedDesignPresets
+            .map(design => design.backBackground ?? design.background ?? design.frontBackground)
+            .filter((background): background is BackgroundConfig => Boolean(background));
 
         const blob = await pdf(
             <PDFFactory
-                frontBackground={selectedDesign.map((k: string) => DESIGNS.at(Number(k)))}
-                backBackground={selectedDesign.map((k: string) => DESIGNS.at(Number(k)))}
+                frontBackground={frontBackgrounds}
+                backBackground={backBackgrounds}
                 cards={sourceCards}
                 type={selectedPrintType}
                 bindingMode={selectedBindingMode}
@@ -93,6 +113,7 @@ export default function DownloadModal(props: DownloadModalProps) {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+        setDownloadStarted(false);
     };
 
     // no background pre-generation; QR codes are generated on-demand
@@ -119,13 +140,13 @@ export default function DownloadModal(props: DownloadModalProps) {
                                         <div className="flex flex-wrap gap-2">
                                             {items.map(item => (
                                                 <Chip key={item.key}>
-                                                    {DESIGNS[item.key as any]?.name || "Design"}
+                                                    {DESIGNS.find(design => design.id === item.key)
+                                                        ?.name || "Design"}
                                                 </Chip>
                                             ))}
                                         </div>
                                     );
                                 }}
-                                items={DESIGNS}
                                 onSelectionChange={keys =>
                                     setSelectedDesign(
                                         keys instanceof Set
@@ -136,8 +157,8 @@ export default function DownloadModal(props: DownloadModalProps) {
                                     )
                                 }
                             >
-                                {DESIGNS.map((design, index) => (
-                                    <SelectItem key={index}>
+                                {selectableDesigns.map(design => (
+                                    <SelectItem key={design.id}>
                                         <div className="flex items-center gap-3">
                                             <div>
                                                 <Text fw={"600"}>{design.name}</Text>
@@ -194,8 +215,9 @@ export default function DownloadModal(props: DownloadModalProps) {
                             </Button>
                             <Button
                                 color="primary"
-                                startContent={<IconDownload />}
+                                startContent={downloadStarted ? null : <IconDownload size={18} />}
                                 onPress={() => startDownload().then(onClose)}
+                                isLoading={downloadStarted}
                             >
                                 PDF herunterladen
                             </Button>
