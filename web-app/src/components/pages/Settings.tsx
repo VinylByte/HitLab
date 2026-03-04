@@ -1,10 +1,12 @@
 import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/icons-react";
 import HomePage from "./HomePage/HomePage";
 import PublicDecksPageWrapper from "./PublicDecksPage/PublicDecksPage";
+import GeneralPlayPage from "./PlayPage/GeneralPlayPage";
 
 export const Pages = [
     { name: "Home", to: "/", location: "header", page: <HomePage /> },
     { name: "Decks", to: "/decks", location: "header", page: <PublicDecksPageWrapper /> },
+    { name: "Spielen", to: "/play", location: "header", page: <GeneralPlayPage /> },
 ];
 
 export const ProtectedPages = [
