@@ -15,6 +15,17 @@ export async function createDeck(metaDeck: MetaDeckDTO): Promise<string> {
     const userId = session?.user.id;
     if (!userId) throw new Error("Nicht eingeloggt");
 
+    const { data: ownProfile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", userId)
+        .single();
+
+    if (profileError) throw normalizeError(profileError);
+    if (!ownProfile) {
+        throw new Error("Profil nicht gefunden. Bitte neu anmelden und erneut versuchen.");
+    }
+
     const publicUrl = await persistPublicFile("deck-covers", metaDeck.cover, userId);
 
     const { data, error } = await supabase
@@ -29,7 +40,7 @@ export async function createDeck(metaDeck: MetaDeckDTO): Promise<string> {
         .select("id")
         .single();
 
-    if (error) throw error;
+    if (error) throw normalizeError(error);
     return data.id;
 }
 
@@ -48,7 +59,7 @@ async function persistPublicFile(bucket: BucketName, file: Blob, userId: string)
 
     const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) throw normalizeError(uploadError);
 
     // fetch public URL (no await, because it's synchronous)
     const {
@@ -56,6 +67,15 @@ async function persistPublicFile(bucket: BucketName, file: Blob, userId: string)
     } = supabase.storage.from("deck-covers").getPublicUrl(filePath);
 
     return publicUrl;
+}
+
+function normalizeError(error: unknown): Error {
+    if (error instanceof Error) return error;
+    if (error && typeof error === "object" && "message" in error) {
+        const message = (error as { message?: unknown }).message;
+        if (typeof message === "string" && message.length > 0) return new Error(message);
+    }
+    return new Error("Unbekannter Fehler");
 }
 
 /**
