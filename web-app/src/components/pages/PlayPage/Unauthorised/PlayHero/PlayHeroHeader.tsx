@@ -27,20 +27,15 @@ export default function PlayHeroHeader() {
 
     return (
         <div className={classes.rootHero}>
-            <Container size="lg" h="calc(100vh - 16rem)" >
+            <Container size="lg" h="calc(100vh - 16rem)">
                 <Center w={isMobile ? "100%" : "50%"} h={"100%"}>
                     <div className={classes.content}>
                         <Stack>
                             <Title className={classes.title}>
                                 Hast du bereits ein{" "}
-                                <Text
-                                    component="span"
-                                    inherit
-                                    variant="gradient"
-                                    gradient={{ from: "pink", to: "yellow" }}
-                                >
+                                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                                     Deck
-                                </Text>
+                                </span>
                                 ?
                             </Title>
 
