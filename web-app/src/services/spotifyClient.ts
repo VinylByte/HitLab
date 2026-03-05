@@ -1,6 +1,6 @@
 import supabase from "../supabase";
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
-import type { AccessToken, Device, MaxInt, Track } from "@spotify/web-api-ts-sdk";
+import type { AccessToken, Device, Track } from "@spotify/web-api-ts-sdk";
 import { mapSpotifyError, SpotifyApiError } from "./spotifyErrorMapper";
 
 async function getSpotifySdk(): Promise<SpotifyApi> {
@@ -42,16 +42,14 @@ function toSpotifyTrack(item: Track): SpotifyTrack {
     };
 }
 
-export async function searchTracks(query: string, limit = 20): Promise<SpotifyTrack[]> {
+export async function searchTracks(query: string): Promise<SpotifyTrack[]> {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return [];
 
     const sdk = await getSpotifySdk();
-    // stellt sicher, dass limit zwischen 1 und 50 ist, da Spotify nur maximal 50 tracks pro request returned
-    const cappedLimit = Math.min(Math.max(limit, 1), 50) as MaxInt<50>;
 
     try {
-        const response = await sdk.search(trimmedQuery, ["track"], undefined, cappedLimit);
+        const response = await sdk.search(trimmedQuery, ["track"], "DE", 10);
         return response.tracks.items.map(toSpotifyTrack);
     } catch (error) {
         throw mapSpotifyError(error);

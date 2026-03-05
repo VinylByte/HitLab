@@ -1,5 +1,4 @@
 import { Group, Text } from "@mantine/core";
-import type { Song } from "../../../../../services/deckService";
 import {
     Table,
     TableHeader,
@@ -15,10 +14,19 @@ import type { Selection } from "@heroui/react";
 import { MOBILE_BREAKPOINT } from "../../../Settings";
 import { useMediaQuery } from "@mantine/hooks";
 
+/** Display-only row type shared by Spotify search results and DB songs. */
+export type SongTableItem = {
+    id: string;
+    title: string;
+    artist: string;
+    year: number;
+    thumbnail_url: string | null;
+};
+
 type TableColor = "primary" | "secondary" | "success" | "danger" | "warning" | undefined;
 
 interface SongTableProps {
-    songs: Song[];
+    songs: SongTableItem[];
     color: TableColor;
     selectedKeys?: Selection;
     onSelectionChange?: (keys: Selection) => void;
@@ -58,7 +66,7 @@ export default function SongTable({
                 </TableHeader>
                 <TableBody emptyContent={"Keine Songs vorhanden"}>
                     {tableLoading
-                        ? Array.from({ length: 5 }).map((_, index) => (
+                        ? Array.from({ length: 5 }).map(() => (
                               <TableRow>
                                   <TableCell>
                                       <Group>

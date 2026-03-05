@@ -37,7 +37,7 @@ export function useSongSearch(search_str: string) {
             const requestId = ++requestRef.current;
             dispatch({ type: "fetch" });
             try {
-                const songs = await searchTracks(search_str, 20);
+                const songs = await searchTracks(search_str);
                 if (requestId === requestRef.current)
                     dispatch({
                         type: "success",

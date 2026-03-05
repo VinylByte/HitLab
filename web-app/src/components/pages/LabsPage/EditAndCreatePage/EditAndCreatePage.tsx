@@ -1,4 +1,4 @@
-import { Container, Title, Stack, Group } from "@mantine/core";
+import { Container, Title, Stack, Group, Text, Image } from "@mantine/core";
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { useForm } from "@mantine/form";
@@ -15,30 +15,25 @@ import {
 } from "@heroui/react";
 import { IconLock, IconLockOpen, IconPencilPlus, IconX } from "@tabler/icons-react";
 import { DropzoneField } from "./Dropzone";
+import {
+    fetchOwnDeckById,
+    updateDeckInfo,
+    fetchAllTags,
+    setDeckTags,
+    updateDeckCover,
+    type DeckTag,
+} from "../../../../services/deckService";
+import { createDeck } from "../../../../services/createDeckService";
 
 interface DeckFormData {
     name: string;
     description: string;
     private: boolean;
-    cover_url: string;
 }
 
 interface EditAndCreatePageProps {
     mode: "create" | "edit";
     deckId?: string;
-}
-
-interface Song {
-    id: number;
-    title: string;
-    artist: string;
-    year?: number;
-    cover_url?: string;
-}
-
-interface DeckTagOption {
-    key: string;
-    label: string;
 }
 
 export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePageProps) {
@@ -54,55 +49,48 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
         },
     });
 
-    const [, setSongList] = useState<Song[]>([]);
     const [coverBlob, setCoverBlob] = useState<Blob | null>(null);
     const [dropZoneError, setDropZoneError] = useState<string | null>(null);
-    const [availableTags] = useState<DeckTagOption[]>([
-        { key: "rock", label: "Rock" },
-        { key: "pop", label: "Pop" },
-        { key: "hiphop", label: "Hip-Hop" },
-        { key: "jazz", label: "Jazz" },
-        { key: "electronic", label: "Electronic" },
-    ]);
+    const [availableTags, setAvailableTags] = useState<DeckTag[]>([]);
     const [selectedTagKeys, setSelectedTagKeys] = useState<Selection>(new Set());
     const [tagError, setTagError] = useState<string | null>(null);
+    const [loadingDeck, setLoadingDeck] = useState(mode === "edit");
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [existingCoverUrl, setExistingCoverUrl] = useState<string | null>(null);
+    const [deckLoaded, setDeckLoaded] = useState(false);
+
+    // Lade verfügbare Tags aus der Datenbank
+    useEffect(() => {
+        fetchAllTags()
+            .then(tags => setAvailableTags(tags))
+            .catch(err => console.error("Fehler beim Laden der Tags:", err));
+    }, []);
 
     // Lade Deck-Daten für Edit-Modus
     useEffect(() => {
-        if (mode === "edit" && deckId) {
-            // TODO: Deck-Daten aus der Datenbank laden
-            console.log("Loading deck data for ID:", deckId);
-            // Beispieldaten für Demo:
-            form.setValues({
-                name: "Beispiel Deck",
-                description: "Dies ist ein Beispiel-Deck zum Bearbeiten",
-                private: false,
-                cover_url: "https://example.com/cover.jpg",
-            });
-            setSongList([
-                {
-                    id: 1,
-                    title: "Song 1",
-                    artist: "Artist A",
-                    year: 2020,
-                    cover_url: "https://example.com/song1.jpg",
-                },
-                {
-                    id: 2,
-                    title: "Song 2",
-                    artist: "Artist B",
-                    year: 2019,
-                    cover_url: "https://example.com/song2.jpg",
-                },
-            ]);
-        }
-    }, [mode, deckId]);
+        if (mode !== "edit" || !deckId || deckLoaded) return;
+        fetchOwnDeckById(deckId)
+            .then(deck => {
+                form.setValues({
+                    name: deck.name,
+                    description: deck.description ?? "",
+                    private: deck.visibility === "private",
+                });
+                setExistingCoverUrl(deck.cover_url);
+                setSelectedTagKeys(new Set(deck.tags.map(t => t.id)));
+                setDeckLoaded(true);
+            })
+            .catch(err => {
+                console.error("Fehler beim Laden des Decks:", err);
+                setSubmitError("Deck konnte nicht geladen werden.");
+            })
+            .finally(() => setLoadingDeck(false));
+    }, [mode, deckId, form, deckLoaded]);
 
     const handleFileUpload = (blob: Blob) => {
         setDropZoneError(null);
         setCoverBlob(blob);
-        // TODO: Hier können Sie den Blob zu Supabase hochladen
-        // uploadToStorage(blob);
     };
 
     const handleTagSelectionChange = (keys: Selection) => {
@@ -110,39 +98,53 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
         setSelectedTagKeys(keys);
     };
 
-    const handleSubmit = (data: DeckFormData) => {
+    const handleSubmit = async (data: DeckFormData) => {
         const selectedTags =
             selectedTagKeys === "all"
-                ? availableTags.map(tag => tag.key)
+                ? availableTags.map(tag => tag.id)
                 : Array.from(selectedTagKeys as Set<string>);
 
-        if (mode === "create" && selectedTags.length === 0) {
+        if (selectedTags.length === 0) {
             setTagError("Bitte wähle mindestens einen Tag aus.");
             return;
         }
 
-        if (!coverBlob) {
+        if (mode === "create" && !coverBlob) {
             setDropZoneError("Bitte lade ein Coverbild hoch.");
             return;
         }
-        if (mode === "create") {
-            console.log("Creating deck:", data, { tags: selectedTags });
-            // TODO: Deck zu Datenbank hinzufügen und die neue ID erhalten
-            // Nach dem Erstellen zur EditSongsPage mit der neuen Deck ID navigieren
-            // const newDeckId = await createDeck(data);
-            // navigate(`/decks/${newDeckId}/songs`);
 
-            // Für jetzt: Platzhalter Navigation (würde mit echter ID ersetzt)
-            alert("Deck würde jetzt erstellt und Songs-Bearbeitung würde folgen");
-        } else {
-            console.log("Updating deck:", deckId, data, { tags: selectedTags });
-            // TODO: Deck in Datenbank aktualisieren
-            // await updateDeck(deckId, data);
+        setSubmitting(true);
+        setSubmitError(null);
 
-            // Nach dem Bearbeiten zur EditSongsPage navigieren
-            if (deckId) {
+        try {
+            if (mode === "create") {
+                const newDeckId = await createDeck({
+                    name: data.name,
+                    description: data.description,
+                    private: data.private,
+                    cover: coverBlob!,
+                });
+                await setDeckTags(newDeckId, selectedTags);
+                navigate(`/decks/${newDeckId}/songs`);
+            } else if (deckId) {
+                await updateDeckInfo({
+                    deckId,
+                    name: data.name,
+                    description: data.description,
+                    private: data.private,
+                });
+                await setDeckTags(deckId, selectedTags);
+                if (coverBlob) {
+                    await updateDeckCover(deckId, coverBlob);
+                }
                 navigate(`/decks/${deckId}/songs`);
             }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Ein Fehler ist aufgetreten.";
+            setSubmitError(message);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -156,6 +158,8 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         </Title>
                     </div>
 
+                    {submitError && <Alert color="danger">{submitError}</Alert>}
+
                     <Group>
                         <Input
                             label="Deck Name"
@@ -163,11 +167,13 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                             {...form.getInputProps("name")}
                             required
                             className="w-150"
+                            isDisabled={loadingDeck}
                         />
                         <Switch
                             thumbIcon={form.values.private ? <IconLock /> : <IconLockOpen />}
                             title="Privat"
                             {...form.getInputProps("private", { type: "checkbox" })}
+                            isDisabled={loadingDeck}
                         >
                             Privat
                             <p className="text-small text-default-500">
@@ -186,6 +192,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         onSelectionChange={handleTagSelectionChange}
                         isInvalid={!!tagError}
                         errorMessage={tagError ?? undefined}
+                        isDisabled={loadingDeck}
                         renderValue={items => (
                             <div className="flex flex-wrap gap-2">
                                 {items.map(item => (
@@ -197,7 +204,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         )}
                     >
                         {availableTags.map(tag => (
-                            <SelectItem key={tag.key}>{tag.label}</SelectItem>
+                            <SelectItem key={tag.id}>{tag.name}</SelectItem>
                         ))}
                     </Select>
 
@@ -207,7 +214,17 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         {...form.getInputProps("description")}
                         minRows={3}
                         required
+                        isDisabled={loadingDeck}
                     />
+
+                    {existingCoverUrl && !coverBlob && (
+                        <div>
+                            <Text size="sm" c="dimmed" mb="xs">
+                                Aktuelles Coverbild:
+                            </Text>
+                            <Image src={existingCoverUrl} alt="Deck Cover" maw={200} radius="md" />
+                        </div>
+                    )}
                     {dropZoneError && <Alert color="danger">{dropZoneError}</Alert>}
                     <DropzoneField currentBlob={coverBlob} onFileUpload={handleFileUpload} />
 
@@ -217,10 +234,17 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                             startContent={<IconX />}
                             onPress={() => navigate("/lab")}
                             variant="light"
+                            isDisabled={submitting}
                         >
                             Abbrechen
                         </Button>
-                        <Button startContent={<IconPencilPlus />} type="submit" color="primary">
+                        <Button
+                            startContent={<IconPencilPlus />}
+                            type="submit"
+                            color="primary"
+                            isLoading={submitting}
+                            isDisabled={loadingDeck}
+                        >
                             {mode === "create"
                                 ? "Deck erstellen und Songs hinzufügen"
                                 : "Änderungen speichern und Songs bearbeiten"}

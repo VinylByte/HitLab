@@ -2,124 +2,36 @@ import { Title, Text, Stack, Group, SimpleGrid, Center } from "@mantine/core";
 import { Button, Input, Tab, Tabs } from "@heroui/react";
 import type { Selection } from "@heroui/react";
 import { useNavigate, useParams } from "react-router";
-import type { Song } from "../../../../../services/deckService";
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../../Settings";
 import SongTable from "./SongTable";
+import type { SongTableItem } from "./SongTable";
 import { IconSearch, IconPlus, IconTrash, IconCheck } from "@tabler/icons-react";
+import { useSongSearch } from "../../../../../hooks/useSongSearch";
+import type { SpotifyTrack } from "../../../../../services/spotifyClient";
+import { fetchDeckSongs, removeDeckSongs, type Song } from "../../../../../services/deckService";
+import { addDeckSong } from "../../../../../services/createDeckService";
 
-/**
- * Sucht Songs nach Name.
- * @param query - Suchbegriff
- * @returns Array gefundener Songs
- */
-async function searchSongsSpotify(query: string): Promise<Song[]> {
-    // TODO: Datenbank-Call implementieren
-    return mockSearchResults.filter(song => song.title.toLowerCase().includes(query.toLowerCase()));
+function songToTableItem(song: Song): SongTableItem {
+    return {
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+        year: song.year,
+        thumbnail_url: song.thumbnail_url,
+    };
 }
 
-/**
- * Laden aller Songs für ein bestimmtes Deck.
- * @param deckId - ID des Decks
- * @returns Array der Songs im Deck
- */
-async function loadDeckSongsDB(_deckId: string): Promise<[Song[], boolean]> {
-    let loading = true;
-    // TODO: Datenbank-Call implementieren
-    await new Promise(resolve => setTimeout(resolve, 5000)); // Simuliere Netzwerkverzögerung
-    loading = false;
-    return [mockSongsInDeck, loading];
+function spotifyTrackToTableItem(track: SpotifyTrack): SongTableItem {
+    return {
+        id: track.spotify_track_id,
+        title: track.title,
+        artist: track.artist,
+        year: track.year,
+        thumbnail_url: track.thumbnail_url,
+    };
 }
-
-/**
- * Fügt Songs zum Deck in der Datenbank hinzu.
- * @param deckId - ID des Decks
- * @param songs - Vollständige Song-Objekte
- */
-async function addSongsToDeckDB(_deckId: string, _songs: Song[]): Promise<void> {
-    // TODO: Datenbank-Call implementieren
-    await new Promise(resolve => setTimeout(resolve, 5000)); // Simuliere Netzwerkverzögerung
-}
-
-/**
- * Entfernt Songs aus dem Deck in der Datenbank.
- * @param deckId - ID des Decks
- * @param songIds - IDs der zu entfernenden Songs
- */
-async function removeSongsFromDeckDB(_deckId: string, _songIds: string[]): Promise<void> {
-    // TODO: Datenbank-Call implementieren
-}
-
-const mockSongsInDeck: Song[] = [
-    {
-        id: "1",
-        title: "Song 1",
-        artist: "Artist A",
-        album: null,
-        year: 2020,
-        thumbnail_url: "https://example.com/cover1.jpg",
-    },
-    {
-        id: "2",
-        title: "Song 2",
-        artist: "Artist B",
-        album: null,
-        year: 2019,
-        thumbnail_url: "https://example.com/cover2.jpg",
-    },
-    {
-        id: "3",
-        title: "Song 3",
-        artist: "Artist C",
-        album: null,
-        year: 2021,
-        thumbnail_url: "https://example.com/cover3.jpg",
-    },
-];
-
-const mockSearchResults: Song[] = [
-    {
-        id: "4",
-        title: "Song 4",
-        artist: "Artist D",
-        album: null,
-        year: 2018,
-        thumbnail_url: "https://example.com/cover4.jpg",
-    },
-    {
-        id: "5",
-        title: "Song 5",
-        artist: "Artist E",
-        album: null,
-        year: 2022,
-        thumbnail_url: "https://example.com/cover5.jpg",
-    },
-    {
-        id: "6",
-        title: "Song 6",
-        artist: "Artist F",
-        album: null,
-        year: 2020,
-        thumbnail_url: "https://example.com/cover6.jpg",
-    },
-    {
-        id: "7",
-        title: "Song 7",
-        artist: "Artist G",
-        album: null,
-        year: 2019,
-        thumbnail_url: "https://example.com/cover7.jpg",
-    },
-    {
-        id: "8",
-        title: "Song 8",
-        artist: "Artist H",
-        album: null,
-        year: 2021,
-        thumbnail_url: "https://example.com/cover8.jpg",
-    },
-];
 
 export default function EditSongsPage() {
     const navigate = useNavigate();
@@ -134,89 +46,127 @@ export default function EditSongsPage() {
 
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
 
-    // Lade Songs im Deck beim Initialisieren
+    // Lade Songs im Deck aus der Datenbank
     useEffect(() => {
-        loadDeckSongsDB(id!).then(([songs, loading]) => {
-            setSongsInDeck(songs);
-            setLoading(loading);
-        });
+        if (!id) return;
+        fetchDeckSongs(id)
+            .then(deckSongs => setSongsInDeck(deckSongs.map(ds => ds.song)))
+            .catch(err => console.error("Fehler beim Laden der Deck-Songs:", err))
+            .finally(() => setLoading(false));
     }, [id]);
 
-    // TODO: Songs vom Backend fetchen basierend auf Suchtext
-    const [songsInSearchResults, setSongsInSearchResults] = useState<Song[]>(mockSearchResults);
+    // Spotify-Suche via useSongSearch Hook (debounced, min. 2 Zeichen)
+    const { songs: spotifyResults, loading: searchLoading } = useSongSearch(searchResultsValue);
 
-    // "all" in explizite IDs umwandeln, damit nur angezeigte Songs selektiert werden
-    const handleSearchSelectionChange = useCallback(
-        (keys: Selection) => {
-            if (keys === "all") {
-                // Alle Songs außer ladenden auswählen
-                const selectableIds = songsInSearchResults
-                    .filter(s => !loadingDeckIds.has(s.id))
-                    .map(s => s.id);
-                setSelectedSearchKeys(new Set(selectableIds));
-            } else {
-                setSelectedSearchKeys(keys);
-            }
-        },
-        [songsInSearchResults, loadingDeckIds]
+    // Konvertiere Spotify-Ergebnisse zu SongTableItems
+    const searchTableItems = useMemo(
+        () => spotifyResults.map(spotifyTrackToTableItem),
+        [spotifyResults]
     );
 
-    // Cache für Song-Objekte, damit ausgewählte Songs auch nach Query-Wechsel verfügbar bleiben
-    const songCacheRef = useRef<Map<string, Song>>(new Map());
-    // Cache inline aktualisieren (vor useMemo)
-    songsInSearchResults.forEach(s => songCacheRef.current.set(s.id, s));
+    // Caches für ausgewählte Songs (nur in Event-Handlern aktualisiert)
+    const [selectedItemsCache, setSelectedItemsCache] = useState<Map<string, SongTableItem>>(
+        new Map()
+    );
+    const [selectedTracksCache, setSelectedTracksCache] = useState<Map<string, SpotifyTrack>>(
+        new Map()
+    );
+
+    // "all" in explizite IDs umwandeln + Caches für gepinnte Auswahl aktualisieren
+    const handleSearchSelectionChange = useCallback(
+        (keys: Selection) => {
+            let newKeySet: Set<string>;
+            if (keys === "all") {
+                newKeySet = new Set(
+                    searchTableItems.filter(s => !loadingDeckIds.has(s.id)).map(s => s.id)
+                );
+            } else {
+                newKeySet = keys as Set<string>;
+            }
+
+            setSelectedSearchKeys(newKeySet);
+
+            // SongTableItem-Cache: Nur ausgewählte Items speichern
+            setSelectedItemsCache(prev => {
+                const next = new Map<string, SongTableItem>();
+                for (const id of Array.from(newKeySet)) {
+                    const cached = prev.get(id);
+                    if (cached) {
+                        next.set(id, cached);
+                    } else {
+                        const fromResults = searchTableItems.find(s => s.id === id);
+                        if (fromResults) next.set(id, fromResults);
+                    }
+                }
+                return next;
+            });
+
+            // SpotifyTrack-Cache: Für spätere addDeckSong-Aufrufe
+            setSelectedTracksCache(prev => {
+                const next = new Map<string, SpotifyTrack>();
+                for (const id of Array.from(newKeySet)) {
+                    const cached = prev.get(id);
+                    if (cached) {
+                        next.set(id, cached);
+                    } else {
+                        const fromResults = spotifyResults.find(s => s.spotify_track_id === id);
+                        if (fromResults) next.set(id, fromResults);
+                    }
+                }
+                return next;
+            });
+        },
+        [searchTableItems, loadingDeckIds, spotifyResults]
+    );
 
     // Angezeigte Suchergebnisse: Ausgewählte Songs oben gepinnt, restliche darunter
-    const displayedSearchSongs = useMemo(() => {
+    const displayedSearchItems = useMemo(() => {
         const selectedIds = Array.from(selectedSearchKeys as Set<string>);
-
         const selectedIdSet = new Set(selectedIds);
 
-        // Ausgewählte Songs aus dem Cache holen (bleiben auch nach Query-Wechsel erhalten)
-        const pinnedSongs = selectedIds
-            .map(id => songCacheRef.current.get(id))
-            .filter((s): s is Song => s !== undefined);
+        const pinnedItems = selectedIds
+            .map(id => selectedItemsCache.get(id))
+            .filter((s): s is SongTableItem => s !== undefined);
 
-        // Nicht-ausgewählte Songs aus den aktuellen Ergebnissen
-        const nonSelected = songsInSearchResults.filter(s => !selectedIdSet.has(s.id));
+        const nonSelected = searchTableItems.filter(s => !selectedIdSet.has(s.id));
 
-        return [...pinnedSongs, ...nonSelected];
-    }, [selectedSearchKeys, songsInSearchResults]);
+        return [...pinnedItems, ...nonSelected];
+    }, [selectedSearchKeys, searchTableItems, selectedItemsCache]);
+
+    // Deck-Songs als SongTableItems
+    const deckTableItems = useMemo(() => songsInDeck.map(songToTableItem), [songsInDeck]);
 
     // Filtere Songs im Deck basierend auf Suchtext
-    const filteredSongsInDeck = useMemo(() => {
-        if (!searchDeckValue.trim()) return songsInDeck;
+    const filteredDeckItems = useMemo(() => {
+        if (!searchDeckValue.trim()) return deckTableItems;
 
         const query = searchDeckValue.toLowerCase();
-        return songsInDeck.filter(
+        return deckTableItems.filter(
             song =>
                 song.title?.toLowerCase().includes(query) ||
                 song.artist?.toLowerCase().includes(query) ||
                 String(song.year)?.includes(query)
         );
-    }, [songsInDeck, searchDeckValue]);
+    }, [deckTableItems, searchDeckValue]);
 
     // Angezeigte Deck-Songs: Ausgewählte oben gepinnt, auch wenn sie nicht zur Query passen
-    const displayedDeckSongs = useMemo(() => {
+    const displayedDeckItems = useMemo(() => {
         const selectedIds = Array.from(selectedDeckKeys as Set<string>);
         const selectedIdSet = new Set(selectedIds);
 
-        // Ausgewählte Songs aus dem gesamten Deck holen (unabhängig vom Filter)
-        const pinnedSongs = selectedIds
-            .map(id => songsInDeck.find(s => s.id === id))
-            .filter((s): s is Song => s !== undefined);
+        const pinnedItems = selectedIds
+            .map(itemId => deckTableItems.find(s => s.id === itemId))
+            .filter((s): s is SongTableItem => s !== undefined);
 
-        // Nicht-ausgewählte Songs aus den gefilterten Ergebnissen
-        const nonSelected = filteredSongsInDeck.filter(s => !selectedIdSet.has(s.id));
+        const nonSelected = filteredDeckItems.filter(s => !selectedIdSet.has(s.id));
 
-        return [...pinnedSongs, ...nonSelected];
-    }, [selectedDeckKeys, filteredSongsInDeck, songsInDeck]);
+        return [...pinnedItems, ...nonSelected];
+    }, [selectedDeckKeys, filteredDeckItems, deckTableItems]);
 
     const handleDeckSelectionChange = useCallback(
         (keys: Selection) => {
             if (keys === "all") {
-                // Alle Songs außer ladenden auswählen
-                const selectableIds = filteredSongsInDeck
+                const selectableIds = filteredDeckItems
                     .filter(s => !loadingDeckIds.has(s.id))
                     .map(s => s.id);
                 setSelectedDeckKeys(new Set(selectableIds));
@@ -224,14 +174,8 @@ export default function EditSongsPage() {
                 setSelectedDeckKeys(keys);
             }
         },
-        [filteredSongsInDeck, loadingDeckIds]
+        [filteredDeckItems, loadingDeckIds]
     );
-
-    useEffect(() => {
-        searchSongsSpotify(searchResultsValue).then(results => {
-            setSongsInSearchResults(results);
-        });
-    }, [searchResultsValue]);
 
     const hasSearchSelection = selectedSearchKeys instanceof Set && selectedSearchKeys.size > 0;
     const hasDeckSelection = selectedDeckKeys instanceof Set && selectedDeckKeys.size > 0;
@@ -239,36 +183,56 @@ export default function EditSongsPage() {
     const handleAddToDeck = useCallback(async () => {
         const keysToAdd = Array.from(selectedSearchKeys as Set<string>);
 
-        const songsToAdd = keysToAdd
-            .map(songId => songCacheRef.current.get(songId))
-            .filter((s): s is Song => s !== undefined);
+        const tracksToAdd = keysToAdd
+            .map(spotifyId => selectedTracksCache.get(spotifyId))
+            .filter((t): t is SpotifyTrack => t !== undefined);
 
         // Nur Songs einfügen, die noch nicht im Deck sind
-        const existingIds = new Set(songsInDeck.map(s => s.id));
-        const newSongs = songsToAdd.filter(s => !existingIds.has(s.id));
-        if (newSongs.length === 0) return;
+        const existingSpotifyIds = new Set(songsInDeck.map(s => s.spotify_track_id));
+        const newTracks = tracksToAdd.filter(t => !existingSpotifyIds.has(t.spotify_track_id));
+        if (newTracks.length === 0) return;
 
-        const newIds = newSongs.map(s => s.id);
+        // Optimistisch ins Deck einfügen mit temporären IDs + Loading-State
+        const tempSongs: Song[] = newTracks.map(t => ({
+            id: `temp-${t.spotify_track_id}`,
+            spotify_track_id: t.spotify_track_id,
+            title: t.title,
+            artist: t.artist,
+            album: t.album,
+            year: t.year,
+            thumbnail_url: t.thumbnail_url,
+        }));
 
-        // Sofort ins Deck einfügen (optimistisch) + Loading-State setzen
-        setSongsInDeck(prev => [...prev, ...newSongs]);
-        setLoadingDeckIds(prev => new Set([...prev, ...newIds]));
+        const tempIds = tempSongs.map(s => s.id);
+        setSongsInDeck(prev => [...prev, ...tempSongs]);
+        setLoadingDeckIds(prev => new Set([...prev, ...tempIds]));
         setSelectedSearchKeys(new Set());
+        setSelectedItemsCache(new Map());
+        setSelectedTracksCache(new Map());
 
         try {
-            await addSongsToDeckDB(id!, newSongs);
+            await addDeckSong(id!, newTracks, spotifyTrackId => {
+                setLoadingDeckIds(prev => {
+                    const next = new Set(prev);
+                    next.delete(`temp-${spotifyTrackId}`);
+                    return next;
+                });
+            });
+
+            // Refetch für korrekte DB-IDs
+            const deckSongs = await fetchDeckSongs(id!);
+            setSongsInDeck(deckSongs.map(ds => ds.song));
         } catch (error) {
-            // Rollback bei Fehler
-            setSongsInDeck(prev => prev.filter(s => !newIds.includes(s.id)));
-            console.error("Fehler beim Hinzufügen:", error);
-        } finally {
+            // Rollback
+            setSongsInDeck(prev => prev.filter(s => !tempIds.includes(s.id)));
             setLoadingDeckIds(prev => {
                 const next = new Set(prev);
-                newIds.forEach(songId => next.delete(songId));
+                tempIds.forEach(tempId => next.delete(tempId));
                 return next;
             });
+            console.error("Fehler beim Hinzufügen:", error);
         }
-    }, [selectedSearchKeys, songsInDeck, id]);
+    }, [selectedSearchKeys, selectedTracksCache, songsInDeck, id]);
 
     const handleRemoveFromDeck = useCallback(async () => {
         const keysToRemove = Array.from(selectedDeckKeys as Set<string>);
@@ -277,14 +241,14 @@ export default function EditSongsPage() {
         // Songs merken für Rollback
         const removedSongs = songsInDeck.filter(s => keysToRemove.includes(s.id));
 
-        // Sofort entfernen (optimistisch)
+        // Optimistisch entfernen
         setSongsInDeck(prev => prev.filter(s => !keysToRemove.includes(s.id)));
         setSelectedDeckKeys(new Set());
 
         try {
-            await removeSongsFromDeckDB(id!, keysToRemove);
+            await removeDeckSongs(id!, keysToRemove);
         } catch (error) {
-            // Rollback bei Fehler
+            // Rollback
             setSongsInDeck(prev => [...prev, ...removedSongs]);
             console.error("Fehler beim Entfernen:", error);
         }
@@ -309,11 +273,11 @@ export default function EditSongsPage() {
                 onValueChange={setSearchResultsValue}
             />
             <SongTable
-                songs={displayedSearchSongs}
+                songs={displayedSearchItems}
                 color="secondary"
                 selectedKeys={selectedSearchKeys}
                 onSelectionChange={handleSearchSelectionChange}
-                tableLoading={loading}
+                tableLoading={loading || searchLoading}
             />
             <Button
                 className="w-full mt-3"
@@ -347,7 +311,7 @@ export default function EditSongsPage() {
                 onValueChange={setSearchDeckValue}
             />
             <SongTable
-                songs={displayedDeckSongs}
+                songs={displayedDeckItems}
                 color="primary"
                 selectedKeys={selectedDeckKeys}
                 onSelectionChange={handleDeckSelectionChange}
