@@ -75,6 +75,7 @@ export async function fetchPublicDecks(
 /** Song info embedded in a deck song */
 export type Song = {
     id: string;
+    spotify_track_id: string;
     title: string;
     artist: string;
     album: string | null;
@@ -117,6 +118,7 @@ export async function fetchDeckSongs(deckId: string): Promise<DeckSongsDTO[]> {
         deck_id: row.deck_id,
         song: {
             id: row.songs.id,
+            spotify_track_id: row.songs.spotify_track_id,
             title: row.songs.title,
             artist: row.songs.artist,
             album: row.songs.album,
