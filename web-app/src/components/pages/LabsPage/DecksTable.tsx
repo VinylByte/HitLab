@@ -19,7 +19,6 @@ import {
 } from "@heroui/react";
 import {
     IconDotsVertical,
-    IconDownload,
     IconEdit,
     IconEye,
     IconPlus,
@@ -30,26 +29,12 @@ import SearchBar from "../PublicDecksPage/SearchBarProp";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../Settings";
 import { useSearchParams } from "react-router";
+import type { OwnDeckDTO } from "../../../services/deckService";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
     private: "success",
     public: "danger",
 };
-
-interface DECK {
-    id: string;
-    name: string;
-    song_count: number;
-    status: string;
-    created_at: string;
-    cover_url: string;
-    tags: { id: string; name: string }[];
-    description: string;
-    owner: {
-        display_name: string;
-        avatar_url: string;
-    };
-}
 
 export default function DecksTable({
     decks,
@@ -58,11 +43,11 @@ export default function DecksTable({
     createDeck,
     deleteDeck,
 }: {
-    decks: DECK[];
-    viewDeck: (deck: DECK) => void;
+    decks: OwnDeckDTO[];
+    viewDeck: (deck: OwnDeckDTO) => void;
     createDeck: () => void;
-    editDeck: (deck: DECK) => void;
-    deleteDeck: (deck: DECK) => void;
+    editDeck: (deck: OwnDeckDTO) => void;
+    deleteDeck: (deck: OwnDeckDTO) => void;
 }) {
     const [sortKey, setSortKey] = useState<string>("created_at");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -110,12 +95,12 @@ export default function DecksTable({
     );
 
     const renderCell = React.useCallback(
-        (deck: DECK, columnKey: React.Key) => {
+        (deck: OwnDeckDTO, columnKey: React.Key) => {
             switch (columnKey) {
                 case "title":
                     return (
                         <User
-                            avatarProps={{ radius: "lg", src: deck.cover_url }}
+                            avatarProps={{ radius: "lg", src: deck.cover_url ?? undefined }}
                             name={deck.name}
                         ></User>
                     );
@@ -137,25 +122,18 @@ export default function DecksTable({
                         <Center>
                             <Chip
                                 className="capitalize"
-                                color={statusColorMap[deck.status]}
+                                color={statusColorMap[deck.visibility]}
                                 size="sm"
                                 variant="flat"
                             >
-                                {deck.status}
+                                {deck.visibility}
                             </Chip>
                         </Center>
                     );
                 case "created_at":
-                    const date = new Date(deck.created_at);
                     return (
                         <Center>
-                            <p className="text-bold text-sm capitalize">
-                                {date.toLocaleDateString("de-DE", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "2-digit",
-                                })}
-                            </p>
+                            <p className="text-bold text-sm capitalize">{deck.created_at}</p>
                         </Center>
                     );
                 case "actions":
@@ -227,40 +205,37 @@ export default function DecksTable({
                     return null;
             }
         },
-        [isMobile]
+        [isMobile, viewDeck, editDeck, deleteDeck]
     );
 
     const sortedDecks = useMemo(() => {
         const arr = [...decks];
         arr.sort((a, b) => {
-            const aVal = a[sortKey as keyof DECK];
-            const bVal = b[sortKey as keyof DECK];
-
-            if (sortKey === "song_count") {
-                return sortDir === "asc"
-                    ? Number(aVal) - Number(bVal)
-                    : Number(bVal) - Number(aVal);
-            }
-
-            if (sortKey === "created_at") {
-                const ad = new Date(String(aVal)).getTime();
-                const bd = new Date(String(bVal)).getTime();
-                return sortDir === "asc" ? ad - bd : bd - ad;
-            }
-
             if (sortKey === "title") {
                 const compare = titleCollator.compare(String(a.name), String(b.name));
                 return sortDir === "asc" ? compare : -compare;
             }
 
-            const sa = String(aVal).toLowerCase();
-            const sb = String(bVal).toLowerCase();
-            if (sa < sb) return sortDir === "asc" ? -1 : 1;
-            if (sa > sb) return sortDir === "asc" ? 1 : -1;
+            if (sortKey === "status") {
+                const compare = titleCollator.compare(String(a.visibility), String(b.visibility));
+                return sortDir === "asc" ? compare : -compare;
+            }
+
+            if (sortKey === "song_count") {
+                return sortDir === "asc"
+                    ? Number(a.song_count) - Number(b.song_count)
+                    : Number(b.song_count) - Number(a.song_count);
+            }
+
+            if (sortKey === "created_at") {
+                const compare = titleCollator.compare(String(a.created_at), String(b.created_at));
+                return sortDir === "asc" ? compare : -compare;
+            }
+
             return 0;
         });
         return arr;
-    }, [sortKey, sortDir, titleCollator]);
+    }, [decks, sortKey, sortDir, titleCollator]);
 
     const filteredDecks = useMemo(() => {
         const query = searchParams.get("query")?.trim().toLocaleLowerCase("de-DE") || "";
@@ -268,7 +243,7 @@ export default function DecksTable({
 
         return sortedDecks.filter(deck => {
             const title = deck.name.toLocaleLowerCase("de-DE");
-            const status = deck.status.toLocaleLowerCase("de-DE");
+            const status = deck.visibility.toLocaleLowerCase("de-DE");
             const createdAt = deck.created_at.toLocaleLowerCase("de-DE");
 
             return title.includes(query) || status.includes(query) || createdAt.includes(query);
