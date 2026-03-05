@@ -8,19 +8,19 @@ import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT, PAGINATION_BREAKPOINT } from "../Settings";
 import { usePublicDecks } from "../../../hooks/usePublicDecks";
 import type { PublicDeckDTO } from "../../../services/deckService";
+import { useSearchParams } from "react-router";
 
 export default function PublicDecksPageWrapper() {
-    const [search_str, setSearchStr] = useState("");
+    const [searchParams, ] = useSearchParams();
     const [page, setPage] = useState(1);
 
-    const { decks, totalCount, loading } = usePublicDecks(search_str, page);
+    const { decks, totalCount, loading } = usePublicDecks(searchParams.get("query") || "", page);
 
     return (
         <div className="p-4">
             <PublicDecksPage
                 decks={decks}
                 totalCount={totalCount}
-                search_props={{ search_str, setSearchStr }}
                 loading={loading}
                 page_props={{ page, setPage }}
             />
@@ -36,13 +36,13 @@ interface PropsDecksPage {
     page_props?: { page: number; setPage: (page: number) => void };
 }
 
-function PublicDecksPage({ decks, totalCount, search_props, loading, page_props }: PropsDecksPage) {
+function PublicDecksPage({ decks, totalCount, loading, page_props }: PropsDecksPage) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
 
     return (
         <div>
             <Stack>
-                <SearchBar {...search_props!} />
+                <SearchBar />
                 <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
                     {loading
                         ? Array.from({ length: PAGINATION_BREAKPOINT }).map((_, i) => <DeckCardSkeleton key={i} />)

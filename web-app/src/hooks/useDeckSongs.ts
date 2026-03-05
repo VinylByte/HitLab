@@ -1,15 +1,15 @@
 import { useEffect, useReducer } from "react";
-import { fetchPublicDeckSongs, type PublicDeckSongDTO } from "../services/deckService";
+import { fetchDeckSongs, type DeckSongsDTO } from "../services/deckService";
 
 type State = {
-    deck_songs: PublicDeckSongDTO[];
+    deck_songs: DeckSongsDTO[];
     loading: boolean;
     error: Error | null;
 };
 
 type Action =
     | { type: "fetch" }
-    | { type: "success"; deck_songs: PublicDeckSongDTO[] }
+    | { type: "success"; deck_songs: DeckSongsDTO[] }
     | { type: "error"; error: Error };
 
 function reduce(state: State, action: Action): State {
@@ -23,13 +23,13 @@ function reduce(state: State, action: Action): State {
     }
 }
 
-export function useDeckSong(deck_id: string, isOpen: boolean) {
+export function useDeckSongs(deck_id: string, isOpen: boolean) {
     const [state, dispatch] = useReducer(reduce, { deck_songs: [], loading: true, error: null });
 
     useEffect(() => {
         if (!isOpen) return;
         dispatch({ type: "fetch" });
-        fetchPublicDeckSongs(deck_id)
+        fetchDeckSongs(deck_id)
             .then(deck_songs => dispatch({ type: "success", deck_songs }))
             .catch(error => dispatch({ type: "error", error }));
     }, [isOpen, deck_id]);

@@ -21,6 +21,10 @@ import type { Card, BackgroundConfig } from "./interfaces";
 import { DESIGNS } from "./HardDesigns";
 import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
 
+const getURL = ({ songId }: { songId: string }) => {
+    return window.location.origin + `/play/${songId}`;
+};
+
 export interface DownloadModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -55,7 +59,8 @@ export default function DownloadModal(props: DownloadModalProps) {
                 ({
                     ...song,
                     year: song.year.toString(),
-                    url: `https://hitlab.app/songs/${song.id}`,
+                    url: getURL({ songId: song.spotify_track_id }),
+                    // TODO: use actual track ID
                 }) as Card
         );
     }, [songs]);

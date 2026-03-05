@@ -1,12 +1,8 @@
-import { Center, Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import classes from "./DeckCard.module.css";
-import { useState } from "react";
-
+import { IconDownload } from "@tabler/icons-react";
+import { useMediaQuery } from "@mantine/hooks";
 import {
-    Card,
     Image,
     Avatar,
-    CardBody,
     Skeleton,
     Chip,
     Modal,
@@ -22,26 +18,40 @@ import {
     TableHeader,
     TableColumn,
 } from "@heroui/react";
-import { useMediaQuery } from "@mantine/hooks";
+import { SimpleGrid, Stack, Group, Text, Title } from "@mantine/core";
+import { useState } from "react";
 import { MOBILE_BREAKPOINT } from "../Settings";
-import { IconDownload } from "@tabler/icons-react";
-import type { PublicDeckDTO } from "../../../services/deckService";
+
+import type { OwnDeckDTO, PublicDeckDTO } from "../../../services/deckService";
+import DownloadModal from "../../../../PDF/DownloadModal";
 import { useDeckSongs } from "../../../hooks/useDeckSongs";
 
-import DownloadModal from "../../../../PDF/DownloadModal";
-
-function DeckModal({
+export function DeckModal({
     isOpen,
     onOpenChange,
-    publicDeck,
+    deck,
 }: {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
-    publicDeck: PublicDeckDTO;
+    deck: OwnDeckDTO | null;
 }) {
+    const activeDeck = deck;
+    const deckId = activeDeck?.id ?? "";
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
-    const { deck_songs, loading } = useDeckSongs(publicDeck?.id, isOpen);
+    const { deck_songs, loading } = useDeckSongs(deckId, isOpen && deckId.length > 0);
     const [downloadModalOpen, setDownloadModalOpen] = useState(false);
+
+    if (!activeDeck) return null;
+
+    const downloadDeck: PublicDeckDTO = {
+        id: activeDeck.id,
+        name: activeDeck.name,
+        description: activeDeck.description,
+        cover_url: activeDeck.cover_url,
+        created_at: activeDeck.created_at,
+        owner: activeDeck.owner,
+        tags: activeDeck.tags,
+    };
 
     const handleDownload = () => {
         setDownloadModalOpen(true);
@@ -53,7 +63,7 @@ function DeckModal({
                 isOpen={downloadModalOpen}
                 onOpenChange={setDownloadModalOpen}
                 songs={deck_songs.map(ds => ds.song)}
-                deck={publicDeck}
+                deck={downloadDeck}
             />
             <Modal size="5xl" isOpen={isOpen} onOpenChange={onOpenChange}>
                 <ModalContent>
@@ -69,7 +79,7 @@ function DeckModal({
                                         }
                                     />
                                 ) : (
-                                    <Title order={2}>{publicDeck.name}</Title>
+                                    <Title order={2}>{activeDeck.name}</Title>
                                 )}
                             </ModalHeader>
                             <ModalBody>
@@ -85,8 +95,8 @@ function DeckModal({
                                             />
                                         ) : (
                                             <Image
-                                                src={publicDeck.cover_url ?? undefined}
-                                                alt={publicDeck.name}
+                                                src={activeDeck.cover_url ?? undefined}
+                                                alt={activeDeck.name}
                                                 radius="md"
                                             />
                                         )}
@@ -99,7 +109,7 @@ function DeckModal({
                                                           className="h-6 w-16 mb-1 rounded-xl"
                                                       />
                                                   ))
-                                                : publicDeck.tags.map(tag => (
+                                                : activeDeck.tags.map(tag => (
                                                       <Chip key={tag.id} color="primary" size="sm">
                                                           <Text tt="uppercase" size="xs">
                                                               {tag.name}
@@ -118,15 +128,15 @@ function DeckModal({
                                                     <Avatar
                                                         size={"md"}
                                                         src={
-                                                            publicDeck.owner.avatar_url ?? undefined
+                                                            activeDeck.owner.avatar_url ?? undefined
                                                         }
                                                         alt={
-                                                            publicDeck.owner.display_name ??
+                                                            activeDeck.owner.display_name ??
                                                             undefined
                                                         }
                                                     />
                                                     <Text size="xs" c="bright">
-                                                        {publicDeck.owner.display_name}
+                                                        {activeDeck.owner.display_name}
                                                     </Text>
                                                 </Group>
                                             )}
@@ -141,7 +151,7 @@ function DeckModal({
                                                 <Skeleton className="h-4 w-12 rounded-md" />
                                             ) : (
                                                 <Text size="xs" opacity={0.8}>
-                                                    {publicDeck.created_at}
+                                                    {activeDeck.created_at}
                                                 </Text>
                                             )}
                                         </Group>
@@ -152,7 +162,7 @@ function DeckModal({
                                                 <Skeleton className="h-4 w-90 rounded-md" />
                                             </>
                                         ) : (
-                                            <Text mt="md">{publicDeck.description}</Text>
+                                            <Text mt="md">{activeDeck.description}</Text>
                                         )}
                                     </Stack>
                                     <Stack>
@@ -232,100 +242,5 @@ function DeckModal({
                 </ModalContent>
             </Modal>
         </div>
-    );
-}
-
-export function DeckCard({ data }: { data: PublicDeckDTO }) {
-    const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
-    const [modalOpen, setModalOpen] = useState(false);
-
-    const handleClick = () => {
-        setModalOpen(true);
-    };
-
-    return (
-        <div>
-            <Card radius="md" className={classes.card}>
-                <CardBody onClick={handleClick}>
-                    <Group>
-                        <Center w={isMobile ? "100%" : ""}>
-                            <Image
-                                src={data.cover_url ?? undefined}
-                                className={classes.image}
-                                alt={data.name}
-                            />
-                        </Center>
-
-                        <div className={classes.body}>
-                            <Group gap={5} wrap="wrap">
-                                {data.tags.map(tag => (
-                                    <Chip key={tag.id} color="primary" size="sm">
-                                        <Text tt="uppercase" size="xs">
-                                            {tag.name}
-                                        </Text>
-                                    </Chip>
-                                ))}
-                            </Group>
-                            <Text className={classes.title} mt="xs" mb="md">
-                                {data.name}
-                            </Text>
-                            <Group gap="xs">
-                                <Group gap={7}>
-                                    <Avatar
-                                        size={"md"}
-                                        src={data.owner.avatar_url ?? undefined}
-                                        alt={data.owner.display_name ?? undefined}
-                                    />
-                                    <Text size="xs" c="bright">
-                                        {data.owner.display_name}
-                                    </Text>
-                                </Group>
-
-                                <Text span size="xs" opacity={0.8}>
-                                    •
-                                </Text>
-
-                                <Text size="xs" opacity={0.8}>
-                                    {data.created_at}
-                                </Text>
-                            </Group>
-                        </div>
-                    </Group>
-                </CardBody>
-            </Card>
-            <DeckModal isOpen={modalOpen} onOpenChange={setModalOpen} publicDeck={data} />
-        </div>
-    );
-}
-
-export function DeckCardSkeleton() {
-    const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
-    return (
-        <Card radius="md" className={classes.card}>
-            <CardBody>
-                <Group w={"100%"}>
-                    <Center w={isMobile ? "100%" : ""}>
-                        <Skeleton
-                            className={
-                                isMobile
-                                    ? "w-70 h-42 rounded-lg mb-2 mt-2"
-                                    : "h-27 w-50 rounded-lg mb-4 mt-4"
-                            }
-                        />
-                    </Center>
-                    <div className={classes.body}>
-                        <Skeleton className="h-4 w-1/2 mb-2" />
-                        <Skeleton className="h-4 w-full mb-2" />
-                        <Group gap="xs">
-                            <Group gap={7}>
-                                <Skeleton className="flex rounded-full w-12 h-12" />
-                                <Skeleton className="h-4 w-24" />
-                            </Group>
-                            <Skeleton className="h-4 w-12" />
-                        </Group>
-                    </div>
-                </Group>
-            </CardBody>
-        </Card>
     );
 }

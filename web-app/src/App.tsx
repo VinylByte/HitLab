@@ -2,12 +2,12 @@ import HeaderNav from "./components/elements/header/Header";
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router";
 import { Pages, ProtectedPages } from "./components/pages/Settings";
 import LoginPage from "./components/pages/LoginPage";
-//import SignUpPage from "./components/pages/Authentication/SignUpPage";
-import { FooterSocial } from "./components/elements/Footer/Footer";
+//import { FooterSocial } from "./components/elements/Footer/Footer";
 import { useSession } from "./hooks/useSession";
 import { useAppTheme } from "./hooks/useAppTheme";
 import { Center, Loader } from "@mantine/core";
 import Error404Page from "./components/pages/404ErrorPage/404ErrorPage";
+import GeneralPlayPage from "./components/pages/PlayPage/GeneralPlayPage";
 
 function App() {
     useAppTheme(); // Initialize theme hook
@@ -27,7 +27,7 @@ function Layout() {
             <div>
                 <Outlet />
             </div>
-            <FooterSocial />
+            {/* <FooterSocial /> */}
         </div>
     );
 }
@@ -64,6 +64,7 @@ function Router() {
                     {Pages.map(page => (
                         <Route key={page.to} path={page.to} element={page.page} />
                     ))}
+                    <Route path="/play/:currentTrackId" element={<GeneralPlayPage />} />
                     <Route element={<ProtectedRoute />}>
                         {ProtectedPages.map(page => (
                             <Route key={page.to} path={page.to} element={page.page} />
