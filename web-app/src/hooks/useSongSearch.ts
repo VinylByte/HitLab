@@ -19,7 +19,7 @@ function reduce(state: State, action: Action): State {
         case "success":
             return { songs: action.songs, loading: false, error: null };
         case "error":
-            return { ...state, error: action.error };
+            return { ...state, loading: false, error: action.error };
     }
 }
 
