@@ -59,7 +59,7 @@ export default function DownloadModal(props: DownloadModalProps) {
                 ({
                     ...song,
                     year: song.year.toString(),
-                    url: getURL({ songId: song.id }),
+                    url: getURL({ songId: song.spotify_track_id }),
                     // TODO: use actual track ID
                 }) as Card
         );
