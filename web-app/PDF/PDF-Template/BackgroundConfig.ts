@@ -1,5 +1,15 @@
 ﻿import type { GradientBackground, GradientColorStop, SolidBackground, BackgroundConfig } from "../interfaces";
 
+type ResolvedGradientType = "linear" | "radial";
+
+interface ResolvedGradient {
+    type: ResolvedGradientType;
+    angle: number;
+    colorStops: GradientColorStop[];
+    centerX: number;
+    centerY: number;
+}
+
 const parseGradientAngleFromCss = (css: string): number | undefined => {
     const angleMatch = css.match(/linear-gradient\(\s*(-?\d+(?:\.\d+)?)deg/i);
     if (!angleMatch) {
@@ -8,6 +18,30 @@ const parseGradientAngleFromCss = (css: string): number | undefined => {
 
     const parsedAngle = Number.parseFloat(angleMatch[1]);
     return Number.isNaN(parsedAngle) ? undefined : parsedAngle;
+};
+
+const parseGradientTypeFromCss = (css: string): ResolvedGradientType => {
+    if (/radial-gradient\(/i.test(css)) {
+        return "radial";
+    }
+
+    return "linear";
+};
+
+const parseRadialCenterFromCss = (css: string): { centerX: number; centerY: number } | undefined => {
+    const atMatch = css.match(/\bat\s*(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%/i);
+    if (!atMatch) {
+        return undefined;
+    }
+
+    const centerX = Number.parseFloat(atMatch[1]);
+    const centerY = Number.parseFloat(atMatch[2]);
+
+    if (Number.isNaN(centerX) || Number.isNaN(centerY)) {
+        return undefined;
+    }
+
+    return { centerX, centerY };
 };
 
 const parseGradientStopsFromCss = (css: string): GradientColorStop[] => {
@@ -28,8 +62,10 @@ const parseGradientStopsFromCss = (css: string): GradientColorStop[] => {
 
 export const resolveGradientBackground = (
     background: GradientBackground
-): { angle: number; colorStops: GradientColorStop[] } | null => {
+): ResolvedGradient | null => {
+    const cssType = background.css ? parseGradientTypeFromCss(background.css) : undefined;
     const cssAngle = background.css ? parseGradientAngleFromCss(background.css) : undefined;
+    const cssRadialCenter = background.css ? parseRadialCenterFromCss(background.css) : undefined;
     const cssStops = background.css ? parseGradientStopsFromCss(background.css) : [];
 
     const colorStops =
@@ -42,8 +78,11 @@ export const resolveGradientBackground = (
     }
 
     return {
+        type: background.gradientType ?? cssType ?? "linear",
         angle: background.angle ?? cssAngle ?? 90,
         colorStops,
+        centerX: background.centerX ?? cssRadialCenter?.centerX ?? 50,
+        centerY: background.centerY ?? cssRadialCenter?.centerY ?? 50,
     };
 };
 
@@ -55,11 +94,14 @@ const gradientCache = new Map<string, string>();
  * Funktioniert nur im Browser-Kontext
  */
 export const createGradientDataUrl = (gradient: {
+    type: ResolvedGradientType;
     angle: number;
     colorStops: GradientColorStop[];
+    centerX?: number;
+    centerY?: number;
 }): string => {
     // Erstelle einen Cache-Key
-    const cacheKey = `${gradient.angle}-${gradient.colorStops.map(s => `${s.color}@${s.position}`).join("-")}`;
+    const cacheKey = `${gradient.type}-${gradient.angle}-${gradient.centerX ?? 50}-${gradient.centerY ?? 50}-${gradient.colorStops.map(s => `${s.color}@${s.position}`).join("-")}`;
     
     // Prüfe Cache
     if (gradientCache.has(cacheKey)) {
@@ -81,18 +123,33 @@ export const createGradientDataUrl = (gradient: {
             return "";
         }
 
-        // Berechne Gradient-Richtung basierend auf dem Winkel
-        const angleInRadians = (gradient.angle * Math.PI) / 180;
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const length = Math.sqrt(canvas.width ** 2 + canvas.height ** 2) / 2;
+        let gradientObj: CanvasGradient;
 
-        const x0 = centerX - Math.sin(angleInRadians) * length;
-        const y0 = centerY + Math.cos(angleInRadians) * length;
-        const x1 = centerX + Math.sin(angleInRadians) * length;
-        const y1 = centerY - Math.cos(angleInRadians) * length;
+        if (gradient.type === "radial") {
+            const centerX = ((gradient.centerX ?? 50) / 100) * canvas.width;
+            const centerY = ((gradient.centerY ?? 50) / 100) * canvas.height;
+            const maxCornerDistance = Math.max(
+                Math.hypot(centerX, centerY),
+                Math.hypot(canvas.width - centerX, centerY),
+                Math.hypot(centerX, canvas.height - centerY),
+                Math.hypot(canvas.width - centerX, canvas.height - centerY)
+            );
 
-        const gradientObj = ctx.createLinearGradient(x0, y0, x1, y1);
+            gradientObj = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxCornerDistance);
+        } else {
+            // Berechne Gradient-Richtung basierend auf dem Winkel
+            const angleInRadians = (gradient.angle * Math.PI) / 180;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const length = Math.sqrt(canvas.width ** 2 + canvas.height ** 2) / 2;
+
+            const x0 = centerX - Math.sin(angleInRadians) * length;
+            const y0 = centerY + Math.cos(angleInRadians) * length;
+            const x1 = centerX + Math.sin(angleInRadians) * length;
+            const y1 = centerY - Math.cos(angleInRadians) * length;
+
+            gradientObj = ctx.createLinearGradient(x0, y0, x1, y1);
+        }
 
         // Füge alle Color-Stops hinzu
         gradient.colorStops.forEach(stop => {

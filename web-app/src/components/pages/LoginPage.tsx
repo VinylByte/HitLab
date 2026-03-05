@@ -6,24 +6,54 @@ import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT, SPOTIFY_SCOPES } from "./Settings";
 import supabase from "../../supabase";
 import { useSession } from "../../hooks/useSession";
-import { Link, Navigate } from "react-router";
+import { Link, Navigate, useLocation } from "react-router";
 import { useState } from "react";
+
+const REDIRECT_STORAGE_KEY = "hitlab_login_redirect";
 
 export default function LoginPage() {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const session = useSession();
     const [loading, setLoading] = useState(false);
+    const location = useLocation();
 
-    // Already logged in — redirect to home
+    // Build redirect target from router state (set by ProtectedRoute) or localStorage (survives OAuth roundtrip)
+    const isSafePath = (p: string) => p.startsWith("/") && !p.startsWith("//");
+
+    const redirectTarget = (() => {
+        // 1. From ProtectedRoute's Navigate state
+        const fromState = (
+            location.state as
+                | { from?: { pathname?: string; search?: string; hash?: string } }
+                | undefined
+        )?.from;
+        if (fromState?.pathname && fromState.pathname !== "/login") {
+            const target = `${fromState.pathname}${fromState.search ?? ""}${fromState.hash ?? ""}`;
+            // Persist so it survives the OAuth redirect
+            sessionStorage.setItem(REDIRECT_STORAGE_KEY, target);
+            return target;
+        }
+
+        // 2. From sessionStorage (after OAuth roundtrip)
+        const stored = sessionStorage.getItem(REDIRECT_STORAGE_KEY);
+        if (stored && isSafePath(stored) && stored !== "/login") {
+            return stored;
+        }
+
+        return "/";
+    })();
+
+    // Already logged in — redirect to original destination (or home)
     if (session) {
-        return <Navigate to="/" replace />;
+        sessionStorage.removeItem(REDIRECT_STORAGE_KEY);
+        return <Navigate to={redirectTarget} replace />;
     }
 
     const signInWithSpotify = async () => {
         await supabase.auth.signInWithOAuth({
             provider: "spotify",
             options: {
-                redirectTo: window.location.origin,
+                redirectTo: `${window.location.origin}/login`,
                 scopes: SPOTIFY_SCOPES,
             },
         });

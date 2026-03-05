@@ -1,15 +1,11 @@
 export type BackgroundType = "solid" | "image" | "gradient";
 
 export interface SolidBackground {
-    name: string;
-    description: string;
     type: "solid";
     color: string;
 }
 
 export interface ImageBackground {
-    name: string;
-    description: string;
     type: "image";
     url: string;
     opacity?: number;
@@ -21,12 +17,13 @@ export interface GradientColorStop {
 }
 
 export interface GradientBackground {
-    name: string;
-    description: string;
     type: "gradient";
+    gradientType?: "linear" | "radial";
     angle?: number; // CSS-Grad (z. B. 90 für links -> rechts)
+    centerX?: number; // Prozentwert 0-100 (nur radial)
+    centerY?: number; // Prozentwert 0-100 (nur radial)
     colorStops?: GradientColorStop[];
-    css?: string; // z. B. linear-gradient(90deg, rgba(...) 0%, ...)
+    css?: string; // z. B. linear-gradient(...) oder radial-gradient(...)
 }
 
 export type BackgroundConfig = SolidBackground | GradientBackground | ImageBackground;

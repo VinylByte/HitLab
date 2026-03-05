@@ -5,10 +5,12 @@ import LabsPage from "./LabsPage/LabsPage";
 import CreateDeckPage from "./LabsPage/EditAndCreatePage/CreateDeckPage";
 import EditDeckPage from "./LabsPage/EditAndCreatePage/EditDeckPage";
 import EditSongsPage from "./LabsPage/EditAndCreatePage/EditSongsPage/EditSongsPage";
+import GeneralPlayPage from "./PlayPage/GeneralPlayPage";
 
 export const Pages = [
     { name: "Home", to: "/", location: "header", page: <HomePage /> },
     { name: "Decks", to: "/decks", location: "header", page: <PublicDecksPageWrapper /> },
+    { name: "Spielen", to: "/play", location: "header", page: <GeneralPlayPage /> },
 ];
 
 export const ProtectedPages = [
