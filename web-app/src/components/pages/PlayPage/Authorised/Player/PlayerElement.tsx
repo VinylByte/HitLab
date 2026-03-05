@@ -62,7 +62,7 @@ export default function PlayerElement({ currentTrackId }: { currentTrackId: stri
                     </Center>
                     <Slider
                         aria-label="Player progress"
-                        className="w-full"
+                        className="w-full mt-6"
                         color="primary"
                         value={totalTrackTime > 0 ? (currentTrackTime / totalTrackTime) * 100 : 0}
                         hideThumb={true}

@@ -47,7 +47,7 @@ export default function AuthorisedPlayPage() {
                 <Button
                     startContent={<IconScan size={20} />}
                     color="primary"
-                    className={isMobile ? "w-6/8 mt-10 left-1/8 right-1/8" : "w-3/5 left-1/5 mt-10"}
+                    className={isMobile ? "w-6/8 mt-10 left-1/8 right-1/8" : "w-4/10 left-3/10 mt-10"}
                     onPress={() => setScannerOpen(true)}
                 >
                     {currentTrackId ? "Nächsten Song scannen" : "Song scannen"}
