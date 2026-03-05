@@ -12,7 +12,6 @@ export function QrScanner({ onScan }: { onScan: (result: string) => void }) {
     const readerId = useId().replace(/:/g, "");
     const isRunningRef = useRef(false);
     const isBusyRef = useRef(false);
-    const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
 
     useEffect(() => {
         onScanRef.current = onScan;
@@ -163,50 +162,56 @@ export function QrScanner({ onScan }: { onScan: (result: string) => void }) {
     );
 }
 
-
-
-export default function QRScannerModal({ onScan, isOpen, onOpenChange }: { onScan: (result: string) => void, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+export default function QRScannerModal({
+    onScan,
+    isOpen,
+    onOpenChange,
+}: {
+    onScan: (result: string) => void;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+}) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     return (
         <Modal
-                isOpen={isOpen}
-                onOpenChange={onOpenChange}
-                size="xl"
-                placement={isMobile ? "center" : "auto"}
-            >
-                <ModalContent>
-                    {onClose => (
-                        <>
-                            <ModalBody className="p-0 flex-1 overflow-hidden">
-                                <div className="h-full w-full relative">
-                                    <QrScanner onScan={onScan} />
-                                    <div
-                                        className={
-                                            isMobile
-                                                ? "absolute bottom-2 w-3/5 left-1/5"
-                                                : "absolute bottom-4 w-3/5 left-1/5"
-                                        }
-                                    >
-                                        <div className="relative w-full">
-                                            <div
-                                                className="absolute inset-0 rounded-xl bg-black/60"
-                                                aria-hidden="true"
-                                            />
-                                            <Button
-                                                color="danger"
-                                                variant="flat"
-                                                className="relative z-10 w-full"
-                                                onPress={onClose}
-                                            >
-                                                Abbrechen
-                                            </Button>
-                                        </div>
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            size="xl"
+            placement={isMobile ? "center" : "auto"}
+        >
+            <ModalContent>
+                {onClose => (
+                    <>
+                        <ModalBody className="p-0 flex-1 overflow-hidden">
+                            <div className="h-full w-full relative">
+                                <QrScanner onScan={onScan} />
+                                <div
+                                    className={
+                                        isMobile
+                                            ? "absolute bottom-2 w-3/5 left-1/5"
+                                            : "absolute bottom-4 w-3/5 left-1/5"
+                                    }
+                                >
+                                    <div className="relative w-full">
+                                        <div
+                                            className="absolute inset-0 rounded-xl bg-black/60"
+                                            aria-hidden="true"
+                                        />
+                                        <Button
+                                            color="danger"
+                                            variant="flat"
+                                            className="relative z-10 w-full"
+                                            onPress={onClose}
+                                        >
+                                            Abbrechen
+                                        </Button>
                                     </div>
                                 </div>
-                            </ModalBody>
-                        </>
-                    )}
-                </ModalContent>
-            </Modal>
+                            </div>
+                        </ModalBody>
+                    </>
+                )}
+            </ModalContent>
+        </Modal>
     );
 }
