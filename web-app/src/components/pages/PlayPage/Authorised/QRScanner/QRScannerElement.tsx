@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useId, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
+import { useMediaQuery } from "@mantine/hooks";
+import { MOBILE_BREAKPOINT } from "../../../Settings";
 
 let globalScanner: Html5Qrcode | null = null;
 
@@ -9,6 +11,7 @@ export default function QrScanner({ onScan }: { onScan: (result: string) => void
     const readerId = useId().replace(/:/g, "");
     const isRunningRef = useRef(false);
     const isBusyRef = useRef(false);
+    const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
 
     useEffect(() => {
         onScanRef.current = onScan;
@@ -43,9 +46,13 @@ export default function QrScanner({ onScan }: { onScan: (result: string) => void
         clearReaderContainer();
 
         const scanner = new Html5Qrcode(readerId, false);
+
         const scanConfig = {
             fps: 10,
-            qrbox: { width: 250, height: 250 },
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+                const minSize = Math.min(viewfinderWidth, viewfinderHeight);
+                return { width: minSize * 0.7, height: minSize * 0.7 };
+            },
             aspectRatio: 1,
         };
 

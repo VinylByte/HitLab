@@ -36,9 +36,9 @@ export default function AuthorisedPlayPage() {
                                     <QrScanner onScan={onScan} />
                                     <div
                                         className={
-                                            "absolute bottom-" +
-                                            (isMobile ? "2" : "4") +
-                                            " w-3/5 left-1/5"
+                                            isMobile
+                                                ? "absolute bottom-2 w-3/5 left-1/5"
+                                                : "absolute bottom-4 w-3/5 left-1/5"
                                         }
                                     >
                                         <div className="relative w-full">
