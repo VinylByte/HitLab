@@ -3,30 +3,68 @@ import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import type { AccessToken, Device, Track } from "@spotify/web-api-ts-sdk";
 import { mapSpotifyError, SpotifyApiError } from "./spotifyErrorMapper";
 
+/**
+ * Persists the Spotify OAuth token in the database so it survives page refreshes.
+ * Called from useSession when provider_token is available (right after OAuth callback).
+ */
+export async function persistSpotifyToken(
+    accessToken: string,
+    refreshToken: string
+): Promise<void> {
+    const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString();
+    const { error } = await supabase.rpc("upsert_own_spotify_token", {
+        p_access_token: accessToken,
+        p_refresh_token: refreshToken,
+        p_expires_at: expiresAt,
+    });
+    if (error) console.warn("Failed to persist Spotify token:", error);
+}
+
 async function getSpotifySdk(): Promise<SpotifyApi> {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
 
     const session = data.session;
-    const providerToken = session?.provider_token;
+    if (!session) throw new Error("Keine aktive Session");
 
-    if (!providerToken) {
-        throw new Error("Kein Spotify Access Token in der Session");
-    }
+    let accessTokenStr: string;
+    let refreshTokenStr: string;
+    let expiresIn: number;
 
-    const accessToken: AccessToken = {
-        access_token: providerToken,
-        token_type: "Bearer",
-        expires_in: session.expires_at
+    if (session.provider_token) {
+        // Token is available in memory (right after OAuth callback)
+        accessTokenStr = session.provider_token;
+        refreshTokenStr = session.provider_refresh_token ?? "";
+        expiresIn = session.expires_at
             ? Math.max(0, session.expires_at - Math.floor(Date.now() / 1000))
-            : 3600,
-        refresh_token: session.provider_refresh_token ?? "",
-    };
+            : 3600;
+    } else {
+        // Fallback: read persisted token from database
+        const { data: rows, error: tokenErr } = await supabase.rpc("get_own_spotify_token");
+        if (tokenErr) throw tokenErr;
+        if (!rows || rows.length === 0) {
+            throw new Error("Kein Spotify Token vorhanden. Bitte erneut einloggen.");
+        }
+        const row = rows[0];
+        accessTokenStr = row.access_token;
+        refreshTokenStr = row.refresh_token;
+        expiresIn = Math.max(
+            0,
+            Math.floor((new Date(row.expires_at).getTime() - Date.now()) / 1000)
+        );
+    }
 
     const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
     if (!clientId) {
         throw new Error("VITE_SPOTIFY_CLIENT_ID fehlt in den Frontend-Umgebungsvariablen");
     }
+
+    const accessToken: AccessToken = {
+        access_token: accessTokenStr,
+        token_type: "Bearer",
+        expires_in: expiresIn,
+        refresh_token: refreshTokenStr,
+    };
 
     return SpotifyApi.withAccessToken(clientId, accessToken);
 }
