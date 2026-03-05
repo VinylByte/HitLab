@@ -24,12 +24,13 @@ function reduce(state: State, action: Action): State {
 }
 
 export function useSongSearch(search_str: string) {
-    const [state, dispatch] = useReducer(reduce, { songs: [], loading: true, error: null });
+    const [state, dispatch] = useReducer(reduce, { songs: [], loading: false, error: null });
     const requestRef = useRef(0);
 
     useEffect(() => {
         if (search_str.trim().length < 2) {
             dispatch({ type: "success", songs: [] });
+            return;
         }
 
         const timer = setTimeout(async () => {
