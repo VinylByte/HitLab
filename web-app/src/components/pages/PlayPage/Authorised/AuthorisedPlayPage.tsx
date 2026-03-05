@@ -1,67 +1,58 @@
-import { Modal, ModalBody, ModalContent, Button } from "@heroui/react";
-import QrScanner from "./QRScanner/QRScannerElement";
-import { useState } from "react";
+import { Button } from "@heroui/react";
+import QRScannerModal from "./QRScanner/QRScannerElement";
+import { useMemo, useState, useEffect } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../Settings";
 import PlayerElement from "./Player/PlayerElement";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
+import { IconScan } from "@tabler/icons-react";
+import { Stack } from "@mantine/core";
 
 export default function AuthorisedPlayPage() {
     const [scannerOpen, setScannerOpen] = useState(false);
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const navigate = useNavigate();
 
+    const { currentTrackId: currentTrackIdFromPath } = useParams();
+    const [searchParams] = useSearchParams();
+
+    useEffect(() => {
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.documentElement.style.overflow = "";
+            document.body.style.overflow = "";
+        };
+    }, []);
+
     const onScan = (result: string) => {
         setScannerOpen(false);
         navigate(result.replace(window.location.origin, ""));
     };
 
+    const currentTrackId = useMemo(() => {
+        return (
+            currentTrackIdFromPath ??
+            searchParams.get("currentTrackId") ??
+            searchParams.get("trackId")
+        );
+    }, [currentTrackIdFromPath, searchParams]);
+
     return (
-        <div>
-            <PlayerElement />
-            <Button color="primary" onPress={() => setScannerOpen(true)}>
-                Open QR Scanner
-            </Button>
-            <Modal
-                isOpen={scannerOpen}
-                onOpenChange={setScannerOpen}
-                size="xl"
-                placement={isMobile ? "center" : "auto"}
-            >
-                <ModalContent>
-                    {onClose => (
-                        <>
-                            <ModalBody className="p-0 flex-1 overflow-hidden">
-                                <div className="h-full w-full relative">
-                                    <QrScanner onScan={onScan} />
-                                    <div
-                                        className={
-                                            isMobile
-                                                ? "absolute bottom-2 w-3/5 left-1/5"
-                                                : "absolute bottom-4 w-3/5 left-1/5"
-                                        }
-                                    >
-                                        <div className="relative w-full">
-                                            <div
-                                                className="absolute inset-0 rounded-xl bg-black/60"
-                                                aria-hidden="true"
-                                            />
-                                            <Button
-                                                color="danger"
-                                                variant="flat"
-                                                className="relative z-10 w-full"
-                                                onPress={onClose}
-                                            >
-                                                Abbrechen
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </ModalBody>
-                        </>
-                    )}
-                </ModalContent>
-            </Modal>
+        <div style={{ height: "90vh", overflow: "hidden" }}>
+            <QRScannerModal onScan={onScan} isOpen={scannerOpen} onOpenChange={setScannerOpen} />
+            <Stack h={"100%"} style={{ overflow: "hidden" }}>
+                <PlayerElement currentTrackId={currentTrackId} />
+                <Button
+                    startContent={<IconScan size={20} />}
+                    color="primary"
+                    className={isMobile ? "w-6/8 mt-10 left-1/8 right-1/8" : "w-3/5 left-1/5 mt-10"}
+                    onPress={() => setScannerOpen(true)}
+                >
+                    {currentTrackId ? "Nächsten Song scannen" : "Song scannen"}
+                </Button>
+            </Stack>
         </div>
     );
 }

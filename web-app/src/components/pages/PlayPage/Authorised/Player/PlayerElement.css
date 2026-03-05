@@ -1,0 +1,41 @@
+@keyframes cover-soft-pulse {
+    0% {
+        opacity: 1;
+        filter: brightness(1) saturate(1);
+    }
+    50% {
+        opacity: 0.9;
+        filter: brightness(1.12) saturate(1.16);
+    }
+    100% {
+        opacity: 1;
+        filter: brightness(1) saturate(1);
+    }
+}
+
+.cover-soft-pulse {
+    animation: cover-soft-pulse 2s ease-in-out infinite;
+}
+
+@keyframes cover-soft-pulse-light {
+    0% {
+        opacity: 1;
+        filter: invert(1) brightness(1) saturate(1);
+    }
+    50% {
+        opacity: 0.9;
+        filter: invert(1) brightness(0.88) saturate(0.84);
+    }
+    100% {
+        opacity: 1;
+        filter: invert(1) brightness(1) saturate(1);
+    }
+}
+
+html:not(.dark) .cover-soft-pulse {
+    animation: cover-soft-pulse-light 2s ease-in-out infinite;
+}
+
+html:not(.dark) .cover-image {
+    filter: invert(1);
+}

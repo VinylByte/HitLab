@@ -26,7 +26,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../Settings";
 import { IconDownload } from "@tabler/icons-react";
 import type { PublicDeckDTO } from "../../../services/deckService";
-import { useDeckSong } from "../../../hooks/useDeckSong";
+import { useDeckSongs } from "../../../hooks/useDeckSongs";
 
 import DownloadModal from "../../../../PDF/DownloadModal";
 
@@ -40,7 +40,7 @@ function DeckModal({
     publicDeck: PublicDeckDTO;
 }) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
-    const { deck_songs, loading } = useDeckSong(publicDeck?.id, isOpen);
+    const { deck_songs, loading } = useDeckSongs(publicDeck?.id, isOpen);
     const [downloadModalOpen, setDownloadModalOpen] = useState(false);
 
     const handleDownload = () => {

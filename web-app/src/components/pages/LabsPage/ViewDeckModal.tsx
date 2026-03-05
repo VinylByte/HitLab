@@ -22,8 +22,6 @@ import { SimpleGrid, Stack, Group, Text, Title } from "@mantine/core";
 import { useState } from "react";
 import { MOBILE_BREAKPOINT } from "../Settings";
 
-import type { Song } from "../../../services/deckService";
-import { useDeckSong } from "../../../hooks/useDeckSong";
 import DownloadModal from "../../../../PDF/DownloadModal";
 
 
