@@ -3,20 +3,11 @@ import { Center, Group, Paper, Stack, Title } from "@mantine/core";
 import VinylLogo from "../../assets/VinylByteLogo.svg";
 import { IconArrowLeft, IconBrandSpotify } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "./Settings";
+import { MOBILE_BREAKPOINT, SPOTIFY_SCOPES } from "./Settings";
 import supabase from "../../supabase";
 import { useSession } from "../../hooks/useSession";
 import { Link, Navigate, useLocation } from "react-router";
 import { useState } from "react";
-
-const SPOTIFY_SCOPES = [
-    "user-read-email",
-    "user-read-private",
-    "streaming",
-    "user-modify-playback-state",
-    "user-read-playback-state",
-    "user-read-currently-playing",
-].join(" ");
 
 const REDIRECT_STORAGE_KEY = "hitlab_login_redirect";
 
