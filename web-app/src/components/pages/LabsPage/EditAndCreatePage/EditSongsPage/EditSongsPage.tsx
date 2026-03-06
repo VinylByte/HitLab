@@ -56,7 +56,11 @@ export default function EditSongsPage() {
     }, [id]);
 
     // Spotify-Suche via useSongSearch Hook (debounced, min. 2 Zeichen)
-    const { songs: spotifyResults, loading: searchLoading } = useSongSearch(searchResultsValue);
+    const {
+        songs: spotifyResults,
+        loading: searchLoading,
+        error: searchError,
+    } = useSongSearch(searchResultsValue);
 
     // Konvertiere Spotify-Ergebnisse zu SongTableItems
     const searchTableItems = useMemo(
@@ -272,6 +276,11 @@ export default function EditSongsPage() {
                 value={searchResultsValue}
                 onValueChange={setSearchResultsValue}
             />
+            {searchError && (
+                <Text c="red" size="sm" mb="sm">
+                    Spotify-Fehler: {searchError.message}
+                </Text>
+            )}
             <SongTable
                 songs={displayedSearchItems}
                 color="secondary"
