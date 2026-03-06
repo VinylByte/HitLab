@@ -210,10 +210,14 @@ export function DeckModal({
                                                                   />
                                                               </TableCell>
                                                               <TableCell>
-                                                                  {meta.song.title}
+                                                                  <span className="block truncate max-w-[14ch] sm:max-w-[20ch] md:max-w-[26ch]">
+                                                                      {meta.song.title}
+                                                                  </span>
                                                               </TableCell>
                                                               <TableCell>
-                                                                  {meta.song.artist}
+                                                                  <span className="block truncate max-w-[12ch] sm:max-w-[16ch] md:max-w-[22ch]">
+                                                                      {meta.song.artist}
+                                                                  </span>
                                                               </TableCell>
                                                               <TableCell>
                                                                   {meta.song.year}

@@ -100,10 +100,19 @@ export default function SongTable({
                                                       radius="md"
                                                   />
                                               )}
-                                              <Text>{song.title}</Text>
+                                              <Text
+                                                  truncate="end"
+                                                  className="max-w-[14ch] sm:max-w-[20ch] md:max-w-[26ch] lg:max-w-[36ch]"
+                                              >
+                                                  {song.title}
+                                              </Text>
                                           </Group>
                                       </TableCell>
-                                      <TableCell>{song.artist}</TableCell>
+                                      <TableCell>
+                                          <span className="block truncate max-w-[12ch] sm:max-w-[16ch] md:max-w-[22ch] lg:max-w-[28ch]">
+                                              {song.artist}
+                                          </span>
+                                      </TableCell>
                                       <TableCell hidden={isMobile}>{song.year}</TableCell>
                                   </TableRow>
                               );
