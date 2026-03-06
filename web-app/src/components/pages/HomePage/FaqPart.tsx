@@ -5,7 +5,7 @@ export function FaqPart() {
     return (
         <Container size="xl" w={"100%"} className={classes.wrapper}>
             <Title ta="center" className={classes.title}>
-                Häufig gestellte Fragen
+                Häufig gestellte Fragen (Test ob Änderungen überhaupt deployed werden?)
             </Title>
 
             <Accordion variant="separated" pt={"md"}>
