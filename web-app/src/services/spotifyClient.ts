@@ -9,9 +9,12 @@ import { mapSpotifyError, SpotifyApiError } from "./spotifyErrorMapper";
  */
 export async function persistSpotifyToken(
     accessToken: string,
-    refreshToken: string
+    refreshToken: string,
+    expiresAtUnix?: number
 ): Promise<void> {
-    const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString();
+    const expiresAt = new Date(
+        expiresAtUnix ? expiresAtUnix * 1000 : Date.now() + 3600 * 1000
+    ).toISOString();
     const { error } = await supabase.rpc("upsert_own_spotify_token", {
         p_access_token: accessToken,
         p_refresh_token: refreshToken,
@@ -40,6 +43,7 @@ async function getSpotifySdk(): Promise<SpotifyApi> {
             : 3600;
     } else {
         // Fallback: read persisted token from database
+        console.debug("[spotify] provider_token missing in session, loading token from DB");
         const { data: rows, error: tokenErr } = await supabase.rpc("get_own_spotify_token");
         if (tokenErr) throw tokenErr;
         if (!rows || rows.length === 0) {
@@ -52,6 +56,30 @@ async function getSpotifySdk(): Promise<SpotifyApi> {
             0,
             Math.floor((new Date(row.expires_at).getTime() - Date.now()) / 1000)
         );
+
+        if (expiresIn <= 30) {
+            console.warn(
+                "[spotify] stored token expired or near expiry, trying supabase session refresh"
+            );
+            const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+            if (refreshErr) {
+                console.error("[spotify] supabase session refresh failed", refreshErr);
+                throw new Error("Spotify Token abgelaufen. Bitte erneut einloggen.");
+            }
+
+            const refreshedSession = refreshed.session;
+            if (!refreshedSession?.provider_token) {
+                throw new Error("Spotify Token abgelaufen. Bitte erneut mit Spotify einloggen.");
+            }
+
+            accessTokenStr = refreshedSession.provider_token;
+            refreshTokenStr = refreshedSession.provider_refresh_token ?? refreshTokenStr;
+            expiresIn = refreshedSession.expires_at
+                ? Math.max(0, refreshedSession.expires_at - Math.floor(Date.now() / 1000))
+                : 3600;
+
+            await persistSpotifyToken(accessTokenStr, refreshTokenStr, refreshedSession.expires_at);
+        }
     }
 
     const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
@@ -87,9 +115,11 @@ export async function searchTracks(query: string): Promise<SpotifyTrack[]> {
     const sdk = await getSpotifySdk();
 
     try {
+        console.debug("[spotify] searching tracks", { query: trimmedQuery });
         const response = await sdk.search(trimmedQuery, ["track"], "DE", 10);
         return response.tracks.items.map(toSpotifyTrack);
     } catch (error) {
+        console.error("[spotify] searchTracks failed", error);
         throw mapSpotifyError(error);
     }
 }
@@ -102,6 +132,7 @@ export async function getDevices(): Promise<SpotifyDevice[]> {
         const response = await sdk.player.getAvailableDevices();
         return response.devices;
     } catch (error) {
+        console.error("[spotify] getDevices failed", error);
         throw mapSpotifyError(error);
     }
 }
@@ -124,6 +155,7 @@ export async function startPlayback(trackId: string, deviceId?: string) {
 
         await sdk.player.startResumePlayback(targetDevice, undefined, [`spotify:track:${trackId}`]);
     } catch (error) {
+        console.error("[spotify] startPlayback failed", error);
         throw mapSpotifyError(error);
     }
 }

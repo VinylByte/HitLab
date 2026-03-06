@@ -44,6 +44,10 @@ export function useSongSearch(search_str: string) {
                         songs,
                     });
             } catch (error) {
+                console.error("[spotify] useSongSearch failed", {
+                    query: search_str,
+                    error,
+                });
                 if (requestId === requestRef.current)
                     dispatch({ type: "error", error: error as Error });
             }

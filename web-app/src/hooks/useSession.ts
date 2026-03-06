@@ -17,7 +17,11 @@ export function useSession() {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             if (session?.provider_token) {
-                persistSpotifyToken(session.provider_token, session.provider_refresh_token ?? "");
+                persistSpotifyToken(
+                    session.provider_token,
+                    session.provider_refresh_token ?? "",
+                    session.expires_at
+                );
             }
         });
 
@@ -26,7 +30,11 @@ export function useSession() {
         } = supabase.auth.onAuthStateChange((event, session) => {
             setSession(session);
             if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session?.provider_token) {
-                persistSpotifyToken(session.provider_token, session.provider_refresh_token ?? "");
+                persistSpotifyToken(
+                    session.provider_token,
+                    session.provider_refresh_token ?? "",
+                    session.expires_at
+                );
             }
         });
 
