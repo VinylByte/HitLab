@@ -1,6 +1,4 @@
 import supabase from "../supabase";
-import { SpotifyApi } from "@spotify/web-api-ts-sdk";
-import type { AccessToken, Device, Track } from "@spotify/web-api-ts-sdk";
 import { mapSpotifyError, SpotifyApiError } from "./spotifyErrorMapper";
 
 /**
@@ -9,9 +7,12 @@ import { mapSpotifyError, SpotifyApiError } from "./spotifyErrorMapper";
  */
 export async function persistSpotifyToken(
     accessToken: string,
-    refreshToken: string
+    refreshToken: string,
+    expiresAtUnix?: number
 ): Promise<void> {
-    const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString();
+    const expiresAt = new Date(
+        expiresAtUnix ? expiresAtUnix * 1000 : Date.now() + 3600 * 1000
+    ).toISOString();
     const { error } = await supabase.rpc("upsert_own_spotify_token", {
         p_access_token: accessToken,
         p_refresh_token: refreshToken,
@@ -20,7 +21,34 @@ export async function persistSpotifyToken(
     if (error) console.warn("Failed to persist Spotify token:", error);
 }
 
-async function getSpotifySdk(): Promise<SpotifyApi> {
+type SpotifyTrackApi = {
+    id: string;
+    name: string;
+    artists: Array<{ name: string }>;
+    album: {
+        name: string;
+        release_date?: string;
+        images: Array<{ url: string }>;
+    };
+};
+
+type SpotifyDevicesResponse = {
+    devices: SpotifyDevice[];
+};
+
+type SpotifySearchResponse = {
+    tracks: {
+        items: SpotifyTrackApi[];
+    };
+};
+
+type AuthSession = {
+    accessTokenStr: string;
+    refreshTokenStr: string;
+    expiresIn: number;
+};
+
+async function getSpotifyAuthSession(): Promise<AuthSession> {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
 
@@ -40,6 +68,7 @@ async function getSpotifySdk(): Promise<SpotifyApi> {
             : 3600;
     } else {
         // Fallback: read persisted token from database
+        console.debug("[spotify] provider_token missing in session, loading token from DB");
         const { data: rows, error: tokenErr } = await supabase.rpc("get_own_spotify_token");
         if (tokenErr) throw tokenErr;
         if (!rows || rows.length === 0) {
@@ -52,24 +81,65 @@ async function getSpotifySdk(): Promise<SpotifyApi> {
             0,
             Math.floor((new Date(row.expires_at).getTime() - Date.now()) / 1000)
         );
+
+        if (expiresIn <= 30) {
+            console.warn(
+                "[spotify] stored token expired or near expiry, trying supabase session refresh"
+            );
+            const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+            if (refreshErr) {
+                console.error("[spotify] supabase session refresh failed", refreshErr);
+                throw new Error("Spotify Token abgelaufen. Bitte erneut einloggen.");
+            }
+
+            const refreshedSession = refreshed.session;
+            if (!refreshedSession?.provider_token) {
+                throw new Error("Spotify Token abgelaufen. Bitte erneut mit Spotify einloggen.");
+            }
+
+            accessTokenStr = refreshedSession.provider_token;
+            refreshTokenStr = refreshedSession.provider_refresh_token ?? refreshTokenStr;
+            expiresIn = refreshedSession.expires_at
+                ? Math.max(0, refreshedSession.expires_at - Math.floor(Date.now() / 1000))
+                : 3600;
+
+            await persistSpotifyToken(accessTokenStr, refreshTokenStr, refreshedSession.expires_at);
+        }
     }
 
-    const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-    if (!clientId) {
-        throw new Error("VITE_SPOTIFY_CLIENT_ID fehlt in den Frontend-Umgebungsvariablen");
-    }
-
-    const accessToken: AccessToken = {
-        access_token: accessTokenStr,
-        token_type: "Bearer",
-        expires_in: expiresIn,
-        refresh_token: refreshTokenStr,
+    return {
+        accessTokenStr,
+        refreshTokenStr,
+        expiresIn,
     };
-
-    return SpotifyApi.withAccessToken(clientId, accessToken);
 }
 
-function toSpotifyTrack(item: Track): SpotifyTrack {
+async function spotifyFetch<T>(accessToken: string, path: string, init?: RequestInit): Promise<T> {
+    const response = await fetch(`https://api.spotify.com/v1${path}`, {
+        ...init,
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+            ...(init?.headers ?? {}),
+        },
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text().catch(() => "");
+        throw {
+            status: response.status,
+            message: errorBody || response.statusText,
+        };
+    }
+
+    if (response.status === 204) {
+        return undefined as T;
+    }
+
+    return (await response.json()) as T;
+}
+
+function toSpotifyTrack(item: SpotifyTrackApi): SpotifyTrack {
     return {
         spotify_track_id: item.id,
         title: item.name,
@@ -84,35 +154,61 @@ export async function searchTracks(query: string): Promise<SpotifyTrack[]> {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return [];
 
-    const sdk = await getSpotifySdk();
+    const { accessTokenStr } = await getSpotifyAuthSession();
 
     try {
-        const response = await sdk.search(trimmedQuery, ["track"], "DE", 10);
+        console.debug("[spotify] searching tracks", { query: trimmedQuery });
+        const params = new URLSearchParams({
+            q: trimmedQuery,
+            type: "track",
+            market: "DE",
+            limit: "10",
+        });
+        const response = await spotifyFetch<SpotifySearchResponse>(
+            accessTokenStr,
+            `/search?${params.toString()}`
+        );
         return response.tracks.items.map(toSpotifyTrack);
     } catch (error) {
+        console.error("[spotify] searchTracks failed", error);
         throw mapSpotifyError(error);
     }
 }
-export type SpotifyDevice = Device;
+export type SpotifyDevice = {
+    id: string;
+    is_active: boolean;
+    is_private_session?: boolean;
+    is_restricted?: boolean;
+    name: string;
+    type: string;
+    volume_percent?: number | null;
+};
 
 export async function getDevices(): Promise<SpotifyDevice[]> {
-    const sdk = await getSpotifySdk();
+    const { accessTokenStr } = await getSpotifyAuthSession();
 
     try {
-        const response = await sdk.player.getAvailableDevices();
+        const response = await spotifyFetch<SpotifyDevicesResponse>(
+            accessTokenStr,
+            "/me/player/devices"
+        );
         return response.devices;
     } catch (error) {
+        console.error("[spotify] getDevices failed", error);
         throw mapSpotifyError(error);
     }
 }
 
 export async function startPlayback(trackId: string, deviceId?: string) {
-    const sdk = await getSpotifySdk();
+    const { accessTokenStr } = await getSpotifyAuthSession();
     try {
         let targetDevice = deviceId;
 
         if (!targetDevice) {
-            const { devices } = await sdk.player.getAvailableDevices();
+            const { devices } = await spotifyFetch<SpotifyDevicesResponse>(
+                accessTokenStr,
+                "/me/player/devices"
+            );
             targetDevice = devices.find(d => d.is_active)?.id ?? undefined;
             if (!targetDevice) {
                 throw new SpotifyApiError(
@@ -122,8 +218,16 @@ export async function startPlayback(trackId: string, deviceId?: string) {
             }
         }
 
-        await sdk.player.startResumePlayback(targetDevice, undefined, [`spotify:track:${trackId}`]);
+        await spotifyFetch<void>(
+            accessTokenStr,
+            `/me/player/play?device_id=${encodeURIComponent(targetDevice)}`,
+            {
+                method: "PUT",
+                body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
+            }
+        );
     } catch (error) {
+        console.error("[spotify] startPlayback failed", error);
         throw mapSpotifyError(error);
     }
 }
