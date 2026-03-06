@@ -28,26 +28,16 @@ export function useSongSearch(search_str: string) {
     const requestRef = useRef(0);
 
     useEffect(() => {
-        console.warn("[spotify] useSongSearch input", {
-            query: search_str,
-            length: search_str.trim().length,
-        });
         if (search_str.trim().length < 2) {
-            console.warn("[spotify] useSongSearch skip (<2 chars)");
             dispatch({ type: "success", songs: [] });
             return;
         }
 
         const timer = setTimeout(async () => {
             const requestId = ++requestRef.current;
-            console.warn("[spotify] useSongSearch dispatch fetch", { requestId });
             dispatch({ type: "fetch" });
             try {
                 const songs = await searchTracks(search_str);
-                console.warn("[spotify] useSongSearch success", {
-                    requestId,
-                    count: songs.length,
-                });
                 if (requestId === requestRef.current)
                     dispatch({
                         type: "success",
