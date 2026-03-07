@@ -5,7 +5,7 @@ import { DeckModal } from "./ViewDeckModal";
 import { useState } from "react";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { useNavigate } from "react-router";
-import { type OwnDeckDTO } from "../../../services/deckService";
+import { deleteDeckById, type OwnDeckDTO } from "../../../services/deckService";
 import { useOwnDecks } from "../../../hooks/useOwnDecks";
 
 const ViewDeckModal = ({
@@ -29,7 +29,7 @@ const ViewDeckModal = ({
 };
 
 export default function LabsPage() {
-    const { ownDecks, loading, error } = useOwnDecks();
+    const { ownDecks, loading, error, removeDeck } = useOwnDecks();
     const [selectedDeck, setSelectedDeck] = useState<OwnDeckDTO | null>(null);
     const [isDeckModalOpen, setIsDeckModalOpen] = useState(false);
 
@@ -44,23 +44,27 @@ export default function LabsPage() {
     };
 
     const editDeck = (deck: OwnDeckDTO) => {
-        console.log("Editing deck:", deck);
+        // console.log("Editing deck:", deck);
         navigate(`/decks/${deck.id}/edit`);
     };
 
     const createDeck = () => {
-        console.log("Creating new deck");
+        // console.log("Creating new deck");
         navigate("/decks/new");
     };
 
     const deleteDeck = (deck: OwnDeckDTO) => {
         setSelectedDeck(deck);
         setIsConfirmDeleteModalOpen(true);
-        console.log("Deleting deck:", deck);
+        // console.log("Deleting deck:", deck);
     };
 
     const deleteDeckConfirmed = () => {
-        console.log("Deck deleted:", selectedDeck);
+        // console.log("Deck deleted:", selectedDeck);
+        if (selectedDeck) {
+            deleteDeckById(selectedDeck.id);
+            removeDeck(selectedDeck.id);
+        } else console.error("No Deck Id is selected!");
         setSelectedDeck(null);
     };
 
