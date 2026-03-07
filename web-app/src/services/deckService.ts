@@ -347,3 +347,9 @@ export async function updateDeckCover(deckId: string, cover: Blob): Promise<stri
 
     return publicUrl;
 }
+
+export async function deleteDeckById(deckId: string) {
+    const { error } = await supabase.from("decks").delete().eq("id", deckId);
+
+    if (error) throw error;
+}
