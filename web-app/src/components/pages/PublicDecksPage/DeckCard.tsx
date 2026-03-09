@@ -49,7 +49,12 @@ function DeckModal({
 
     return (
         <div>
-            <DownloadModal isOpen={downloadModalOpen} onOpenChange={setDownloadModalOpen} songs={deck_songs.map(ds => ds.song)} deck={publicDeck} />
+            <DownloadModal
+                isOpen={downloadModalOpen}
+                onOpenChange={setDownloadModalOpen}
+                songs={deck_songs.map(ds => ds.song)}
+                deck={publicDeck}
+            />
             <Modal size="5xl" isOpen={isOpen} onOpenChange={onOpenChange}>
                 <ModalContent>
                     {onClose => (
@@ -195,10 +200,14 @@ function DeckModal({
                                                                   />
                                                               </TableCell>
                                                               <TableCell>
-                                                                  {meta.song.title}
+                                                                  <span className="block truncate max-w-[14ch] sm:max-w-[20ch] md:max-w-[26ch]">
+                                                                      {meta.song.title}
+                                                                  </span>
                                                               </TableCell>
                                                               <TableCell>
-                                                                  {meta.song.artist}
+                                                                  <span className="block truncate max-w-[12ch] sm:max-w-[16ch] md:max-w-[22ch]">
+                                                                      {meta.song.artist}
+                                                                  </span>
                                                               </TableCell>
                                                               <TableCell>
                                                                   {meta.song.year}

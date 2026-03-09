@@ -291,3 +291,65 @@ export async function removeDeckSongs(deckId: string, songIds: string[]) {
 
     if (error) throw error;
 }
+
+/** Fetches all available tags from the database. */
+export async function fetchAllTags(): Promise<DeckTag[]> {
+    const { data, error } = await supabase.from("tags").select("id, name").order("name");
+
+    if (error) throw error;
+    return data ?? [];
+}
+
+/** Replaces all tags on a deck with the given tag IDs. */
+export async function setDeckTags(deckId: string, tagIds: string[]): Promise<void> {
+    const { error: deleteError } = await supabase.from("deck_tags").delete().eq("deck_id", deckId);
+
+    if (deleteError) throw deleteError;
+
+    if (tagIds.length > 0) {
+        const { error: insertError } = await supabase
+            .from("deck_tags")
+            .insert(tagIds.map(tagId => ({ deck_id: deckId, tag_id: tagId })));
+
+        if (insertError) throw insertError;
+    }
+}
+
+/** Uploads a new cover image for a deck and updates the deck record. */
+export async function updateDeckCover(deckId: string, cover: Blob): Promise<string> {
+    const {
+        data: { session },
+    } = await supabase.auth.getSession();
+
+    const userId = session?.user.id;
+    if (!userId) throw new Error("Nicht eingeloggt");
+
+    const fileExt = cover.type.split("/")[1];
+    const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from("deck-covers")
+        .upload(filePath, cover);
+
+    if (uploadError) throw uploadError;
+
+    const {
+        data: { publicUrl },
+    } = supabase.storage.from("deck-covers").getPublicUrl(filePath);
+
+    const { error: updateError } = await supabase
+        .from("decks")
+        .update({ cover_url: publicUrl })
+        .eq("id", deckId)
+        .is("deleted_at", null);
+
+    if (updateError) throw updateError;
+
+    return publicUrl;
+}
+
+export async function deleteDeckById(deckId: string) {
+    const { error } = await supabase.from("decks").delete().eq("id", deckId);
+
+    if (error) throw error;
+}

@@ -19,7 +19,7 @@ function reduce(state: State, action: Action): State {
         case "success":
             return { songs: action.songs, loading: false, error: null };
         case "error":
-            return { ...state, error: action.error };
+            return { ...state, loading: false, error: action.error };
     }
 }
 
@@ -37,13 +37,17 @@ export function useSongSearch(search_str: string) {
             const requestId = ++requestRef.current;
             dispatch({ type: "fetch" });
             try {
-                const songs = await searchTracks(search_str, 20);
+                const songs = await searchTracks(search_str);
                 if (requestId === requestRef.current)
                     dispatch({
                         type: "success",
                         songs,
                     });
             } catch (error) {
+                console.error("[spotify] useSongSearch failed", {
+                    query: search_str,
+                    error,
+                });
                 if (requestId === requestRef.current)
                     dispatch({ type: "error", error: error as Error });
             }

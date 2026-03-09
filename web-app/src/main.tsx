@@ -7,7 +7,7 @@ import { HeroUIProvider } from "@heroui/react";
 import { createTheme, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 // ‼️ import dropzone styles after core package styles
-import '@mantine/dropzone/styles.css';
+import "@mantine/dropzone/styles.css";
 
 // Mantine theme configuration
 const mantineTheme = createTheme({});
