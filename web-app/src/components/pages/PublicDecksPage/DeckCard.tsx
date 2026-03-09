@@ -55,11 +55,19 @@ function DeckModal({
                 songs={deck_songs.map(ds => ds.song)}
                 deck={publicDeck}
             />
-            <Modal size="5xl" isOpen={isOpen} onOpenChange={onOpenChange}>
-                <ModalContent>
+            <Modal
+                size={isMobile ? "full" : "5xl"}
+                isOpen={isOpen}
+                onOpenChange={onOpenChange}
+                classNames={{
+                    base: isMobile ? "m-0 rounded-none h-screen" : "",
+                    wrapper: isMobile ? "m-0" : "",
+                }}
+            >
+                <ModalContent className={isMobile ? "h-screen flex flex-col" : ""}>
                     {onClose => (
                         <>
-                            <ModalHeader className="flex flex-col gap-1">
+                            <ModalHeader className="flex flex-col gap-1 flex-shrink-0">
                                 {loading ? (
                                     <Skeleton
                                         className={
@@ -69,27 +77,31 @@ function DeckModal({
                                         }
                                     />
                                 ) : (
-                                    <Title order={2}>{publicDeck.name}</Title>
+                                    <Center>
+                                        <Title order={2}>{publicDeck.name}</Title>
+                                    </Center>
                                 )}
                             </ModalHeader>
-                            <ModalBody>
+                            <ModalBody className={isMobile ? "flex-1 overflow-y-auto" : ""}>
                                 <SimpleGrid cols={{ base: 1, sm: 2 }}>
                                     <Stack>
-                                        {loading ? (
-                                            <Skeleton
-                                                className={
-                                                    isMobile
-                                                        ? "h-62 w-90 mb-2 rounded-md"
-                                                        : "h-62 w-100 mb-2 rounded-md"
-                                                }
-                                            />
-                                        ) : (
-                                            <Image
-                                                src={publicDeck.cover_url ?? undefined}
-                                                alt={publicDeck.name}
-                                                className={classes.coverImage}
-                                            />
-                                        )}
+                                        <Center>
+                                            {loading ? (
+                                                <Skeleton
+                                                    className={
+                                                        isMobile
+                                                            ? "h-62 w-90 mb-2 rounded-md"
+                                                            : "h-62 w-100 mb-2 rounded-md"
+                                                    }
+                                                />
+                                            ) : (
+                                                <Image
+                                                    src={publicDeck.cover_url ?? undefined}
+                                                    alt={publicDeck.name}
+                                                    className={classes.coverImage}
+                                                />
+                                            )}
+                                        </Center>
 
                                         <Group gap={5} wrap="wrap">
                                             {loading
@@ -225,7 +237,7 @@ function DeckModal({
                                     </Stack>
                                 </SimpleGrid>
                             </ModalBody>
-                            <ModalFooter>
+                            <ModalFooter className="flex-shrink-0">
                                 <Button color="danger" variant="light" onPress={onClose}>
                                     Schließen
                                 </Button>
