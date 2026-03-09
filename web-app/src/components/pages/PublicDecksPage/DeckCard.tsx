@@ -276,7 +276,7 @@ export function DeckCard({ data }: { data: PublicDeckDTO }) {
                                         src={data.owner.avatar_url ?? undefined}
                                         alt={data.owner.display_name ?? undefined}
                                     />
-                                    <Text size="xs" c="bright">
+                                    <Text size="xs" c="bright" className={classes.ownerName}>
                                         {data.owner.display_name}
                                     </Text>
                                 </Group>
