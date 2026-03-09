@@ -22,6 +22,7 @@ export const ProtectedPages = [
 ];
 
 export const MOBILE_BREAKPOINT = "(max-width: 768px)";
+export const SMALL_BREAKPOINT = "(max-width: 1350px)";
 export const PAGINATION_BREAKPOINT = 12;
 /**
 const SPOTIFY_SCOPES = [

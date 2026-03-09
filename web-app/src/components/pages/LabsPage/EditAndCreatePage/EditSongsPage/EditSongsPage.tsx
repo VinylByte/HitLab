@@ -354,7 +354,7 @@ export default function EditSongsPage() {
             ) : (
                 <Center>
                     <Stack>
-                        <Tabs>
+                        <Tabs fullWidth color="primary">
                             <Tab title="Songs hinzufügen">{SongsSearchTable}</Tab>
                             <Tab title="Songs im Deck">{SongsInDeckTable}</Tab>
                         </Tabs>

@@ -11,7 +11,7 @@ import {
     Skeleton,
 } from "@heroui/react";
 import type { Selection } from "@heroui/react";
-import { MOBILE_BREAKPOINT } from "../../../Settings";
+import { MOBILE_BREAKPOINT, SMALL_BREAKPOINT } from "../../../Settings";
 import { useMediaQuery } from "@mantine/hooks";
 
 /** Display-only row type shared by Spotify search results and DB songs. */
@@ -43,12 +43,13 @@ export default function SongTable({
     tableLoading,
 }: SongTableProps) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT);
 
     // IDs die gerade laden dürfen nicht auswählbar sein
     const disabledKeys = loadingIds ?? new Set<string>();
 
     return (
-        <div>
+        <div className={isMobile ? "h-80 w-full" : "h-100"} style={{ overflow: "auto" }}>
             <Table
                 aria-label="Songs table"
                 color={color}
@@ -56,13 +57,13 @@ export default function SongTable({
                 selectedKeys={selectedKeys}
                 onSelectionChange={onSelectionChange}
                 disabledKeys={disabledKeys}
-                className={isMobile ? "h-80" : "h-100"}
+                className={isMobile ? "h-80 w-100" : "h-100"}
                 isHeaderSticky
             >
-                <TableHeader>
+                <TableHeader className={isMobile? "w-100" : ""}>
                     <TableColumn>NAME</TableColumn>
-                    <TableColumn>ARTIST</TableColumn>
-                    <TableColumn hidden={isMobile}>JAHR</TableColumn>
+                    <TableColumn hidden={isMobile}>ARTIST</TableColumn>
+                    <TableColumn hidden={isMobile || isSmallScreen}>JAHR</TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"Keine Songs vorhanden"}>
                     {tableLoading
@@ -89,7 +90,7 @@ export default function SongTable({
                                       key={song.id || index}
                                       className={isLoading ? "opacity-50" : ""}
                                   >
-                                      <TableCell>
+                                      <TableCell className={isMobile? "w-100" : ""} >
                                           <Group gap="sm">
                                               {isLoading ? (
                                                   <Spinner size="sm" />
@@ -102,18 +103,18 @@ export default function SongTable({
                                               )}
                                               <Text
                                                   truncate="end"
-                                                  className="max-w-[14ch] sm:max-w-[20ch] md:max-w-[26ch] lg:max-w-[36ch]"
-                                              >
+                                                  className={"max-w-[18ch] xs:max-w-[10ch] sm:max-w-[20ch] md:max-w-[10ch] lg:max-w-[15ch] xl:max-w-[25ch]"
+                                              }>
                                                   {song.title}
                                               </Text>
                                           </Group>
                                       </TableCell>
-                                      <TableCell>
-                                          <span className="block truncate max-w-[12ch] sm:max-w-[16ch] md:max-w-[22ch] lg:max-w-[28ch]">
+                                      <TableCell hidden={isMobile}>
+                                          <span className="block truncate max-w-[5ch] md:max-w-[9ch] lg:max-w-[15ch] xl:max-w-[25ch]">
                                               {song.artist}
                                           </span>
                                       </TableCell>
-                                      <TableCell hidden={isMobile}>{song.year}</TableCell>
+                                      <TableCell hidden={isMobile || isSmallScreen}>{song.year}</TableCell>
                                   </TableRow>
                               );
                           })}
