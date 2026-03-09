@@ -49,7 +49,7 @@ export default function SongTable({
     const disabledKeys = loadingIds ?? new Set<string>();
 
     return (
-        <div className={isMobile ? "h-80 w-full" : "h-100"} style={{ overflow: "auto" }}>
+        <div className="h-[400px] w-full" style={{ overflow: "hidden" }}>
             <Table
                 aria-label="Songs table"
                 color={color}
@@ -57,29 +57,43 @@ export default function SongTable({
                 selectedKeys={selectedKeys}
                 onSelectionChange={onSelectionChange}
                 disabledKeys={disabledKeys}
-                className={isMobile ? "h-80 w-100" : "h-100"}
+                className="h-[400px]"
                 isHeaderSticky
+                classNames={{
+                    wrapper: "h-[400px] overflow-y-auto overflow-x-hidden",
+                    table: "w-full table-fixed",
+                }}
             >
-                <TableHeader className={isMobile? "w-100" : ""}>
-                    <TableColumn>NAME</TableColumn>
-                    <TableColumn hidden={isMobile}>ARTIST</TableColumn>
-                    <TableColumn hidden={isMobile || isSmallScreen}>JAHR</TableColumn>
+                <TableHeader>
+                    <TableColumn className={isMobile ? "w-full" : "w-[50%]"} align="center">
+                        NAME
+                    </TableColumn>
+                    <TableColumn hidden={isMobile} className="w-[35%]" align="center">
+                        ARTIST
+                    </TableColumn>
+                    <TableColumn
+                        hidden={isMobile || isSmallScreen}
+                        className="w-[15%]"
+                        align="center"
+                    >
+                        JAHR
+                    </TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"Keine Songs vorhanden"}>
                     {tableLoading
-                        ? Array.from({ length: 5 }).map(() => (
-                              <TableRow>
-                                  <TableCell>
-                                      <Group>
-                                          <Skeleton className="h-10 w-10 rounded-md" />
-                                          <Skeleton className="h-5 w-15 rounded-lg" />
+                        ? Array.from({ length: 5 }).map((_, i) => (
+                              <TableRow key={i}>
+                                  <TableCell className="max-w-0">
+                                      <Group gap="sm">
+                                          <Skeleton className="h-10 w-10 rounded-md flex-shrink-0" />
+                                          <Skeleton className="h-5 flex-1 rounded-lg" />
                                       </Group>
                                   </TableCell>
-                                  <TableCell>
-                                      <Skeleton className="h-5 w-20 rounded-lg" />
+                                  <TableCell hidden={isMobile} className="max-w-0">
+                                      <Skeleton className="h-5 w-full rounded-lg" />
                                   </TableCell>
-                                  <TableCell hidden={isMobile}>
-                                      <Skeleton className="h-5 w-25 rounded-lg" />
+                                  <TableCell hidden={isMobile || isSmallScreen}>
+                                      <Skeleton className="h-5 w-12 rounded-lg" />
                                   </TableCell>
                               </TableRow>
                           ))
@@ -90,7 +104,7 @@ export default function SongTable({
                                       key={song.id || index}
                                       className={isLoading ? "opacity-50" : ""}
                                   >
-                                      <TableCell className={isMobile? "w-100" : ""} >
+                                      <TableCell className={isMobile ? "w-100" : ""}>
                                           <Group gap="sm">
                                               {isLoading ? (
                                                   <Spinner size="sm" />
@@ -103,8 +117,10 @@ export default function SongTable({
                                               )}
                                               <Text
                                                   truncate="end"
-                                                  className={"max-w-[18ch] xs:max-w-[10ch] sm:max-w-[20ch] md:max-w-[10ch] lg:max-w-[15ch] xl:max-w-[25ch]"
-                                              }>
+                                                  className={
+                                                      "max-w-[18ch] xs:max-w-[10ch] sm:max-w-[20ch] md:max-w-[10ch] lg:max-w-[15ch] xl:max-w-[25ch]"
+                                                  }
+                                              >
                                                   {song.title}
                                               </Text>
                                           </Group>
@@ -114,7 +130,9 @@ export default function SongTable({
                                               {song.artist}
                                           </span>
                                       </TableCell>
-                                      <TableCell hidden={isMobile || isSmallScreen}>{song.year}</TableCell>
+                                      <TableCell hidden={isMobile || isSmallScreen}>
+                                          {song.year}
+                                      </TableCell>
                                   </TableRow>
                               );
                           })}

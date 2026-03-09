@@ -18,7 +18,7 @@ import {
     TableHeader,
     TableColumn,
 } from "@heroui/react";
-import { SimpleGrid, Stack, Group, Text, Title } from "@mantine/core";
+import { SimpleGrid, Stack, Group, Text, Title, Center } from "@mantine/core";
 import { useState } from "react";
 import { MOBILE_BREAKPOINT } from "../Settings";
 
@@ -79,27 +79,32 @@ export function DeckModal({
                                         }
                                     />
                                 ) : (
-                                    <Title order={2}>{activeDeck.name}</Title>
+                                    <Center>
+                                        <Title order={2}>{activeDeck.name}</Title>
+                                    </Center>
                                 )}
                             </ModalHeader>
                             <ModalBody>
                                 <SimpleGrid cols={{ base: 1, sm: 2 }}>
                                     <Stack>
-                                        {loading ? (
-                                            <Skeleton
-                                                className={
-                                                    isMobile
-                                                        ? "h-62 w-90 mb-2 rounded-md"
-                                                        : "h-62 w-100 mb-2 rounded-md"
-                                                }
-                                            />
-                                        ) : (
-                                            <Image
-                                                src={activeDeck.cover_url ?? undefined}
-                                                alt={activeDeck.name}
-                                                radius="md"
-                                            />
-                                        )}
+                                        <Center>
+                                            {loading ? (
+                                                <Skeleton
+                                                    className={
+                                                        isMobile
+                                                            ? "h-62 w-90 mb-2 rounded-md"
+                                                            : "h-62 w-100 mb-2 rounded-md"
+                                                    }
+                                                />
+                                            ) : (
+                                                <Image
+                                                    src={activeDeck.cover_url ?? undefined}
+                                                    alt={activeDeck.name}
+                                                    radius="md"
+                                                    className="object-cover max-w-[400px] max-h-[250px]"
+                                                />
+                                            )}
+                                        </Center>
 
                                         <Group gap={5} wrap="wrap">
                                             {loading
@@ -165,31 +170,37 @@ export function DeckModal({
                                             <Text mt="md">{activeDeck.description}</Text>
                                         )}
                                     </Stack>
-                                    <Stack>
+                                    <Stack className="min-w-0">
                                         <Table
                                             aria-label="Songs in this deck"
                                             maxTableHeight={isMobile ? 300 : 400}
                                             isVirtualized
                                             isHeaderSticky
+                                            classNames={{
+                                                wrapper: "max-w-full overflow-x-hidden",
+                                                table: "w-full table-fixed",
+                                            }}
                                         >
                                             <TableHeader>
-                                                <TableColumn>{""}</TableColumn>
-                                                <TableColumn>Name</TableColumn>
-                                                <TableColumn>Artist</TableColumn>
-                                                <TableColumn>Year</TableColumn>
+                                                <TableColumn className="w-[56px]">{""}</TableColumn>
+                                                <TableColumn className="w-[44%]">Name</TableColumn>
+                                                <TableColumn className="w-[36%]">
+                                                    Artist
+                                                </TableColumn>
+                                                <TableColumn className="w-[72px]">Year</TableColumn>
                                             </TableHeader>
                                             <TableBody>
                                                 {loading
                                                     ? Array.from({ length: 6 }).map((_, i) => (
                                                           <TableRow key={i}>
                                                               <TableCell>
-                                                                  <Skeleton className="h-9 w-9 rounded-md" />
+                                                                  <Skeleton className="h-9 w-9 rounded-md flex-shrink-0" />
                                                               </TableCell>
-                                                              <TableCell>
-                                                                  <Skeleton className="h-4 w-24 rounded-md" />
+                                                              <TableCell className="max-w-0">
+                                                                  <Skeleton className="h-4 w-full rounded-md" />
                                                               </TableCell>
-                                                              <TableCell>
-                                                                  <Skeleton className="h-4 w-24 rounded-md" />
+                                                              <TableCell className="max-w-0">
+                                                                  <Skeleton className="h-4 w-full rounded-md" />
                                                               </TableCell>
                                                               <TableCell>
                                                                   <Skeleton className="h-4 w-12 rounded-md" />
@@ -209,13 +220,13 @@ export function DeckModal({
                                                                       className="rounded-md"
                                                                   />
                                                               </TableCell>
-                                                              <TableCell>
-                                                                  <span className="block truncate max-w-[14ch] sm:max-w-[20ch] md:max-w-[26ch]">
+                                                              <TableCell className="max-w-0">
+                                                                  <span className="block w-full truncate">
                                                                       {meta.song.title}
                                                                   </span>
                                                               </TableCell>
-                                                              <TableCell>
-                                                                  <span className="block truncate max-w-[12ch] sm:max-w-[16ch] md:max-w-[22ch]">
+                                                              <TableCell className="max-w-0">
+                                                                  <span className="block w-full truncate">
                                                                       {meta.song.artist}
                                                                   </span>
                                                               </TableCell>
