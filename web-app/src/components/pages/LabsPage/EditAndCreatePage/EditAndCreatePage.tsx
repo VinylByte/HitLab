@@ -42,7 +42,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
         initialValues: {
             name: "",
             description: "",
-            private: true,
+            private: false,
         } as DeckFormData,
         validate: {
             name: value => (value.trim().length > 0 ? null : "Name ist erforderlich"),
@@ -172,15 +172,15 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         <Switch
                             thumbIcon={form.values.private ? <IconLock /> : <IconLockOpen />}
                             title="Privat"
-                            {...form.getInputProps("private", { type: "checkbox" })}
+                            isSelected={form.values.private}
+                            onChange={(e) => form.setFieldValue("private", e.target.checked)}
                             isDisabled={loadingDeck}
                         >
-                            Privat
-                            <p className="text-small text-default-500">
+                            <Text fw={"600"}>
                                 {!form.values.private
                                     ? "Dieses Deck ist für alle sichtbar"
                                     : "Dieses Deck ist privat"}
-                            </p>
+                            </Text>
                         </Switch>
                     </Group>
 
