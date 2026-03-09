@@ -16,11 +16,13 @@
 
 .image {
   max-width: 200px;
+  max-height: 150px;
+}
 
-  @mixin smaller-than 755px {
-    max-width: 100%;
-    max-height: 180px;
-  }
+.coverImage {
+  object-fit: cover;
+  max-width: 400px;
+  max-height: 250px;
 }
 
 .title {
