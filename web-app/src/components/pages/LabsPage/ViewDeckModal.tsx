@@ -165,18 +165,24 @@ export function DeckModal({
                                             <Text mt="md">{activeDeck.description}</Text>
                                         )}
                                     </Stack>
-                                    <Stack>
+                                    <Stack className="min-w-0">
                                         <Table
                                             aria-label="Songs in this deck"
                                             maxTableHeight={isMobile ? 300 : 400}
                                             isVirtualized
                                             isHeaderSticky
+                                            classNames={{
+                                                wrapper: "max-w-full overflow-x-hidden",
+                                                table: "w-full table-fixed",
+                                            }}
                                         >
                                             <TableHeader>
-                                                <TableColumn>{""}</TableColumn>
-                                                <TableColumn>Name</TableColumn>
-                                                <TableColumn>Artist</TableColumn>
-                                                <TableColumn>Year</TableColumn>
+                                                <TableColumn className="w-[56px]">{""}</TableColumn>
+                                                <TableColumn className="w-[44%]">Name</TableColumn>
+                                                <TableColumn className="w-[36%]">
+                                                    Artist
+                                                </TableColumn>
+                                                <TableColumn className="w-[72px]">Year</TableColumn>
                                             </TableHeader>
                                             <TableBody>
                                                 {loading
@@ -209,13 +215,13 @@ export function DeckModal({
                                                                       className="rounded-md"
                                                                   />
                                                               </TableCell>
-                                                              <TableCell>
-                                                                  <span className="block truncate max-w-[14ch] sm:max-w-[20ch] md:max-w-[26ch]">
+                                                              <TableCell className="max-w-0">
+                                                                  <span className="block w-full truncate">
                                                                       {meta.song.title}
                                                                   </span>
                                                               </TableCell>
-                                                              <TableCell>
-                                                                  <span className="block truncate max-w-[12ch] sm:max-w-[16ch] md:max-w-[22ch]">
+                                                              <TableCell className="max-w-0">
+                                                                  <span className="block w-full truncate">
                                                                       {meta.song.artist}
                                                                   </span>
                                                               </TableCell>
