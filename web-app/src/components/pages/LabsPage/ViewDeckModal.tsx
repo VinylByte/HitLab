@@ -18,7 +18,7 @@ import {
     TableHeader,
     TableColumn,
 } from "@heroui/react";
-import { SimpleGrid, Stack, Group, Text, Title } from "@mantine/core";
+import { SimpleGrid, Stack, Group, Text, Title, Center } from "@mantine/core";
 import { useState } from "react";
 import { MOBILE_BREAKPOINT } from "../Settings";
 
@@ -79,27 +79,32 @@ export function DeckModal({
                                         }
                                     />
                                 ) : (
-                                    <Title order={2}>{activeDeck.name}</Title>
+                                    <Center>
+                                        <Title order={2}>{activeDeck.name}</Title>
+                                    </Center>
                                 )}
                             </ModalHeader>
                             <ModalBody>
                                 <SimpleGrid cols={{ base: 1, sm: 2 }}>
                                     <Stack>
-                                        {loading ? (
-                                            <Skeleton
-                                                className={
-                                                    isMobile
-                                                        ? "h-62 w-90 mb-2 rounded-md"
-                                                        : "h-62 w-100 mb-2 rounded-md"
-                                                }
-                                            />
-                                        ) : (
-                                            <Image
-                                                src={activeDeck.cover_url ?? undefined}
-                                                alt={activeDeck.name}
-                                                radius="md"
-                                            />
-                                        )}
+                                        <Center>
+                                            {loading ? (
+                                                <Skeleton
+                                                    className={
+                                                        isMobile
+                                                            ? "h-62 w-90 mb-2 rounded-md"
+                                                            : "h-62 w-100 mb-2 rounded-md"
+                                                    }
+                                                />
+                                            ) : (
+                                                <Image
+                                                    src={activeDeck.cover_url ?? undefined}
+                                                    alt={activeDeck.name}
+                                                    radius="md"
+                                                    className="object-cover max-w-[400px] max-h-[250px]"
+                                                />
+                                            )}
+                                        </Center>
 
                                         <Group gap={5} wrap="wrap">
                                             {loading
