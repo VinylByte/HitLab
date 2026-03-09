@@ -40,14 +40,26 @@ export default function AuthorisedPlayPage() {
     }, [currentTrackIdFromPath, searchParams]);
 
     return (
-        <div style={{ height: "90vh", overflow: "hidden" }}>
+        <div
+            style={{
+                height: "90vh",
+                overflow: "hidden",
+                display: "flex",
+                justifyContent: "center",
+            }}
+        >
             <QRScannerModal onScan={onScan} isOpen={scannerOpen} onOpenChange={setScannerOpen} />
-            <Stack h={"100%"} style={{ overflow: "hidden" }}>
+            <Stack
+                h={"100%"}
+                align="stretch"
+                justify="center"
+                style={{ overflow: "hidden", width: "100%" }}
+            >
                 <PlayerElement currentTrackId={currentTrackId} />
                 <Button
                     startContent={<IconScan size={20} />}
                     color="primary"
-                    className={isMobile ? "w-6/8 mt-10 left-1/8 right-1/8" : "w-4/10 left-3/10 mt-10"}
+                    className={isMobile ? "w-6/8 mt-10 mx-auto" : "w-4/10 mt-10 mx-auto"}
                     onPress={() => setScannerOpen(true)}
                 >
                     {currentTrackId ? "Nächsten Song scannen" : "Song scannen"}
