@@ -189,13 +189,13 @@ export function DeckModal({
                                                     ? Array.from({ length: 6 }).map((_, i) => (
                                                           <TableRow key={i}>
                                                               <TableCell>
-                                                                  <Skeleton className="h-9 w-9 rounded-md" />
+                                                                  <Skeleton className="h-9 w-9 rounded-md flex-shrink-0" />
                                                               </TableCell>
-                                                              <TableCell>
-                                                                  <Skeleton className="h-4 w-24 rounded-md" />
+                                                              <TableCell className="max-w-0">
+                                                                  <Skeleton className="h-4 w-full rounded-md" />
                                                               </TableCell>
-                                                              <TableCell>
-                                                                  <Skeleton className="h-4 w-24 rounded-md" />
+                                                              <TableCell className="max-w-0">
+                                                                  <Skeleton className="h-4 w-full rounded-md" />
                                                               </TableCell>
                                                               <TableCell>
                                                                   <Skeleton className="h-4 w-12 rounded-md" />

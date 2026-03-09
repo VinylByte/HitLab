@@ -81,19 +81,19 @@ export default function SongTable({
                 </TableHeader>
                 <TableBody emptyContent={"Keine Songs vorhanden"}>
                     {tableLoading
-                        ? Array.from({ length: 5 }).map(() => (
-                              <TableRow>
-                                  <TableCell>
-                                      <Group>
-                                          <Skeleton className="h-10 w-10 rounded-md" />
-                                          <Skeleton className="h-5 w-15 rounded-lg" />
+                        ? Array.from({ length: 5 }).map((_, i) => (
+                              <TableRow key={i}>
+                                  <TableCell className="max-w-0">
+                                      <Group gap="sm">
+                                          <Skeleton className="h-10 w-10 rounded-md flex-shrink-0" />
+                                          <Skeleton className="h-5 flex-1 rounded-lg" />
                                       </Group>
                                   </TableCell>
-                                  <TableCell>
-                                      <Skeleton className="h-5 w-20 rounded-lg" />
+                                  <TableCell hidden={isMobile} className="max-w-0">
+                                      <Skeleton className="h-5 w-full rounded-lg" />
                                   </TableCell>
-                                  <TableCell hidden={isMobile}>
-                                      <Skeleton className="h-5 w-25 rounded-lg" />
+                                  <TableCell hidden={isMobile || isSmallScreen}>
+                                      <Skeleton className="h-5 w-12 rounded-lg" />
                                   </TableCell>
                               </TableRow>
                           ))
