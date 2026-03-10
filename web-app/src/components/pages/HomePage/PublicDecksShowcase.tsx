@@ -78,6 +78,7 @@ export function PublicDecksShowcase() {
                               <Carousel.Slide
                                   key={deck.id}
                                   onClick={() => navigate(`/decks/${deck.id}/view`)}
+                                  className="cursor-pointer"
                               >
                                   <Image
                                       src={deck.cover_url ?? undefined}
