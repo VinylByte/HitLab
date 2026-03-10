@@ -1,19 +1,22 @@
 import { Center, Group, Text } from "@mantine/core";
 import classes from "./DeckCard.module.css";
-import { useState } from "react";
 
 import { Card, Image, Avatar, CardBody, Skeleton, Chip } from "@heroui/react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../Settings";
 import type { PublicDeckDTO } from "../../../services/deckService";
-import { DeckModal } from "../LabsPage/ViewDeckModal";
+import { useNavigate, useSearchParams } from "react-router";
 
 export function DeckCard({ data }: { data: PublicDeckDTO }) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
-    const [modalOpen, setModalOpen] = useState(false);
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     const handleClick = () => {
-        setModalOpen(true);
+        navigate({
+            pathname: `/decks/${data.id}/view`,
+            search: searchParams.toString() ? `?${searchParams.toString()}` : "",
+        });
     };
 
     return (
@@ -66,7 +69,6 @@ export function DeckCard({ data }: { data: PublicDeckDTO }) {
                     </Group>
                 </CardBody>
             </Card>
-            <DeckModal isOpen={modalOpen} onOpenChange={setModalOpen} deck={data} />
         </div>
     );
 }

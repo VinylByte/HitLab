@@ -41,7 +41,7 @@ export const Pages = [
     },
     {
         name: "DecksById",
-        to: "/decks/:deckId",
+        to: "/decks/:deckId/view",
         location: "none",
         page: (
             <Suspense fallback={<Loader />}>
@@ -67,6 +67,16 @@ export const ProtectedPages = [
         name: "Lab",
         to: "/lab",
         location: "header",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <LabsPage />
+            </Suspense>
+        ),
+    },
+    {
+        name: "LabDeckView",
+        to: "/lab/:deckId/view",
+        location: "none",
         page: (
             <Suspense fallback={<Loader />}>
                 <LabsPage />
