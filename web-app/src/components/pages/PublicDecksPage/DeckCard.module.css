@@ -15,7 +15,7 @@
 }
 
 .image {
-    width: 9rem;
+    width: 14rem;
     height: 8em;
     object-fit: cover;
     overflow: hidden;
@@ -27,12 +27,6 @@
     }
 }
 
-.coverImage {
-    object-fit: cover;
-    max-width: 400px;
-    max-height: 250px;
-}
-
 .title {
     font-weight: 500;
     font-family: Outfit, var(--mantine-font-family);
@@ -42,7 +36,7 @@
 
 .body {
     padding: var(--mantine-spacing-md);
-    width: 70%;
+    width: 50%;
     @mixin smaller-than 755px {
         width: 100%;
     }
