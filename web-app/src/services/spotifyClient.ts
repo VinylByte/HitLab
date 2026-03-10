@@ -209,11 +209,11 @@ export async function startPlayback(trackId: string, deviceId?: string) {
                 accessTokenStr,
                 "/me/player/devices"
             );
-            targetDevice = devices.find(d => d.is_active)?.id ?? undefined;
+            targetDevice = devices.find(d => d.is_active)?.id ?? devices[0]?.id ?? undefined;
             if (!targetDevice) {
                 throw new SpotifyApiError(
                     "NO_ACTIVE_DEVICE",
-                    "Kein aktives Spotify-Gerät gefunden."
+                    "Kein Spotify-Gerät gefunden. Bitte Spotify auf einem Gerät öffnen."
                 );
             }
         }

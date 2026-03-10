@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Center, Container, Stack, Text } from "@mantine/core";
+import { Center, Container, Stack } from "@mantine/core";
 import { Button, Image, Slider } from "@heroui/react";
 import { IconPlayerPause, IconPlayerPlay } from "@tabler/icons-react";
 import {
@@ -7,8 +7,6 @@ import {
     pausePlayback,
     resumePlayback,
     getPlaybackState,
-    getTrack,
-    type SpotifyTrack,
 } from "../../../../../services/spotifyClient";
 import { SpotifyApiError } from "../../../../../services/spotifyErrorMapper";
 import "./PlayerElement.css";
@@ -20,7 +18,6 @@ export default function PlayerElement({
     currentTrackId: string | null;
     onError?: (message: string) => void;
 }) {
-    const [track, setTrack] = useState<SpotifyTrack | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [loading, setLoading] = useState(false);
     const [progressMs, setProgressMs] = useState(0);
@@ -53,12 +50,8 @@ export default function PlayerElement({
             setDurationMs(0);
 
             try {
-                const [trackInfo] = await Promise.all([
-                    getTrack(currentTrackId),
-                    startPlayback(currentTrackId),
-                ]);
+                await startPlayback(currentTrackId);
                 if (cancelled) return;
-                setTrack(trackInfo);
                 setIsPlaying(true);
 
                 const state = await getPlaybackState();
@@ -67,7 +60,10 @@ export default function PlayerElement({
                     setProgressMs(state.progress_ms);
                 }
             } catch (err) {
-                if (!cancelled) reportError(err);
+                if (!cancelled) {
+                    lastTrackIdRef.current = null;
+                    reportError(err);
+                }
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -128,14 +124,6 @@ export default function PlayerElement({
         return () => window.clearInterval(pollId);
     }, [isPlaying]);
 
-    const formatTime = (ms: number) => {
-        const totalSec = Math.floor(ms / 1000);
-        const min = Math.floor(totalSec / 60);
-        const sec = totalSec % 60;
-        return `${min}:${sec.toString().padStart(2, "0")}`;
-    };
-
-    const coverUrl = track?.thumbnail_url ?? "/UnknownSong.png";
     const progressPct = durationMs > 0 ? (progressMs / durationMs) * 100 : 0;
 
     return (
@@ -144,7 +132,7 @@ export default function PlayerElement({
                 <Stack>
                     <Center>
                         <Image
-                            src={coverUrl}
+                            src="/UnknownSong.png"
                             alt="Track cover"
                             className={
                                 "cover-image w-50 h-50 object-cover transition-[filter,opacity] duration-500 " +
@@ -152,18 +140,6 @@ export default function PlayerElement({
                             }
                         />
                     </Center>
-                    {track && (
-                        <Center>
-                            <Stack gap={2} align="center">
-                                <Text fw={600} size="lg" lineClamp={1}>
-                                    {track.title}
-                                </Text>
-                                <Text c="dimmed" size="sm" lineClamp={1}>
-                                    {track.artist}
-                                </Text>
-                            </Stack>
-                        </Center>
-                    )}
                     <Slider
                         aria-label="Player progress"
                         className="w-full mt-6"
@@ -171,16 +147,6 @@ export default function PlayerElement({
                         value={progressPct}
                         hideThumb={true}
                     />
-                    {durationMs > 0 && (
-                        <div className="flex justify-between px-1 -mt-2">
-                            <Text size="xs" c="dimmed">
-                                {formatTime(progressMs)}
-                            </Text>
-                            <Text size="xs" c="dimmed">
-                                {formatTime(durationMs)}
-                            </Text>
-                        </div>
-                    )}
                     <Center>
                         <Button
                             isIconOnly
