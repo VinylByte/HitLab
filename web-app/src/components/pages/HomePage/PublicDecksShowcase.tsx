@@ -51,9 +51,9 @@ export function PublicDecksShowcase() {
                 className="w-full"
             >
                 <Carousel
-                    slideSize={{sm: "33.333%", md: "17%" }}
+                    slideSize={{ sm: "33.333%", md: "17%" }}
                     slideGap={"md"}
-                    emblaOptions={{ loop: true}}
+                    emblaOptions={{ loop: true }}
                     plugins={[autoplay.current]}
                     draggable
                     withControls={false}
@@ -75,7 +75,11 @@ export function PublicDecksShowcase() {
                               </Carousel.Slide>
                           ))
                         : displayDecks.map(deck => (
-                              <Carousel.Slide key={deck.id} onClick={() => navigate(`/decks/${deck.id}`)}>
+                              <Carousel.Slide
+                                  key={deck.id}
+                                  onClick={() => navigate(`/decks/${deck.id}/view`)}
+                                  className="cursor-pointer"
+                              >
                                   <Image
                                       src={deck.cover_url ?? undefined}
                                       alt={deck.name}

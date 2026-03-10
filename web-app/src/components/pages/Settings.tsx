@@ -14,7 +14,7 @@ const GeneralPlayPage = lazy(() => import("./PlayPage/GeneralPlayPage"));
 
 const Loader = () => (
     <div className="flex items-center justify-center h-screen">
-        <Spinner variant="wave"/>
+        <Spinner variant="wave" />
     </div>
 );
 
@@ -40,6 +40,16 @@ export const Pages = [
         ),
     },
     {
+        name: "DecksById",
+        to: "/decks/:deckId/view",
+        location: "none",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <PublicDecksPageWrapper />
+            </Suspense>
+        ),
+    },
+    {
         name: "Spielen",
         to: "/play",
         location: "header",
@@ -57,6 +67,16 @@ export const ProtectedPages = [
         name: "Lab",
         to: "/lab",
         location: "header",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <LabsPage />
+            </Suspense>
+        ),
+    },
+    {
+        name: "LabDeckView",
+        to: "/lab/:deckId/view",
+        location: "none",
         page: (
             <Suspense fallback={<Loader />}>
                 <LabsPage />

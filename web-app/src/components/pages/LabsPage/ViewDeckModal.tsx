@@ -33,7 +33,7 @@ export function DeckModal({
 }: {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
-    deck: OwnDeckDTO | null;
+    deck: OwnDeckDTO | PublicDeckDTO | null;
 }) {
     const activeDeck = deck;
     const deckId = activeDeck?.id ?? "";
