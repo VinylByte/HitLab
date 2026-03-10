@@ -72,6 +72,45 @@ export async function fetchPublicDecks(
     return { decks, totalCount: count ?? 0 };
 }
 
+/** Fetches a single public deck by id for deep-link use cases. */
+export async function fetchPublicDeckById(deckId: string): Promise<PublicDeckDTO | null> {
+    const { data, error } = await supabase
+        .from("decks")
+        .select(
+            `
+            id,
+            name,
+            description,
+            cover_url,
+            created_at,
+            profiles!owner_id ( display_name, avatar_url ),
+            deck_tags ( tags ( id, name ) )
+            `
+        )
+        .eq("id", deckId)
+        .eq("visibility", "public")
+        .is("deleted_at", null)
+        .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+
+    return {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        cover_url: data.cover_url,
+        created_at: new Date(data.created_at).toLocaleDateString("de-DE"),
+        owner: data.profiles ?? { display_name: null, avatar_url: null },
+        tags: (data.deck_tags ?? [])
+            .map((dt: { tags: { id: string; name: string } | null }) => ({
+                id: dt.tags!.id,
+                name: dt.tags!.name,
+            }))
+            .filter((tag): tag is DeckTag => tag !== null),
+    };
+}
+
 /** Song info embedded in a deck song */
 export type Song = {
     id: string;
