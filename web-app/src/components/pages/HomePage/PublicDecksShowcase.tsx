@@ -1,29 +1,12 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Container, Title, Text, SimpleGrid, Group } from "@mantine/core";
+import { Container, Title, Text, Group } from "@mantine/core";
+import { Carousel } from "@mantine/carousel";
 import { usePublicDecks } from "../../../hooks/usePublicDecks";
 import { Card, CardBody, Image, Avatar, Chip, Skeleton } from "@heroui/react";
 import { useNavigate } from "react-router";
 import { Button } from "@heroui/react";
 import { IconArrowRight } from "@tabler/icons-react";
-
-const containerVariants = {
-    hidden: {},
-    visible: {
-        transition: {
-            staggerChildren: 0.15,
-        },
-    },
-};
-
-const cardVariants = {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.6, ease: "easeOut" as const },
-    },
-};
 
 export function PublicDecksShowcase() {
     const ref = useRef(null);
@@ -31,7 +14,7 @@ export function PublicDecksShowcase() {
     const { decks, loading } = usePublicDecks("", 1);
     const navigate = useNavigate();
 
-    const displayDecks = decks.slice(0, 4);
+    const displayDecks = decks.slice(0, 8);
 
     return (
         <section className="py-24" ref={ref}>
@@ -57,14 +40,24 @@ export function PublicDecksShowcase() {
                 </motion.div>
 
                 <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate={isInView ? "visible" : "hidden"}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                    <SimpleGrid cols={{ base: 2, sm: 2, md: 4 }} spacing={0}>
+                    <Carousel
+                        slideSize={{ base: "50%", sm: "33.333%", md: "25%" }}
+                        slideGap={0}
+                        emblaOptions={{ loop: true, slidesToScroll: 1 }}
+                        withControls
+                        withIndicators
+                        classNames={{
+                            control: "bg-white/80 dark:bg-default-100/80 border border-default-200/50 shadow-md",
+                            indicators: "mt-6",
+                        }}
+                    >
                         {loading
-                            ? Array.from({ length: 4 }).map((_, i) => (
-                                  <motion.div key={i} variants={cardVariants}>
+                            ? Array.from({ length: 8 }).map((_, i) => (
+                                  <Carousel.Slide key={i}>
                                       <Card radius="none" className="bg-white/60 dark:bg-default-100/10 border border-default-200/50 dark:border-default-100/10 h-full">
                                           <CardBody className="p-0 flex flex-col">
                                               <Skeleton className="w-full aspect-square rounded-none" />
@@ -78,10 +71,10 @@ export function PublicDecksShowcase() {
                                               </div>
                                           </CardBody>
                                       </Card>
-                                  </motion.div>
+                                  </Carousel.Slide>
                               ))
                             : displayDecks.map((deck) => (
-                                  <motion.div key={deck.id} variants={cardVariants} className="h-full">
+                                  <Carousel.Slide key={deck.id}>
                                       <Card
                                           radius="none"
                                           isPressable
@@ -138,9 +131,9 @@ export function PublicDecksShowcase() {
                                               </div>
                                           </CardBody>
                                       </Card>
-                                  </motion.div>
+                                  </Carousel.Slide>
                               ))}
-                    </SimpleGrid>
+                    </Carousel>
                 </motion.div>
 
                 <motion.div

@@ -8,6 +8,7 @@ import { createTheme, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 // ‼️ import dropzone styles after core package styles
 import "@mantine/dropzone/styles.css";
+import "@mantine/carousel/styles.css";
 
 // Mantine theme configuration
 const mantineTheme = createTheme({});
