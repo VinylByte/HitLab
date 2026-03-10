@@ -232,6 +232,62 @@ export async function startPlayback(trackId: string, deviceId?: string) {
     }
 }
 
+export async function pausePlayback(): Promise<void> {
+    const { accessTokenStr } = await getSpotifyAuthSession();
+    try {
+        await spotifyFetch<void>(accessTokenStr, "/me/player/pause", {
+            method: "PUT",
+        });
+    } catch (error) {
+        console.error("[spotify] pausePlayback failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
+export async function resumePlayback(): Promise<void> {
+    const { accessTokenStr } = await getSpotifyAuthSession();
+    try {
+        await spotifyFetch<void>(accessTokenStr, "/me/player/play", {
+            method: "PUT",
+        });
+    } catch (error) {
+        console.error("[spotify] resumePlayback failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
+export type PlaybackState = {
+    is_playing: boolean;
+    progress_ms: number;
+    duration_ms: number;
+    item: SpotifyTrackApi | null;
+};
+
+export async function getPlaybackState(): Promise<PlaybackState | null> {
+    const { accessTokenStr } = await getSpotifyAuthSession();
+    try {
+        const state = await spotifyFetch<PlaybackState | undefined>(accessTokenStr, "/me/player");
+        return state ?? null;
+    } catch (error) {
+        console.error("[spotify] getPlaybackState failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
+export async function getTrack(trackId: string): Promise<SpotifyTrack> {
+    const { accessTokenStr } = await getSpotifyAuthSession();
+    try {
+        const item = await spotifyFetch<SpotifyTrackApi>(
+            accessTokenStr,
+            `/tracks/${encodeURIComponent(trackId)}`
+        );
+        return toSpotifyTrack(item);
+    } catch (error) {
+        console.error("[spotify] getTrack failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
 export type SpotifyTrack = {
     spotify_track_id: string;
     title: string;

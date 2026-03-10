@@ -1,15 +1,16 @@
 import { Button } from "@heroui/react";
 import QRScannerModal from "./QRScanner/QRScannerElement";
-import { useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../Settings";
 import PlayerElement from "./Player/PlayerElement";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { IconScan } from "@tabler/icons-react";
-import { Stack } from "@mantine/core";
+import { Stack, Text } from "@mantine/core";
 
 export default function AuthorisedPlayPage() {
     const [scannerOpen, setScannerOpen] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const navigate = useNavigate();
 
@@ -28,8 +29,13 @@ export default function AuthorisedPlayPage() {
 
     const onScan = (result: string) => {
         setScannerOpen(false);
+        setErrorMsg(null);
         navigate(result.replace(window.location.origin, ""));
     };
+
+    const onPlayerError = useCallback((msg: string) => {
+        setErrorMsg(msg);
+    }, []);
 
     const currentTrackId = useMemo(() => {
         return (
@@ -55,7 +61,12 @@ export default function AuthorisedPlayPage() {
                 justify="center"
                 style={{ overflow: "hidden", width: "100%" }}
             >
-                <PlayerElement currentTrackId={currentTrackId} />
+                <PlayerElement currentTrackId={currentTrackId} onError={onPlayerError} />
+                {errorMsg && (
+                    <Text c="red" ta="center" size="sm">
+                        {errorMsg}
+                    </Text>
+                )}
                 <Button
                     startContent={<IconScan size={20} />}
                     color="primary"
