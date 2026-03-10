@@ -104,7 +104,7 @@ export function FeaturesSection() {
                             <motion.div
                                 key={feature.title}
                                 variants={itemVariants}
-                                className="p-8 rounded-2xl bg-white/60 dark:bg-default-100/10 border border-default-200/50 dark:border-default-100/10 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-800/30 transition-all duration-300"
+                                className="p-8 rounded-2xl bg-white/60 dark:bg-default-100/10 border border-default-200/50 dark:border-default-100/10 hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-800/30 transition-all duration-300 text-center flex flex-col items-center"
                             >
                                 <div className="w-14 h-14 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-500 mb-5">
                                     {feature.icon}

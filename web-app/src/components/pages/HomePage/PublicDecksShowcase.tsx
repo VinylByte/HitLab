@@ -61,84 +61,81 @@ export function PublicDecksShowcase() {
                     initial="hidden"
                     animate={isInView ? "visible" : "hidden"}
                 >
-                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="xl">
                         {loading
                             ? Array.from({ length: 4 }).map((_, i) => (
                                   <motion.div key={i} variants={cardVariants}>
-                                      <Card radius="lg" className="bg-white/60 dark:bg-default-100/10 border border-default-200/50 dark:border-default-100/10">
-                                          <CardBody>
-                                              <Group>
-                                                  <Skeleton className="w-36 h-24 rounded-lg" />
-                                                  <div className="flex-1">
-                                                      <Skeleton className="h-5 w-3/4 mb-3 rounded-md" />
-                                                      <Skeleton className="h-4 w-1/2 mb-2 rounded-md" />
-                                                      <Group gap={7}>
-                                                          <Skeleton className="w-8 h-8 rounded-full" />
-                                                          <Skeleton className="h-3 w-20 rounded-md" />
-                                                      </Group>
-                                                  </div>
-                                              </Group>
+                                      <Card radius="lg" className="bg-white/60 dark:bg-default-100/10 border border-default-200/50 dark:border-default-100/10 h-full">
+                                          <CardBody className="p-0 flex flex-col">
+                                              <Skeleton className="w-full h-48 rounded-t-lg rounded-b-none" />
+                                              <div className="p-5 flex-1">
+                                                  <Skeleton className="h-5 w-3/4 mb-3 rounded-md" />
+                                                  <Skeleton className="h-4 w-1/2 mb-4 rounded-md" />
+                                                  <Group gap={7}>
+                                                      <Skeleton className="w-8 h-8 rounded-full" />
+                                                      <Skeleton className="h-3 w-20 rounded-md" />
+                                                  </Group>
+                                              </div>
                                           </CardBody>
                                       </Card>
                                   </motion.div>
                               ))
                             : displayDecks.map((deck) => (
-                                  <motion.div key={deck.id} variants={cardVariants}>
+                                  <motion.div key={deck.id} variants={cardVariants} className="h-full">
                                       <Card
                                           radius="lg"
                                           isPressable
                                           onPress={() => navigate("/decks")}
-                                          className="bg-white/60 dark:bg-default-100/10 border border-default-200/50 dark:border-default-100/10 hover:shadow-lg transition-all duration-300"
+                                          className="bg-white/60 dark:bg-default-100/10 border border-default-200/50 dark:border-default-100/10 hover:shadow-lg transition-all duration-300 h-full"
                                       >
-                                          <CardBody>
-                                              <Group>
-                                                  <Image
-                                                      src={deck.cover_url ?? undefined}
-                                                      alt={deck.name}
-                                                      className="w-36 h-24 object-cover rounded-lg"
-                                                  />
-                                                  <div className="flex-1 min-w-0">
-                                                      <Text
-                                                          fw={600}
-                                                          size="lg"
-                                                          className="truncate"
-                                                          style={{
-                                                              fontFamily:
-                                                                  "Outfit, var(--mantine-font-family)",
-                                                          }}
-                                                      >
-                                                          {deck.name}
-                                                      </Text>
-                                                      <Group gap={5} mt={4} mb={8} wrap="wrap">
-                                                          {deck.tags.slice(0, 3).map((tag) => (
-                                                              <Chip
-                                                                  key={tag.id}
-                                                                  color="primary"
-                                                                  size="sm"
-                                                              >
-                                                                  <Text
-                                                                      tt="uppercase"
-                                                                      size="xs"
-                                                                  >
-                                                                      {tag.name}
-                                                                  </Text>
-                                                              </Chip>
-                                                          ))}
-                                                      </Group>
-                                                      <Group gap={7}>
-                                                          <Avatar
+                                          <CardBody className="p-0 flex flex-col">
+                                              <Image
+                                                  src={deck.cover_url ?? undefined}
+                                                  alt={deck.name}
+                                                  className="w-full h-48 object-cover rounded-t-lg rounded-b-none"
+                                                  removeWrapper
+                                              />
+                                              <div className="p-5 flex-1 flex flex-col">
+                                                  <Text
+                                                      fw={600}
+                                                      size="lg"
+                                                      className="truncate"
+                                                      style={{
+                                                          fontFamily:
+                                                              "Outfit, var(--mantine-font-family)",
+                                                      }}
+                                                  >
+                                                      {deck.name}
+                                                  </Text>
+                                                  <Group gap={5} mt={4} mb={8} wrap="wrap">
+                                                      {deck.tags.slice(0, 3).map((tag) => (
+                                                          <Chip
+                                                              key={tag.id}
+                                                              color="primary"
                                                               size="sm"
-                                                              src={
-                                                                  deck.owner.avatar_url ??
-                                                                  undefined
-                                                              }
-                                                          />
-                                                          <Text size="xs" c="dimmed">
-                                                              {deck.owner.display_name}
-                                                          </Text>
-                                                      </Group>
-                                                  </div>
-                                              </Group>
+                                                          >
+                                                              <Text
+                                                                  tt="uppercase"
+                                                                  size="xs"
+                                                              >
+                                                                  {tag.name}
+                                                              </Text>
+                                                          </Chip>
+                                                      ))}
+                                                  </Group>
+                                                  <Group gap={7} className="mt-auto">
+                                                      <Avatar
+                                                          size="sm"
+                                                          src={
+                                                              deck.owner.avatar_url ??
+                                                              undefined
+                                                          }
+                                                      />
+                                                      <Text size="xs" c="dimmed">
+                                                          {deck.owner.display_name}
+                                                      </Text>
+                                                  </Group>
+                                              </div>
                                           </CardBody>
                                       </Card>
                                   </motion.div>
