@@ -1,50 +1,140 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Center, Container, Stack } from "@mantine/core";
 import { Button, Image, Slider } from "@heroui/react";
 import { IconPlayerPause, IconPlayerPlay } from "@tabler/icons-react";
+import {
+    startPlayback,
+    pausePlayback,
+    resumePlayback,
+    getPlaybackState,
+} from "../../../../../services/spotifyClient";
+import { SpotifyApiError } from "../../../../../services/spotifyErrorMapper";
 import "./PlayerElement.css";
 
-export default function PlayerElement({ currentTrackId }: { currentTrackId: string | null }) {
-    const [loadingSong, setLoadingSong] = useState(true);
-    // Time in Seconds
-    const [currentTrackTime, setCurrentTrackTime] = useState(0);
-    const [totalTrackTime] = useState(100);
-
+export default function PlayerElement({
+    currentTrackId,
+    onError,
+}: {
+    currentTrackId: string | null;
+    onError?: (message: string) => void;
+}) {
     const [isPlaying, setIsPlaying] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [progressMs, setProgressMs] = useState(0);
+    const [durationMs, setDurationMs] = useState(0);
+    const lastTrackIdRef = useRef<string | null>(null);
 
-    const togglePlay = () => {
-        setIsPlaying(!isPlaying);
-    };
+    const reportError = useCallback(
+        (err: unknown) => {
+            const msg =
+                err instanceof SpotifyApiError
+                    ? err.message
+                    : err instanceof Error
+                      ? err.message
+                      : "Unbekannter Fehler";
+            console.error("[player]", msg);
+            onError?.(msg);
+        },
+        [onError]
+    );
 
     useEffect(() => {
-        if (!isPlaying) {
-            return;
+        if (!currentTrackId || currentTrackId === lastTrackIdRef.current) return;
+
+        let cancelled = false;
+        const play = async () => {
+            lastTrackIdRef.current = currentTrackId;
+            setLoading(true);
+            setIsPlaying(false);
+            setProgressMs(0);
+            setDurationMs(0);
+
+            try {
+                await startPlayback(currentTrackId);
+                if (cancelled) return;
+                setIsPlaying(true);
+
+                const state = await getPlaybackState();
+                if (!cancelled && state) {
+                    setDurationMs(state.duration_ms);
+                    setProgressMs(state.progress_ms);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    lastTrackIdRef.current = null;
+                    reportError(err);
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+        void play();
+        return () => {
+            cancelled = true;
+            lastTrackIdRef.current = null;
+        };
+    }, [currentTrackId, reportError]);
+
+    const togglePlay = useCallback(async () => {
+        try {
+            if (isPlaying) {
+                await pausePlayback();
+                setIsPlaying(false);
+            } else {
+                await resumePlayback();
+                setIsPlaying(true);
+            }
+        } catch {
+            try {
+                const state = await getPlaybackState();
+                if (state) {
+                    setIsPlaying(state.is_playing);
+                    setProgressMs(state.progress_ms);
+                    setDurationMs(state.duration_ms);
+                }
+            } catch {
+                // ignore sync errors
+            }
         }
+    }, [isPlaying]);
+
+    useEffect(() => {
+        if (!isPlaying || durationMs <= 0) return;
 
         const intervalId = window.setInterval(() => {
-            setCurrentTrackTime(prevTime => {
-                if (totalTrackTime <= 0) {
-                    return prevTime;
+            setProgressMs(prev => {
+                const next = prev + 1000;
+                if (next >= durationMs) {
+                    setIsPlaying(false);
+                    return durationMs;
                 }
-
-                return Math.min(prevTime + 1, totalTrackTime);
+                return next;
             });
         }, 1000);
 
-        return () => {
-            window.clearInterval(intervalId);
-        };
-    }, [isPlaying, totalTrackTime]);
+        return () => window.clearInterval(intervalId);
+    }, [isPlaying, durationMs]);
 
     useEffect(() => {
-        if (totalTrackTime > 0 && currentTrackTime >= totalTrackTime && isPlaying) {
-            setIsPlaying(false);
-        }
-    }, [currentTrackTime, isPlaying, totalTrackTime]);
+        if (!currentTrackId) return;
 
-    useEffect(() => {
-        setLoadingSong(!currentTrackId);
+        const pollId = window.setInterval(async () => {
+            try {
+                const state = await getPlaybackState();
+                if (state) {
+                    setProgressMs(state.progress_ms);
+                    setDurationMs(state.duration_ms);
+                    setIsPlaying(state.is_playing);
+                }
+            } catch {
+                // ignore polling errors
+            }
+        }, 5000);
+
+        return () => window.clearInterval(pollId);
     }, [currentTrackId]);
+
+    const progressPct = durationMs > 0 ? (progressMs / durationMs) * 100 : 0;
 
     return (
         <div>
@@ -64,7 +154,7 @@ export default function PlayerElement({ currentTrackId }: { currentTrackId: stri
                         aria-label="Player progress"
                         className="w-full mt-6"
                         color="primary"
-                        value={totalTrackTime > 0 ? (currentTrackTime / totalTrackTime) * 100 : 0}
+                        value={progressPct}
                         hideThumb={true}
                     />
                     <Center>
@@ -74,7 +164,8 @@ export default function PlayerElement({ currentTrackId }: { currentTrackId: stri
                             className="w-15 h-15"
                             radius="full"
                             onPress={togglePlay}
-                            isLoading={loadingSong}
+                            isLoading={loading}
+                            isDisabled={!currentTrackId}
                         >
                             {isPlaying ? <IconPlayerPause /> : <IconPlayerPlay />}
                         </Button>

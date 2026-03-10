@@ -17,13 +17,7 @@ import {
     DropdownMenu,
     Button,
 } from "@heroui/react";
-import {
-    IconDotsVertical,
-    IconEdit,
-    IconEye,
-    IconPlus,
-    IconTrash,
-} from "@tabler/icons-react";
+import { IconDotsVertical, IconEdit, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
 import { Center, Group } from "@mantine/core";
 import SearchBar from "../PublicDecksPage/SearchBarProp";
 import { useMediaQuery } from "@mantine/hooks";
@@ -51,7 +45,7 @@ export default function DecksTable({
 }) {
     const [sortKey, setSortKey] = useState<string>("created_at");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-    const [searchParams,] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
 
     const columns = useMemo(() => {
