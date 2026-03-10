@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Container, Title, Text, Group, ActionIcon } from "@mantine/core";
+import { Container, Title, Text, Group, ActionIcon, Center } from "@mantine/core";
 import {
     IconMail,
     IconBrandInstagram,
@@ -46,10 +46,12 @@ export function ContactSection() {
                     >
                         Kontakt
                     </Title>
-                    <Text size="lg" c="dimmed" mt="md" className="max-w-xl mx-auto">
+                    <Center>
+                        <Text size="lg" c="dimmed" mt="md" className="max-w-xl mx-auto">
                         Hast du Fragen, Feedback oder Vorschläge? Wir freuen uns von dir
                         zu hören!
                     </Text>
+                    </Center>
                 </motion.div>
 
                 <motion.div

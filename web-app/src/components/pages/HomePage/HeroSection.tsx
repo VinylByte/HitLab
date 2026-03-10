@@ -12,10 +12,10 @@ export function HeroSection() {
     const location = useLocation();
 
     return (
-        <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+        <section className="relative min-h-screen flex items-center overflow-hidden">
             {/* Background image */}
             <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat h-screen"
                 style={{ backgroundImage: "url('/PeoplePlayingHitLab.png')" }}
             />
             {/* Dark overlay for text readability */}
@@ -75,7 +75,7 @@ export function HeroSection() {
                             startContent={<IconCards size={20} />}
                             className="text-lg px-8 py-6 !border-white/50 !text-white hover:!bg-white/10"
                             onPress={() =>
-                                navigate("/login", { state: { from: location } })
+                                navigate("/lab", { state: { from: location } })
                             }
                         >
                             Deck erstellen

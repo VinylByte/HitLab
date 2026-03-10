@@ -1,6 +1,6 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { Container, Title, Text, SimpleGrid } from "@mantine/core";
+import { Container, Title, Text, SimpleGrid, Center } from "@mantine/core";
 import {
     IconMusic,
     IconUsers,
@@ -32,20 +32,17 @@ const features = [
     {
         icon: <IconUsers size={32} />,
         title: "Gemeinsam erstellen",
-        description:
-            "Lade Freunde ein, um gemeinsam an eurem perfekten Deck zu arbeiten.",
+        description: "Lade Freunde ein, um gemeinsam an eurem perfekten Deck zu arbeiten.",
     },
     {
         icon: <IconMusic size={32} />,
         title: "QR-Code Abspielen",
-        description:
-            "Scanne die QR-Codes auf den Karten und spiele die Songs direkt auf unserer Seite ab.",
+        description: "Scanne die QR-Codes auf den Karten und spiele die Songs direkt ab.",
     },
     {
         icon: <IconWorld size={32} />,
         title: "Decks teilen",
-        description:
-            "Veröffentliche deine Decks und entdecke die besten Kreationen der Community.",
+        description: "Veröffentliche deine Decks und entdecke die besten Kreationen der Community.",
     },
 ];
 
@@ -85,13 +82,14 @@ export function FeaturesSection() {
                         className="!text-3xl sm:!text-4xl !font-bold"
                         style={{ fontFamily: "Outfit, var(--mantine-font-family)" }}
                     >
-                        So funktioniert{" "}
-                        <span className="text-primary-500">HitLab</span>
+                        So funktioniert <span className="text-primary-500">HitLab</span>
                     </Title>
-                    <Text size="lg" c="dimmed" mt="md" className="max-w-2xl mx-auto">
-                        HitLab macht es einfach, dein eigenes Hitster-Spiel zu erstellen.
-                        Von der Songauswahl bis zum Spieleabend – alles in wenigen Schritten.
-                    </Text>
+                    <Center>
+                        <Text size="lg" c="dimmed" mt="md" className="max-w-2xl mx-auto">
+                            HitLab macht es einfach, dein eigenes Hitster-Spiel zu erstellen. Von
+                            der Songauswahl bis zum Spieleabend – alles in wenigen Schritten.
+                        </Text>
+                    </Center>
                 </motion.div>
 
                 <motion.div
@@ -100,7 +98,7 @@ export function FeaturesSection() {
                     animate={isInView ? "visible" : "hidden"}
                 >
                     <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
-                        {features.map((feature) => (
+                        {features.map(feature => (
                             <motion.div
                                 key={feature.title}
                                 variants={itemVariants}
