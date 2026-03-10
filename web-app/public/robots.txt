@@ -1,0 +1,7 @@
+# robots.txt for HitLab
+# Allow all crawlers
+User-agent: *
+Disallow:
+
+# Optional: set your sitemap URL by replacing the example below
+# Sitemap: https://your-domain.com/sitemap.xml
