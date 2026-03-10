@@ -1,5 +1,5 @@
 import supabase from "../supabase";
-import { mapSpotifyError, SpotifyApiError } from "./spotifyErrorMapper";
+import { mapSpotifyError } from "./spotifyErrorMapper";
 
 /**
  * Persists the Spotify OAuth token in the database so it survives page refreshes.
@@ -136,7 +136,14 @@ async function spotifyFetch<T>(accessToken: string, path: string, init?: Request
         return undefined as T;
     }
 
-    return (await response.json()) as T;
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+        return undefined as T;
+    }
+
+    const text = await response.text();
+    if (!text) return undefined as T;
+    return JSON.parse(text) as T;
 }
 
 function toSpotifyTrack(item: SpotifyTrackApi): SpotifyTrack {
@@ -210,22 +217,16 @@ export async function startPlayback(trackId: string, deviceId?: string) {
                 "/me/player/devices"
             );
             targetDevice = devices.find(d => d.is_active)?.id ?? devices[0]?.id ?? undefined;
-            if (!targetDevice) {
-                throw new SpotifyApiError(
-                    "NO_ACTIVE_DEVICE",
-                    "Kein Spotify-Gerät gefunden. Bitte Spotify auf einem Gerät öffnen."
-                );
-            }
         }
 
-        await spotifyFetch<void>(
-            accessTokenStr,
-            `/me/player/play?device_id=${encodeURIComponent(targetDevice)}`,
-            {
-                method: "PUT",
-                body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
-            }
-        );
+        const playPath = targetDevice
+            ? `/me/player/play?device_id=${encodeURIComponent(targetDevice)}`
+            : "/me/player/play";
+
+        await spotifyFetch<void>(accessTokenStr, playPath, {
+            method: "PUT",
+            body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
+        });
     } catch (error) {
         console.error("[spotify] startPlayback failed", error);
         throw mapSpotifyError(error);

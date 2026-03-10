@@ -83,10 +83,19 @@ export default function PlayerElement({
                 await resumePlayback();
                 setIsPlaying(true);
             }
-        } catch (err) {
-            reportError(err);
+        } catch {
+            try {
+                const state = await getPlaybackState();
+                if (state) {
+                    setIsPlaying(state.is_playing);
+                    setProgressMs(state.progress_ms);
+                    setDurationMs(state.duration_ms);
+                }
+            } catch {
+                // ignore sync errors
+            }
         }
-    }, [isPlaying, reportError]);
+    }, [isPlaying]);
 
     useEffect(() => {
         if (!isPlaying || durationMs <= 0) return;
@@ -106,7 +115,7 @@ export default function PlayerElement({
     }, [isPlaying, durationMs]);
 
     useEffect(() => {
-        if (!isPlaying) return;
+        if (!currentTrackId) return;
 
         const pollId = window.setInterval(async () => {
             try {
@@ -122,7 +131,7 @@ export default function PlayerElement({
         }, 5000);
 
         return () => window.clearInterval(pollId);
-    }, [isPlaying]);
+    }, [currentTrackId]);
 
     const progressPct = durationMs > 0 ? (progressMs / durationMs) * 100 : 0;
 
