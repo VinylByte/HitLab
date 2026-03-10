@@ -1,15 +1,17 @@
-import { Stack } from "@mantine/core";
-import { HeroHeader } from "./HeroHeader";
-import { FaqPart } from "./FaqPart";
-
+import { HeroSection } from "./HeroSection";
+import { FeaturesSection } from "./FeaturesSection";
+import { PublicDecksShowcase } from "./PublicDecksShowcase";
+import { FaqSection } from "./FaqSection";
+import { ContactSection } from "./ContactSection";
 
 export default function HomePage() {
     return (
-        <div className="home-page">
-            <Stack w={"100%"}>
-                <HeroHeader/>
-                <FaqPart/>
-            </Stack>
+        <div className="home-page w-full overflow-x-hidden">
+            <HeroSection />
+            <FeaturesSection />
+            <PublicDecksShowcase />
+            <FaqSection />
+            <ContactSection />
         </div>
     );
 }
