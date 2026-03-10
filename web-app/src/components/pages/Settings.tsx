@@ -1,24 +1,98 @@
+import React, { Suspense, lazy } from "react";
 import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/icons-react";
-import HomePage from "./HomePage/HomePage";
-import PublicDecksPageWrapper from "./PublicDecksPage/PublicDecksPage";
-import LabsPage from "./LabsPage/LabsPage";
-import CreateDeckPage from "./LabsPage/EditAndCreatePage/CreateDeckPage";
-import EditDeckPage from "./LabsPage/EditAndCreatePage/EditDeckPage";
-import EditSongsPage from "./LabsPage/EditAndCreatePage/EditSongsPage/EditSongsPage";
-import GeneralPlayPage from "./PlayPage/GeneralPlayPage";
+import { Spinner } from "@heroui/react";
+
+const HomePage = lazy(() => import("./HomePage/HomePage"));
+const PublicDecksPageWrapper = lazy(() => import("./PublicDecksPage/PublicDecksPage"));
+const LabsPage = lazy(() => import("./LabsPage/LabsPage"));
+const CreateDeckPage = lazy(() => import("./LabsPage/EditAndCreatePage/CreateDeckPage"));
+const EditDeckPage = lazy(() => import("./LabsPage/EditAndCreatePage/EditDeckPage"));
+const EditSongsPage = lazy(
+    () => import("./LabsPage/EditAndCreatePage/EditSongsPage/EditSongsPage")
+);
+const GeneralPlayPage = lazy(() => import("./PlayPage/GeneralPlayPage"));
+
+const Loader = () => (
+    <div className="flex items-center justify-center h-screen">
+        <Spinner variant="wave"/>
+    </div>
+);
 
 export const Pages = [
-    { name: "Home", to: "/", location: "header", page: <HomePage /> },
-    { name: "Decks", to: "/decks", location: "header", page: <PublicDecksPageWrapper /> },
-    { name: "Spielen", to: "/play", location: "header", page: <GeneralPlayPage /> },
+    {
+        name: "Home",
+        to: "/",
+        location: "header",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <HomePage />
+            </Suspense>
+        ),
+    },
+    {
+        name: "Decks",
+        to: "/decks",
+        location: "header",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <PublicDecksPageWrapper />
+            </Suspense>
+        ),
+    },
+    {
+        name: "Spielen",
+        to: "/play",
+        location: "header",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <GeneralPlayPage />
+            </Suspense>
+        ),
+    },
 ];
 
 export const ProtectedPages = [
     { name: "Profile", to: "/profile", location: "avatar", page: <div>Profile</div> },
-    { name: "Lab", to: "/lab", location: "header", page: <LabsPage /> },
-    { name: "Create Deck", to: "/decks/new", location: "none", page: <CreateDeckPage /> },
-    { name: "Edit Deck", to: "/decks/:id/edit", location: "none", page: <EditDeckPage /> },
-    { name: "Edit Songs", to: "/decks/:id/songs", location: "none", page: <EditSongsPage /> },
+    {
+        name: "Lab",
+        to: "/lab",
+        location: "header",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <LabsPage />
+            </Suspense>
+        ),
+    },
+    {
+        name: "Create Deck",
+        to: "/decks/new",
+        location: "none",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <CreateDeckPage />
+            </Suspense>
+        ),
+    },
+    {
+        name: "Edit Deck",
+        to: "/decks/:id/edit",
+        location: "none",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <EditDeckPage />
+            </Suspense>
+        ),
+    },
+    {
+        name: "Edit Songs",
+        to: "/decks/:id/songs",
+        location: "none",
+        page: (
+            <Suspense fallback={<Loader />}>
+                <EditSongsPage />
+            </Suspense>
+        ),
+    },
 ];
 
 export const MOBILE_BREAKPOINT = "(max-width: 768px)";
