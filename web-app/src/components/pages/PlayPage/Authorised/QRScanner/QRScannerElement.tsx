@@ -12,7 +12,6 @@ export function QrScanner({ onScan }: { onScan: (result: string) => void }) {
     const readerId = useId().replace(/:/g, "");
     const isRunningRef = useRef(false);
     const isBusyRef = useRef(false);
-    const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
 
     useEffect(() => {
         onScanRef.current = onScan;
