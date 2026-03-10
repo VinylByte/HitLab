@@ -40,10 +40,10 @@ export default function PlayerElement({
 
     useEffect(() => {
         if (!currentTrackId || currentTrackId === lastTrackIdRef.current) return;
-        lastTrackIdRef.current = currentTrackId;
 
         let cancelled = false;
         const play = async () => {
+            lastTrackIdRef.current = currentTrackId;
             setLoading(true);
             setIsPlaying(false);
             setProgressMs(0);
@@ -71,6 +71,7 @@ export default function PlayerElement({
         void play();
         return () => {
             cancelled = true;
+            lastTrackIdRef.current = null;
         };
     }, [currentTrackId, reportError]);
 
