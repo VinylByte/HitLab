@@ -175,7 +175,7 @@ export default function DecksTable({
                                 <Group>
                                     <Tooltip content="Deck ansehen">
                                         <span
-                                            className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                                            className="text-lg text-primary-400 cursor-pointer active:opacity-50"
                                             onClick={() => viewDeck(deck)}
                                         >
                                             <IconEye />
@@ -183,7 +183,7 @@ export default function DecksTable({
                                     </Tooltip>
                                     <Tooltip content="Deck bearbeiten">
                                         <span
-                                            className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                                            className="text-lg text-secondary-400 cursor-pointer active:opacity-50"
                                             onClick={() => editDeck(deck)}
                                         >
                                             <IconEdit />
@@ -194,7 +194,7 @@ export default function DecksTable({
                                             className="text-lg text-danger cursor-pointer active:opacity-50"
                                             onClick={() => deleteDeck(deck)}
                                         >
-                                            <IconTrash />
+                                            <IconTrash/>
                                         </span>
                                     </Tooltip>
                                 </Group>

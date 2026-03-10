@@ -40,7 +40,7 @@ export default function AuthorisedPlayPage() {
     }, [currentTrackIdFromPath, searchParams]);
 
     return (
-        <div style={{ height: "90vh", overflow: "hidden" }}>
+        <div style={{ overflow: "hidden" }} className="h-screen">
             <QRScannerModal onScan={onScan} isOpen={scannerOpen} onOpenChange={setScannerOpen} />
             <Stack h={"100%"} style={{ overflow: "hidden" }}>
                 <PlayerElement currentTrackId={currentTrackId} />
