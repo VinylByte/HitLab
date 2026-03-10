@@ -87,7 +87,7 @@ export function PublicDecksShowcase() {
                                       <Card
                                           radius="lg"
                                           isPressable
-                                          onPress={() => navigate(`/decks?query=`)}
+                                          onPress={() => navigate("/decks")}
                                           className="bg-white/60 dark:bg-default-100/10 border border-default-200/50 dark:border-default-100/10 hover:shadow-lg transition-all duration-300"
                                       >
                                           <CardBody>

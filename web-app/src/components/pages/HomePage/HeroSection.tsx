@@ -4,7 +4,7 @@ import { Container, Title, Text } from "@mantine/core";
 import { useNavigate, useLocation } from "react-router";
 import {
     IconPlayerPlay,
-    IconFlask,
+    IconCards,
 } from "@tabler/icons-react";
 import image from "../../../assets/VinylByteLogo.png";
 
@@ -84,7 +84,7 @@ export function HeroSection() {
                             <Button
                                 size="lg"
                                 variant="bordered"
-                                startContent={<IconFlask size={20} />}
+                                startContent={<IconCards size={20} />}
                                 className="text-lg px-8 py-6"
                                 onPress={() =>
                                     navigate("/login", { state: { from: location } })
