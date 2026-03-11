@@ -132,7 +132,7 @@ export function PublicDecksShowcase() {
                         size="lg"
                         variant="flat"
                         color="primary"
-                        className="w-2/4"
+                        className="w-3/4"
                         endContent={<IconArrowRight size={18} />}
                         startContent={<IconCards size={18} />}
                         onPress={() => navigate("/decks")}

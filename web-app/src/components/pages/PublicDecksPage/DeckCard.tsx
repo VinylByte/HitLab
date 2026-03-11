@@ -29,6 +29,7 @@ export function DeckCard({ data }: { data: PublicDeckDTO }) {
                                 src={data.cover_url ?? undefined}
                                 className={classes.image}
                                 alt={data.name}
+                                removeWrapper
                             />
                         </Center>
 
