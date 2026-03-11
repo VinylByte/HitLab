@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { DeckCard, DeckCardSkeleton } from "./DeckCard";
 import { Center, SimpleGrid, Stack } from "@mantine/core";
@@ -7,17 +7,74 @@ import { Pagination } from "@heroui/react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT, PAGINATION_BREAKPOINT } from "../Settings";
 import { usePublicDecks } from "../../../hooks/usePublicDecks";
-import type { PublicDeckDTO } from "../../../services/deckService";
-import { useSearchParams } from "react-router";
+import { fetchPublicDeckById, type PublicDeckDTO } from "../../../services/deckService";
+import { useNavigate, useParams, useSearchParams } from "react-router";
+import { DeckModal } from "../LabsPage/ViewDeckModal";
 
 export default function PublicDecksPageWrapper() {
-    const [searchParams, ] = useSearchParams();
+    const [searchParams] = useSearchParams();
+    const { deckId } = useParams();
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
+    const [routeDeck, setRouteDeck] = useState<PublicDeckDTO | null>(null);
+    const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
+    const lastHandledDeckId = useRef<string | null>(null);
 
     const { decks, totalCount, loading } = usePublicDecks(searchParams.get("query") || "", page);
 
+    const handleRouteModalOpenChange = (isOpen: boolean) => {
+        setIsRouteModalOpen(isOpen);
+        if (!isOpen && deckId) {
+            navigate({
+                pathname: "/decks",
+                search: searchParams.toString() ? `?${searchParams.toString()}` : "",
+            });
+        }
+    };
+
+    useEffect(() => {
+        if (!deckId) {
+            setRouteDeck(null);
+            setIsRouteModalOpen(false);
+            lastHandledDeckId.current = null;
+            return;
+        }
+
+        if (lastHandledDeckId.current === deckId) return;
+
+        const deckFromPage = decks.find(deck => deck.id === deckId);
+        if (deckFromPage) {
+            setRouteDeck(deckFromPage);
+            setIsRouteModalOpen(true);
+            lastHandledDeckId.current = deckId;
+            return;
+        }
+
+        let cancelled = false;
+        fetchPublicDeckById(deckId)
+            .then(deck => {
+                if (cancelled || !deck) return;
+                setRouteDeck(deck);
+                setIsRouteModalOpen(true);
+                lastHandledDeckId.current = deckId;
+            })
+            .catch(() => {
+                if (cancelled) return;
+                lastHandledDeckId.current = deckId;
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [deckId, decks]);
+
     return (
         <div className="p-4">
+            <DeckModal
+                isOpen={isRouteModalOpen}
+                onOpenChange={handleRouteModalOpenChange}
+                deck={routeDeck}
+            />
             <PublicDecksPage
                 decks={decks}
                 totalCount={totalCount}
@@ -45,7 +102,9 @@ function PublicDecksPage({ decks, totalCount, loading, page_props }: PropsDecksP
                 <SearchBar />
                 <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
                     {loading
-                        ? Array.from({ length: PAGINATION_BREAKPOINT }).map((_, i) => <DeckCardSkeleton key={i} />)
+                        ? Array.from({ length: PAGINATION_BREAKPOINT }).map((_, i) => (
+                              <DeckCardSkeleton key={i} />
+                          ))
                         : decks?.map(deck => <DeckCard key={deck.id} data={deck} />)}
                 </SimpleGrid>
                 <Center>
