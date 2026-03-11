@@ -1,5 +1,5 @@
 import supabase from "../supabase";
-import { mapSpotifyError, SpotifyApiError } from "./spotifyErrorMapper";
+import { mapSpotifyError } from "./spotifyErrorMapper";
 
 /**
  * Persists the Spotify OAuth token in the database so it survives page refreshes.
@@ -136,7 +136,14 @@ async function spotifyFetch<T>(accessToken: string, path: string, init?: Request
         return undefined as T;
     }
 
-    return (await response.json()) as T;
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+        return undefined as T;
+    }
+
+    const text = await response.text();
+    if (!text) return undefined as T;
+    return JSON.parse(text) as T;
 }
 
 function toSpotifyTrack(item: SpotifyTrackApi): SpotifyTrack {
@@ -209,25 +216,75 @@ export async function startPlayback(trackId: string, deviceId?: string) {
                 accessTokenStr,
                 "/me/player/devices"
             );
-            targetDevice = devices.find(d => d.is_active)?.id ?? undefined;
-            if (!targetDevice) {
-                throw new SpotifyApiError(
-                    "NO_ACTIVE_DEVICE",
-                    "Kein aktives Spotify-Gerät gefunden."
-                );
-            }
+            targetDevice = devices.find(d => d.is_active)?.id ?? devices[0]?.id ?? undefined;
         }
 
-        await spotifyFetch<void>(
-            accessTokenStr,
-            `/me/player/play?device_id=${encodeURIComponent(targetDevice)}`,
-            {
-                method: "PUT",
-                body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
-            }
-        );
+        const playPath = targetDevice
+            ? `/me/player/play?device_id=${encodeURIComponent(targetDevice)}`
+            : "/me/player/play";
+
+        await spotifyFetch<void>(accessTokenStr, playPath, {
+            method: "PUT",
+            body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
+        });
     } catch (error) {
         console.error("[spotify] startPlayback failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
+export async function pausePlayback(): Promise<void> {
+    const { accessTokenStr } = await getSpotifyAuthSession();
+    try {
+        await spotifyFetch<void>(accessTokenStr, "/me/player/pause", {
+            method: "PUT",
+        });
+    } catch (error) {
+        console.error("[spotify] pausePlayback failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
+export async function resumePlayback(): Promise<void> {
+    const { accessTokenStr } = await getSpotifyAuthSession();
+    try {
+        await spotifyFetch<void>(accessTokenStr, "/me/player/play", {
+            method: "PUT",
+        });
+    } catch (error) {
+        console.error("[spotify] resumePlayback failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
+export type PlaybackState = {
+    is_playing: boolean;
+    progress_ms: number;
+    duration_ms: number;
+    item: SpotifyTrackApi | null;
+};
+
+export async function getPlaybackState(): Promise<PlaybackState | null> {
+    const { accessTokenStr } = await getSpotifyAuthSession();
+    try {
+        const state = await spotifyFetch<PlaybackState | undefined>(accessTokenStr, "/me/player");
+        return state ?? null;
+    } catch (error) {
+        console.error("[spotify] getPlaybackState failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
+export async function getTrack(trackId: string): Promise<SpotifyTrack> {
+    const { accessTokenStr } = await getSpotifyAuthSession();
+    try {
+        const item = await spotifyFetch<SpotifyTrackApi>(
+            accessTokenStr,
+            `/tracks/${encodeURIComponent(trackId)}`
+        );
+        return toSpotifyTrack(item);
+    } catch (error) {
+        console.error("[spotify] getTrack failed", error);
         throw mapSpotifyError(error);
     }
 }

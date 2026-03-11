@@ -11,7 +11,7 @@ import {
     Skeleton,
 } from "@heroui/react";
 import type { Selection } from "@heroui/react";
-import { MOBILE_BREAKPOINT } from "../../../Settings";
+import { MOBILE_BREAKPOINT, SMALL_BREAKPOINT } from "../../../Settings";
 import { useMediaQuery } from "@mantine/hooks";
 
 /** Display-only row type shared by Spotify search results and DB songs. */
@@ -43,12 +43,13 @@ export default function SongTable({
     tableLoading,
 }: SongTableProps) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT);
 
     // IDs die gerade laden dürfen nicht auswählbar sein
     const disabledKeys = loadingIds ?? new Set<string>();
 
     return (
-        <div>
+        <div className="h-[400px] w-full" style={{ overflow: "hidden" }}>
             <Table
                 aria-label="Songs table"
                 color={color}
@@ -56,29 +57,43 @@ export default function SongTable({
                 selectedKeys={selectedKeys}
                 onSelectionChange={onSelectionChange}
                 disabledKeys={disabledKeys}
-                className={isMobile ? "h-80" : "h-100"}
+                className="h-[400px]"
                 isHeaderSticky
+                classNames={{
+                    wrapper: "h-[400px] overflow-y-auto overflow-x-hidden",
+                    table: "w-full table-fixed",
+                }}
             >
                 <TableHeader>
-                    <TableColumn>NAME</TableColumn>
-                    <TableColumn>ARTIST</TableColumn>
-                    <TableColumn hidden={isMobile}>JAHR</TableColumn>
+                    <TableColumn className={isMobile ? "w-full" : "w-[50%]"} align="center">
+                        NAME
+                    </TableColumn>
+                    <TableColumn hidden={isMobile} className="w-[35%]" align="center">
+                        ARTIST
+                    </TableColumn>
+                    <TableColumn
+                        hidden={isMobile || isSmallScreen}
+                        className="w-[15%]"
+                        align="center"
+                    >
+                        JAHR
+                    </TableColumn>
                 </TableHeader>
                 <TableBody emptyContent={"Keine Songs vorhanden"}>
                     {tableLoading
-                        ? Array.from({ length: 5 }).map(() => (
-                              <TableRow>
-                                  <TableCell>
-                                      <Group>
-                                          <Skeleton className="h-10 w-10 rounded-md" />
-                                          <Skeleton className="h-5 w-15 rounded-lg" />
+                        ? Array.from({ length: 5 }).map((_, i) => (
+                              <TableRow key={i}>
+                                  <TableCell className="max-w-0">
+                                      <Group gap="sm">
+                                          <Skeleton className="h-10 w-10 rounded-md flex-shrink-0" />
+                                          <Skeleton className="h-5 flex-1 rounded-lg" />
                                       </Group>
                                   </TableCell>
-                                  <TableCell>
-                                      <Skeleton className="h-5 w-20 rounded-lg" />
+                                  <TableCell hidden={isMobile} className="max-w-0">
+                                      <Skeleton className="h-5 w-full rounded-lg" />
                                   </TableCell>
-                                  <TableCell hidden={isMobile}>
-                                      <Skeleton className="h-5 w-25 rounded-lg" />
+                                  <TableCell hidden={isMobile || isSmallScreen}>
+                                      <Skeleton className="h-5 w-12 rounded-lg" />
                                   </TableCell>
                               </TableRow>
                           ))
@@ -89,7 +104,7 @@ export default function SongTable({
                                       key={song.id || index}
                                       className={isLoading ? "opacity-50" : ""}
                                   >
-                                      <TableCell>
+                                      <TableCell className={isMobile ? "w-100" : ""}>
                                           <Group gap="sm">
                                               {isLoading ? (
                                                   <Spinner size="sm" />
@@ -100,11 +115,24 @@ export default function SongTable({
                                                       radius="md"
                                                   />
                                               )}
-                                              <Text>{song.title}</Text>
+                                              <Text
+                                                  truncate="end"
+                                                  className={
+                                                      "max-w-[18ch] xs:max-w-[10ch] sm:max-w-[20ch] md:max-w-[10ch] lg:max-w-[15ch] xl:max-w-[25ch]"
+                                                  }
+                                              >
+                                                  {song.title}
+                                              </Text>
                                           </Group>
                                       </TableCell>
-                                      <TableCell>{song.artist}</TableCell>
-                                      <TableCell hidden={isMobile}>{song.year}</TableCell>
+                                      <TableCell hidden={isMobile}>
+                                          <span className="block truncate max-w-[5ch] md:max-w-[9ch] lg:max-w-[15ch] xl:max-w-[25ch]">
+                                              {song.artist}
+                                          </span>
+                                      </TableCell>
+                                      <TableCell hidden={isMobile || isSmallScreen}>
+                                          {song.year}
+                                      </TableCell>
                                   </TableRow>
                               );
                           })}

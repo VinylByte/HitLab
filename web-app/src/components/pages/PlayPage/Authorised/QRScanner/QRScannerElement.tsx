@@ -138,18 +138,22 @@ export function QrScanner({ onScan }: { onScan: (result: string) => void }) {
                 globalScanner = null;
             }
 
-            if (activeScanner.isScanning) {
-                void activeScanner.stop().catch((error: unknown) => {
-                    console.error("Failed to stop scanner", error);
-                });
-            }
-
-            try {
-                activeScanner.clear();
-            } catch (error) {
-                console.error("Failed to clear scanner", error);
-            }
-            clearReaderContainer();
+            const cleanup = async () => {
+                if (activeScanner.isScanning) {
+                    try {
+                        await activeScanner.stop();
+                    } catch (error) {
+                        console.error("Failed to stop scanner", error);
+                    }
+                }
+                try {
+                    activeScanner.clear();
+                } catch (error) {
+                    console.error("Failed to clear scanner", error);
+                }
+                clearReaderContainer();
+            };
+            void cleanup();
             setRunningState(false);
             setBusyState(false);
         };

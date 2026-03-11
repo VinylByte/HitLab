@@ -259,7 +259,7 @@ export default function EditSongsPage() {
     }, [selectedDeckKeys, songsInDeck, id]);
 
     const SongsSearchTable = (
-        <div>
+        <div className="w-full min-w-0">
             <Center className="w-full">
                 <Title order={4} mb="sm" hidden={isMobile}>
                     Songs hinzufügen
@@ -302,7 +302,7 @@ export default function EditSongsPage() {
     );
 
     const SongsInDeckTable = (
-        <div>
+        <div className="w-full min-w-0">
             <Center className="w-full">
                 <Title order={4} mb="sm" hidden={isMobile}>
                     Songs im Deck
@@ -341,34 +341,32 @@ export default function EditSongsPage() {
     );
 
     return (
-        <Stack gap="lg" p={"lg"}>
+        <Stack p={"lg"}>
             <Center className="w-full">
                 <Title order={2}>Songs bearbeiten</Title>
             </Center>
 
             {!isMobile ? (
                 <SimpleGrid cols={2} spacing="lg">
-                    <div>{SongsSearchTable}</div>
-                    <div>{SongsInDeckTable}</div>
+                    <div className="min-w-0">{SongsSearchTable}</div>
+                    <div className="min-w-0">{SongsInDeckTable}</div>
                 </SimpleGrid>
             ) : (
-                <Center>
-                    <Stack>
-                        <Tabs>
-                            <Tab title="Songs hinzufügen">{SongsSearchTable}</Tab>
-                            <Tab title="Songs im Deck">{SongsInDeckTable}</Tab>
-                        </Tabs>
-                    </Stack>
-                </Center>
+                <div className="w-full min-w-0">
+                    <Tabs fullWidth color="primary">
+                        <Tab title="Songs hinzufügen">{SongsSearchTable}</Tab>
+                        <Tab title="Songs im Deck">{SongsInDeckTable}</Tab>
+                    </Tabs>
+                </div>
             )}
 
-            <Group justify="space-between" mt="xl">
+            <Group justify="space-between">
                 <Button
                     color="primary"
                     className="w-full"
                     onPress={() => navigate("/lab")}
                     isLoading={loadingDeckIds.size > 0 || loading}
-                    startContent={!loading && <IconCheck size={18} />}
+                    startContent={!loading && loadingDeckIds.size === 0 && <IconCheck size={18} />}
                 >
                     Fertig
                 </Button>

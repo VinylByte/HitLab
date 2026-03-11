@@ -1,4 +1,4 @@
-import { Container, Title, Stack, Group, Text, Image } from "@mantine/core";
+import { Container, Title, Stack, Group, Text } from "@mantine/core";
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { useForm } from "@mantine/form";
@@ -42,7 +42,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
         initialValues: {
             name: "",
             description: "",
-            private: true,
+            private: false,
         } as DeckFormData,
         validate: {
             name: value => (value.trim().length > 0 ? null : "Name ist erforderlich"),
@@ -50,6 +50,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
     });
 
     const [coverBlob, setCoverBlob] = useState<Blob | null>(null);
+    const [isExistingCover, setIsExistingCover] = useState(false);
     const [dropZoneError, setDropZoneError] = useState<string | null>(null);
     const [availableTags, setAvailableTags] = useState<DeckTag[]>([]);
     const [selectedTagKeys, setSelectedTagKeys] = useState<Selection>(new Set());
@@ -57,7 +58,6 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
     const [loadingDeck, setLoadingDeck] = useState(mode === "edit");
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
-    const [existingCoverUrl, setExistingCoverUrl] = useState<string | null>(null);
     const [deckLoaded, setDeckLoaded] = useState(false);
 
     // Lade verfügbare Tags aus der Datenbank
@@ -71,14 +71,26 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
     useEffect(() => {
         if (mode !== "edit" || !deckId || deckLoaded) return;
         fetchOwnDeckById(deckId)
-            .then(deck => {
+            .then(async deck => {
                 form.setValues({
                     name: deck.name,
                     description: deck.description ?? "",
                     private: deck.visibility === "private",
                 });
-                setExistingCoverUrl(deck.cover_url);
                 setSelectedTagKeys(new Set(deck.tags.map(t => t.id)));
+
+                // Lade existierendes Cover als Blob
+                if (deck.cover_url) {
+                    try {
+                        const response = await fetch(deck.cover_url);
+                        const blob = await response.blob();
+                        setCoverBlob(blob);
+                        setIsExistingCover(true);
+                    } catch (err) {
+                        console.error("Fehler beim Laden des Cover-Bildes:", err);
+                    }
+                }
+
                 setDeckLoaded(true);
             })
             .catch(err => {
@@ -91,6 +103,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
     const handleFileUpload = (blob: Blob) => {
         setDropZoneError(null);
         setCoverBlob(blob);
+        setIsExistingCover(false); // Reset flag when new file is uploaded
     };
 
     const handleTagSelectionChange = (keys: Selection) => {
@@ -172,15 +185,15 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         <Switch
                             thumbIcon={form.values.private ? <IconLock /> : <IconLockOpen />}
                             title="Privat"
-                            {...form.getInputProps("private", { type: "checkbox" })}
+                            isSelected={form.values.private}
+                            onChange={e => form.setFieldValue("private", e.target.checked)}
                             isDisabled={loadingDeck}
                         >
-                            Privat
-                            <p className="text-small text-default-500">
+                            <Text fw={"600"}>
                                 {!form.values.private
                                     ? "Dieses Deck ist für alle sichtbar"
                                     : "Dieses Deck ist privat"}
-                            </p>
+                            </Text>
                         </Switch>
                     </Group>
 
@@ -217,16 +230,12 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         isDisabled={loadingDeck}
                     />
 
-                    {existingCoverUrl && !coverBlob && (
-                        <div>
-                            <Text size="sm" c="dimmed" mb="xs">
-                                Aktuelles Coverbild:
-                            </Text>
-                            <Image src={existingCoverUrl} alt="Deck Cover" maw={200} radius="md" />
-                        </div>
-                    )}
                     {dropZoneError && <Alert color="danger">{dropZoneError}</Alert>}
-                    <DropzoneField currentBlob={coverBlob} onFileUpload={handleFileUpload} />
+                    <DropzoneField
+                        currentBlob={coverBlob}
+                        currentFileName={isExistingCover ? "existing" : null}
+                        onFileUpload={handleFileUpload}
+                    />
 
                     <Group justify="space-between" mt="xl">
                         <Button
@@ -239,7 +248,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                             Abbrechen
                         </Button>
                         <Button
-                            startContent={<IconPencilPlus />}
+                            startContent={submitting ? undefined : <IconPencilPlus />}
                             type="submit"
                             color="primary"
                             isLoading={submitting}

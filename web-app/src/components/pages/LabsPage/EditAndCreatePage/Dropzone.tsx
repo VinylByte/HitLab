@@ -7,9 +7,11 @@ import classes from "./Dropzone.module.css";
 export function DropzoneField({
     onFileUpload,
     currentBlob,
+    currentFileName,
 }: {
     onFileUpload: (blob: Blob) => void;
     currentBlob?: Blob | null;
+    currentFileName?: string | null;
 }) {
     const theme = useMantineTheme();
     const openRef = useRef<() => void>(null);
@@ -51,17 +53,28 @@ export function DropzoneField({
         if (currentBlob) {
             const previewUrl = URL.createObjectURL(currentBlob);
             setPreviewUrl(previewUrl);
+
+            // Wenn kein uploadedFile gesetzt ist, erstelle Dateiinformationen aus dem Blob
+            if (!uploadedFile) {
+                setUploadedFile({
+                    name: currentFileName
+                        ? "Aktuelles Cover"
+                        : "cover." + (currentBlob.type.split("/")[1] || "jpg"),
+                    size: currentBlob.size,
+                    type: currentBlob.type,
+                });
+            }
         } else {
             setPreviewUrl(null);
+            setUploadedFile(null);
         }
         // Aufräumen der URL-Objekte, um Speicherlecks zu vermeiden
         return () => {
-
             if (previewUrl) {
                 URL.revokeObjectURL(previewUrl);
             }
         };
-    }, [currentBlob]);
+    }, [currentBlob, currentFileName]);
 
     return (
         <div className={classes.wrapper}>
@@ -80,12 +93,12 @@ export function DropzoneField({
                 maxSize={10 * 1024 ** 2}
                 aria-label="Drop files here"
             >
-                {uploadedFile && previewUrl ? (
+                {previewUrl ? (
                     <div style={{ pointerEvents: "none" }}>
                         <Group justify="center" mb="md">
                             <img
                                 src={previewUrl}
-                                alt={uploadedFile.name}
+                                alt={uploadedFile?.name ?? "Cover"}
                                 style={{
                                     maxWidth: "200px",
                                     maxHeight: "200px",
@@ -95,19 +108,21 @@ export function DropzoneField({
                                 }}
                             />
                         </Group>
-                        <Group justify="center" mb="md">
-                            <Group gap="sm">
-                                <IconCheck size={20} color={theme.colors.green[6]} />
-                                <div>
-                                    <Text fw={500} size="sm">
-                                        {uploadedFile.name}
-                                    </Text>
-                                    <Text size="xs" c="dimmed">
-                                        {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                                    </Text>
-                                </div>
+                        {uploadedFile && (
+                            <Group justify="center" mb="md">
+                                <Group gap="sm">
+                                    <IconCheck size={20} color={theme.colors.green[6]} />
+                                    <div>
+                                        <Text fw={500} size="sm">
+                                            {uploadedFile.name}
+                                        </Text>
+                                        <Text size="xs" c="dimmed">
+                                            {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                                        </Text>
+                                    </div>
+                                </Group>
                             </Group>
-                        </Group>
+                        )}
                         <Text ta="center" size="sm" c="dimmed">
                             Klicke hier um eine andere Datei auszuwählen
                         </Text>

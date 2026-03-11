@@ -17,13 +17,7 @@ import {
     DropdownMenu,
     Button,
 } from "@heroui/react";
-import {
-    IconDotsVertical,
-    IconEdit,
-    IconEye,
-    IconPlus,
-    IconTrash,
-} from "@tabler/icons-react";
+import { IconDotsVertical, IconEdit, IconEye, IconPlus, IconTrash } from "@tabler/icons-react";
 import { Center, Group } from "@mantine/core";
 import SearchBar from "../PublicDecksPage/SearchBarProp";
 import { useMediaQuery } from "@mantine/hooks";
@@ -51,7 +45,7 @@ export default function DecksTable({
 }) {
     const [sortKey, setSortKey] = useState<string>("created_at");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-    const [searchParams,] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
 
     const columns = useMemo(() => {
@@ -175,7 +169,7 @@ export default function DecksTable({
                                 <Group>
                                     <Tooltip content="Deck ansehen">
                                         <span
-                                            className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                                            className="text-lg text-primary-400 cursor-pointer active:opacity-50"
                                             onClick={() => viewDeck(deck)}
                                         >
                                             <IconEye />
@@ -183,7 +177,7 @@ export default function DecksTable({
                                     </Tooltip>
                                     <Tooltip content="Deck bearbeiten">
                                         <span
-                                            className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                                            className="text-lg text-secondary-400 cursor-pointer active:opacity-50"
                                             onClick={() => editDeck(deck)}
                                         >
                                             <IconEdit />
@@ -194,7 +188,7 @@ export default function DecksTable({
                                             className="text-lg text-danger cursor-pointer active:opacity-50"
                                             onClick={() => deleteDeck(deck)}
                                         >
-                                            <IconTrash />
+                                            <IconTrash/>
                                         </span>
                                     </Tooltip>
                                 </Group>

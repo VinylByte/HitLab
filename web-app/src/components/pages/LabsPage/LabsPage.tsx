@@ -2,9 +2,9 @@ import { Stack } from "@mantine/core";
 import DecksTableSkeleton from "./DecksTableSkeleton";
 import DecksTable from "./DecksTable";
 import { DeckModal } from "./ViewDeckModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import { deleteDeckById, type OwnDeckDTO } from "../../../services/deckService";
 import { useOwnDecks } from "../../../hooks/useOwnDecks";
 
@@ -30,6 +30,8 @@ const ViewDeckModal = ({
 
 export default function LabsPage() {
     const { ownDecks, loading, error, removeDeck } = useOwnDecks();
+    const [searchParams] = useSearchParams();
+    const { deckId } = useParams();
     const [selectedDeck, setSelectedDeck] = useState<OwnDeckDTO | null>(null);
     const [isDeckModalOpen, setIsDeckModalOpen] = useState(false);
 
@@ -37,10 +39,21 @@ export default function LabsPage() {
 
     const navigate = useNavigate();
 
+    const handleDeckModalOpenChange = (isOpen: boolean) => {
+        setIsDeckModalOpen(isOpen);
+        if (!isOpen && deckId) {
+            navigate({
+                pathname: "/lab",
+                search: searchParams.toString() ? `?${searchParams.toString()}` : "",
+            });
+        }
+    };
+
     const viewDeck = (deck: OwnDeckDTO) => {
-        console.log("Viewing deck:", deck);
-        setSelectedDeck(deck);
-        setIsDeckModalOpen(true);
+        navigate({
+            pathname: `/lab/${deck.id}/view`,
+            search: searchParams.toString() ? `?${searchParams.toString()}` : "",
+        });
     };
 
     const editDeck = (deck: OwnDeckDTO) => {
@@ -68,11 +81,25 @@ export default function LabsPage() {
         setSelectedDeck(null);
     };
 
+    useEffect(() => {
+        if (!deckId) {
+            setSelectedDeck(null);
+            setIsDeckModalOpen(false);
+            return;
+        }
+
+        const deckFromList = ownDecks.find(deck => deck.id === deckId);
+        if (!deckFromList) return;
+
+        setSelectedDeck(deckFromList);
+        setIsDeckModalOpen(true);
+    }, [deckId, ownDecks]);
+
     return (
         <div className="labs-page">
             <ViewDeckModal
                 isDeckModalOpen={isDeckModalOpen}
-                setIsDeckModalOpen={setIsDeckModalOpen}
+                setIsDeckModalOpen={handleDeckModalOpenChange}
                 selectedDeck={selectedDeck}
             />
             <ConfirmDeleteModal
