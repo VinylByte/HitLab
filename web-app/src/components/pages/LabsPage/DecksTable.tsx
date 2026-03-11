@@ -21,7 +21,7 @@ import { IconDotsVertical, IconEdit, IconEye, IconPlus, IconTrash } from "@table
 import { Center, Group } from "@mantine/core";
 import SearchBar from "../PublicDecksPage/SearchBarProp";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../Settings";
+import { MOBILE_BREAKPOINT } from "../../../lib/constants";
 import { useSearchParams } from "react-router";
 import type { OwnDeckDTO } from "../../../services/deckService";
 
@@ -188,7 +188,7 @@ export default function DecksTable({
                                             className="text-lg text-danger cursor-pointer active:opacity-50"
                                             onClick={() => deleteDeck(deck)}
                                         >
-                                            <IconTrash/>
+                                            <IconTrash />
                                         </span>
                                     </Tooltip>
                                 </Group>

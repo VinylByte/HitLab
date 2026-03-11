@@ -1,4 +1,4 @@
-import { PAGINATION_BREAKPOINT } from "../components/pages/Settings";
+import { PAGINATION_BREAKPOINT } from "../lib/constants";
 import supabase from "../supabase";
 
 /** Tag attached to a deck. */

@@ -3,7 +3,7 @@ import { Button } from "@heroui/react";
 import classes from "./PlayHeroHeader.module.css";
 import { IconBrandAppleArcade, IconCards } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../../Settings";
+import { MOBILE_BREAKPOINT } from "../../../../../lib/constants";
 import { useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
 

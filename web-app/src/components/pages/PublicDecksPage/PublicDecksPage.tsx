@@ -5,7 +5,7 @@ import { Center, SimpleGrid, Stack } from "@mantine/core";
 import SearchBar from "./SearchBarProp";
 import { Pagination } from "@heroui/react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT, PAGINATION_BREAKPOINT } from "../Settings";
+import { MOBILE_BREAKPOINT, PAGINATION_BREAKPOINT } from "../../../lib/constants";
 import { usePublicDecks } from "../../../hooks/usePublicDecks";
 import { fetchPublicDeckById, type PublicDeckDTO } from "../../../services/deckService";
 import { useNavigate, useParams, useSearchParams } from "react-router";

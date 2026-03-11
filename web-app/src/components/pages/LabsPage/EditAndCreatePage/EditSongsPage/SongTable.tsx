@@ -11,7 +11,7 @@ import {
     Skeleton,
 } from "@heroui/react";
 import type { Selection } from "@heroui/react";
-import { MOBILE_BREAKPOINT, SMALL_BREAKPOINT } from "../../../Settings";
+import { MOBILE_BREAKPOINT, SMALL_BREAKPOINT } from "../../../../../lib/constants";
 import { useMediaQuery } from "@mantine/hooks";
 
 /** Display-only row type shared by Spotify search results and DB songs. */

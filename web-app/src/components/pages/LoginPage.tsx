@@ -3,7 +3,7 @@ import { Center, Group, Paper, Stack, Title } from "@mantine/core";
 import VinylLogo from "../../assets/VinylByteLogo.svg";
 import { IconArrowLeft, IconBrandSpotify } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT, SPOTIFY_SCOPES } from "./Settings";
+import { MOBILE_BREAKPOINT, SPOTIFY_SCOPES } from "../../lib/constants";
 import supabase from "../../supabase";
 import { useSession } from "../../hooks/useSession";
 import { Link, Navigate, useLocation } from "react-router";

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../../Settings";
+import { MOBILE_BREAKPOINT } from "../../../../../lib/constants";
 import { Modal, ModalBody, ModalContent, Button } from "@heroui/react";
 
 let globalScanner: Html5Qrcode | null = null;

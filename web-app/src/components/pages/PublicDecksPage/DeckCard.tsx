@@ -3,7 +3,7 @@ import classes from "./DeckCard.module.css";
 
 import { Card, Image, Avatar, CardBody, Skeleton, Chip } from "@heroui/react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../Settings";
+import { MOBILE_BREAKPOINT } from "../../../lib/constants";
 import type { PublicDeckDTO } from "../../../services/deckService";
 import { useNavigate, useSearchParams } from "react-router";
 

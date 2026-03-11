@@ -20,7 +20,7 @@ import {
 } from "@heroui/react";
 import { SimpleGrid, Stack, Group, Text, Title, Center } from "@mantine/core";
 import { useState } from "react";
-import { MOBILE_BREAKPOINT } from "../Settings";
+import { MOBILE_BREAKPOINT } from "../../../lib/constants";
 
 import type { OwnDeckDTO, PublicDeckDTO } from "../../../services/deckService";
 import DownloadModal from "../../../../PDF/DownloadModal";

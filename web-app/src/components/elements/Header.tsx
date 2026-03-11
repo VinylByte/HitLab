@@ -19,11 +19,12 @@ import { Burger, Center } from "@mantine/core";
 import { IconLogin, IconLogout, IconMoon, IconSun, IconUser } from "@tabler/icons-react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
-import VinylLogo from "../../../assets/VinylByteLogo.svg";
-import { Pages, ProtectedPages, MOBILE_BREAKPOINT } from "../../pages/Settings";
-import { useSession } from "../../../hooks/useSession";
-import { useAppTheme } from "../../../hooks/useAppTheme";
-import supabase from "../../../supabase";
+import VinylLogo from "../../assets/VinylByteLogo.svg";
+import { Pages, ProtectedPages } from "../../app/routes";
+import { MOBILE_BREAKPOINT } from "../../lib/constants";
+import { useSession } from "../../hooks/useSession";
+import { useAppTheme } from "../../hooks/useAppTheme";
+import supabase from "../../supabase";
 import { useMediaQuery } from "@mantine/hooks";
 
 export default function HeaderNav() {

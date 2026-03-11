@@ -1,22 +1,21 @@
-import { Suspense, lazy } from "react";
-import { IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from "@tabler/icons-react";
-import { Spinner } from "@heroui/react";
+import { lazy, Suspense } from "react";
+import { Loader } from "../components/elements/PageLoader";
 
-const HomePage = lazy(() => import("./HomePage/HomePage"));
-const PublicDecksPageWrapper = lazy(() => import("./PublicDecksPage/PublicDecksPage"));
-const LabsPage = lazy(() => import("./LabsPage/LabsPage"));
-const CreateDeckPage = lazy(() => import("./LabsPage/EditAndCreatePage/CreateDeckPage"));
-const EditDeckPage = lazy(() => import("./LabsPage/EditAndCreatePage/EditDeckPage"));
+const HomePage = lazy(() => import("../components/pages/HomePage/HomePage"));
+const PublicDecksPageWrapper = lazy(
+    () => import("../components/pages/PublicDecksPage/PublicDecksPage")
+);
+const LabsPage = lazy(() => import("../components/pages/LabsPage/LabsPage"));
+const CreateDeckPage = lazy(
+    () => import("../components/pages/LabsPage/EditAndCreatePage/CreateDeckPage")
+);
+const EditDeckPage = lazy(
+    () => import("../components/pages/LabsPage/EditAndCreatePage/EditDeckPage")
+);
 const EditSongsPage = lazy(
-    () => import("./LabsPage/EditAndCreatePage/EditSongsPage/EditSongsPage")
+    () => import("../components/pages/LabsPage/EditAndCreatePage/EditSongsPage/EditSongsPage")
 );
-const GeneralPlayPage = lazy(() => import("./PlayPage/GeneralPlayPage"));
-
-const Loader = () => (
-    <div className="flex items-center justify-center h-screen">
-        <Spinner variant="wave" />
-    </div>
-);
+const GeneralPlayPage = lazy(() => import("../components/pages/PlayPage/GeneralPlayPage"));
 
 export const Pages = [
     {
@@ -112,39 +111,5 @@ export const ProtectedPages = [
                 <EditSongsPage />
             </Suspense>
         ),
-    },
-];
-
-export const MOBILE_BREAKPOINT = "(max-width: 768px)";
-export const SMALL_BREAKPOINT = "(max-width: 1350px)";
-export const PAGINATION_BREAKPOINT = 12;
-/**
-const SPOTIFY_SCOPES = [
-    "user-read-email",
-    "user-read-private",
-    "streaming",
-    "user-modify-playback-state",
-    "user-read-playback-state",
-    "user-read-currently-playing",
- ].join(" ");
- */
-export const SPOTIFY_SCOPES =
-    "user-read-email user-read-private streaming user-modify-playback-state user-read-playback-state user-read-currently-playing";
-
-export const SOCIALS = [
-    {
-        name: "Twitter",
-        icon: <IconBrandTwitter size={18} stroke={1.5} />,
-        url: "https://twitter.com/HitLabApp",
-    },
-    {
-        name: "YouTube",
-        icon: <IconBrandYoutube size={18} stroke={1.5} />,
-        url: "https://www.youtube.com/@HitLabApp",
-    },
-    {
-        name: "Instagram",
-        icon: <IconBrandInstagram size={18} stroke={1.5} />,
-        url: "https://www.instagram.com/HitLabApp/",
     },
 ];

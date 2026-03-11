@@ -4,7 +4,7 @@ import type { Selection } from "@heroui/react";
 import { useNavigate, useParams } from "react-router";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../../Settings";
+import { MOBILE_BREAKPOINT } from "../../../../../lib/constants";
 import SongTable from "./SongTable";
 import type { SongTableItem } from "./SongTable";
 import { IconSearch, IconPlus, IconTrash, IconCheck } from "@tabler/icons-react";
