@@ -18,6 +18,7 @@ export default function AuthorisedPlayPage() {
     const [searchParams] = useSearchParams();
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         document.documentElement.style.overflow = "hidden";
         document.body.style.overflow = "hidden";
 

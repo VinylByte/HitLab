@@ -13,6 +13,7 @@ export default function PlayHeroHeader() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         const previousBodyOverflow = document.body.style.overflow;
         const previousHtmlOverflow = document.documentElement.style.overflow;
 
