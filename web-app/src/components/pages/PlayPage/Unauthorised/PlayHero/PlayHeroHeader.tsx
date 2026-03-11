@@ -5,14 +5,14 @@ import { IconBrandAppleArcade, IconCards } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../../Settings";
 import { useLocation, useNavigate } from "react-router";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 export default function PlayHeroHeader() {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const location = useLocation();
     const navigate = useNavigate();
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         window.scrollTo(0, 0);
         const previousBodyOverflow = document.body.style.overflow;
         const previousHtmlOverflow = document.documentElement.style.overflow;

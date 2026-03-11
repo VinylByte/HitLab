@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import QRScannerModal from "./QRScanner/QRScannerElement";
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useLayoutEffect } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../Settings";
 import PlayerElement from "./Player/PlayerElement";
@@ -17,7 +17,7 @@ export default function AuthorisedPlayPage() {
     const { currentTrackId: currentTrackIdFromPath } = useParams();
     const [searchParams] = useSearchParams();
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         window.scrollTo(0, 0);
         document.documentElement.style.overflow = "hidden";
         document.body.style.overflow = "hidden";
