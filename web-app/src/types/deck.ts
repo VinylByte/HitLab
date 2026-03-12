@@ -3,6 +3,7 @@ import type { DeckOwner } from "./profile";
 
 export type DeckRow = Tables<"decks">;
 
+/** DTO returned by fetchPublicDecks — one card in the public deck list. */
 export type PublicDeck = Pick<
     DeckRow,
     "id" | "name" | "description" | "cover_url" | "created_at"
@@ -23,11 +24,12 @@ export type UpdateDeckInfo = {
     private: boolean;
 };
 
-export type CreateDeckInput = {
+export type CreateDeckInfo = {
     name: string;
     description: string;
     private: boolean;
     cover: Blob;
 };
 
+/** Tag attached to a deck. */
 export type DeckTag = Pick<Tables<"tags">, "id" | "name">;

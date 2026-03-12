@@ -1,14 +1,8 @@
 import supabase from "../supabase";
-import type { SpotifyTrack } from "./spotifyClient";
+import type { CreateDeckInfo } from "../types/deck";
+import type { SpotifyTrack } from "../types/spotify";
 
-export type MetaDeckDTO = {
-    name: string;
-    description: string;
-    private: boolean;
-    cover: Blob;
-};
-
-export async function createDeck(metaDeck: MetaDeckDTO): Promise<string> {
+export async function createDeck(metaDeck: CreateDeckInfo): Promise<string> {
     const {
         data: { session },
     } = await supabase.auth.getSession();

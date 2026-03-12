@@ -7,16 +7,17 @@ import { Pagination } from "@heroui/react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT, PAGINATION_BREAKPOINT } from "../../../lib/constants";
 import { usePublicDecks } from "../../../hooks/usePublicDecks";
-import { fetchPublicDeckById, type PublicDeckDTO } from "../../../services/deckService";
+import { fetchPublicDeckById } from "../../../services/deckService";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { DeckModal } from "../LabsPage/ViewDeckModal";
+import type { PublicDeck } from "../../../types/deck";
 
 export default function PublicDecksPageWrapper() {
     const [searchParams] = useSearchParams();
     const { deckId } = useParams();
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
-    const [routeDeck, setRouteDeck] = useState<PublicDeckDTO | null>(null);
+    const [routeDeck, setRouteDeck] = useState<PublicDeck | null>(null);
     const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
     const lastHandledDeckId = useRef<string | null>(null);
 
@@ -86,7 +87,7 @@ export default function PublicDecksPageWrapper() {
 }
 
 interface PropsDecksPage {
-    decks?: PublicDeckDTO[];
+    decks?: PublicDeck[];
     totalCount: number;
     search_props?: { search_str: string; setSearchStr: (str: string) => void };
     loading?: boolean;

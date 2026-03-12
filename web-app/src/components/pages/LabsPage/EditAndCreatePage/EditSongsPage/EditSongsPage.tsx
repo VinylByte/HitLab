@@ -9,9 +9,10 @@ import SongTable from "./SongTable";
 import type { SongTableItem } from "./SongTable";
 import { IconSearch, IconPlus, IconTrash, IconCheck } from "@tabler/icons-react";
 import { useSongSearch } from "../../../../../hooks/useSongSearch";
-import type { SpotifyTrack } from "../../../../../services/spotifyClient";
-import { fetchDeckSongs, removeDeckSongs, type Song } from "../../../../../services/deckService";
+import { fetchDeckSongs, removeDeckSongs } from "../../../../../services/deckService";
 import { addDeckSong } from "../../../../../services/createDeckService";
+import type { SpotifyTrack } from "../../../../../types/spotify";
+import type { Song } from "../../../../../types/song";
 
 function songToTableItem(song: Song): SongTableItem {
     return {

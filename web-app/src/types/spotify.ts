@@ -19,13 +19,6 @@ export type PlaybackState = {
     item: SpotifyTrackApi | null;
 };
 
-export type SpotifyApiErrorCode =
-    | "UNAUTHORIZED"
-    | "FORBIDDEN"
-    | "NO_ACTIVE_DEVICE"
-    | "RATE_LIMIT"
-    | "UNKNOWN";
-
 /** Internal Spotify API response types (used only in spotifyClient) */
 
 export type SpotifyTrackApi = {

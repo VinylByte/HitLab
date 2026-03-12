@@ -1,28 +1,7 @@
 import { PAGINATION_BREAKPOINT } from "../lib/constants";
 import supabase from "../supabase";
-
-/** Tag attached to a deck. */
-export type DeckTag = {
-    id: string;
-    name: string;
-};
-
-/** Owner profile summary embedded in a deck. */
-export type DeckOwner = {
-    display_name: string | null;
-    avatar_url: string | null;
-};
-
-/** DTO returned by fetchPublicDecks — one card in the public deck list. */
-export type PublicDeckDTO = {
-    id: string;
-    name: string;
-    description: string | null;
-    cover_url: string | null;
-    created_at: string;
-    owner: DeckOwner;
-    tags: DeckTag[];
-};
+import type { DeckTag, OwnDeck, PublicDeck, UpdateDeckInfo } from "../types/deck";
+import type { DeckSong } from "../types/song";
 
 /**
  * Fetches all public, non-deleted decks with owner profile and tags.
@@ -31,7 +10,7 @@ export type PublicDeckDTO = {
 export async function fetchPublicDecks(
     search_str: string,
     page: number
-): Promise<{ decks: PublicDeckDTO[]; totalCount: number }> {
+): Promise<{ decks: PublicDeck[]; totalCount: number }> {
     const { data, error, count } = await supabase
         .from("decks")
         .select(
@@ -54,7 +33,7 @@ export async function fetchPublicDecks(
 
     if (error) throw error;
 
-    const decks: PublicDeckDTO[] = (data ?? []).map(row => ({
+    const decks: PublicDeck[] = (data ?? []).map(row => ({
         id: row.id,
         name: row.name,
         description: row.description,
@@ -73,7 +52,7 @@ export async function fetchPublicDecks(
 }
 
 /** Fetches a single public deck by id for deep-link use cases. */
-export async function fetchPublicDeckById(deckId: string): Promise<PublicDeckDTO | null> {
+export async function fetchPublicDeckById(deckId: string): Promise<PublicDeck | null> {
     const { data, error } = await supabase
         .from("decks")
         .select(
@@ -111,30 +90,10 @@ export async function fetchPublicDeckById(deckId: string): Promise<PublicDeckDTO
     };
 }
 
-/** Song info embedded in a deck song */
-export type Song = {
-    id: string;
-    spotify_track_id: string;
-    title: string;
-    artist: string;
-    album: string | null;
-    year: number;
-    thumbnail_url: string | null;
-};
-
-/** DTO returned by fetchPublicDeckSongs - holds meta info about the addition of song to a deck */
-export type DeckSongsDTO = {
-    id: string;
-    deck_id: string;
-    song: Song;
-    card_note: string | null;
-    created_at: Date;
-};
-
 /**
  * Fetches songs for a public deck and transforms into properly typed DTOs.
  */
-export async function fetchDeckSongs(deckId: string): Promise<DeckSongsDTO[]> {
+export async function fetchDeckSongs(deckId: string): Promise<DeckSong[]> {
     const { data, error } = await supabase
         .from("deck_songs")
         .select(
@@ -169,26 +128,7 @@ export async function fetchDeckSongs(deckId: string): Promise<DeckSongsDTO[]> {
     }));
 }
 
-export type OwnDeckDTO = {
-    id: string;
-    name: string;
-    song_count: number;
-    visibility: string;
-    description: string | null;
-    cover_url: string | null;
-    created_at: string;
-    owner: DeckOwner;
-    tags: DeckTag[];
-};
-
-export type UpdateDeckInfoDTO = {
-    deckId: string;
-    name: string;
-    description: string;
-    private: boolean;
-};
-
-export async function updateDeckInfo(payload: UpdateDeckInfoDTO): Promise<void> {
+export async function updateDeckInfo(payload: UpdateDeckInfo): Promise<void> {
     const { error } = await supabase
         .from("decks")
         .update({
@@ -202,7 +142,7 @@ export async function updateDeckInfo(payload: UpdateDeckInfoDTO): Promise<void> 
     if (error) throw error;
 }
 
-export async function fetchOwnDeckById(deckId: string): Promise<OwnDeckDTO> {
+export async function fetchOwnDeckById(deckId: string): Promise<OwnDeck> {
     const {
         data: { session },
     } = await supabase.auth.getSession();
@@ -257,7 +197,7 @@ export async function fetchOwnDeckById(deckId: string): Promise<OwnDeckDTO> {
     };
 }
 
-export async function fetchOwnDecks(): Promise<OwnDeckDTO[]> {
+export async function fetchOwnDecks(): Promise<OwnDeck[]> {
     const {
         data: { session },
     } = await supabase.auth.getSession();

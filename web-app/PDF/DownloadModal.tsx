@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo } from "react";
-import type { PublicDeckDTO, Song } from "../src/services/deckService";
 import {
     Button,
     Drawer,
@@ -20,6 +19,8 @@ import { pdf } from "@react-pdf/renderer";
 import type { Card, BackgroundConfig } from "./interfaces";
 import { DESIGNS } from "./HardDesigns";
 import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
+import type { Song } from "../src/types/song";
+import type { PublicDeck } from "../src/types/deck";
 
 const getURL = ({ songId }: { songId: string }) => {
     return window.location.origin + `/play/${songId}`;
@@ -29,7 +30,7 @@ export interface DownloadModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     songs: Song[];
-    deck: PublicDeckDTO;
+    deck: PublicDeck;
 }
 
 export default function DownloadModal(props: DownloadModalProps) {

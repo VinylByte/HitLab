@@ -1,7 +1,8 @@
 import { useEffect, useReducer } from "react";
-import { fetchPublicDecks, type PublicDeckDTO } from "../services/deckService";
+import { fetchPublicDecks } from "../services/deckService";
+import type { PublicDeck } from "../types/deck";
 type State = {
-    decks: PublicDeckDTO[];
+    decks: PublicDeck[];
     totalCount: number;
     loading: boolean;
     error: Error | null;
@@ -9,7 +10,7 @@ type State = {
 
 type Action =
     | { type: "fetch" }
-    | { type: "success"; decks: PublicDeckDTO[]; totalCount: number }
+    | { type: "success"; decks: PublicDeck[]; totalCount: number }
     | { type: "error"; error: Error };
 
 function reducer(state: State, action: Action): State {
