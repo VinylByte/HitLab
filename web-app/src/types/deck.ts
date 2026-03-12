@@ -1,4 +1,4 @@
-import type { Tables } from "../database.types";
+import type { Tables } from "./database.types";
 import type { DeckOwner } from "./profile";
 
 export type DeckRow = Tables<"decks">;
