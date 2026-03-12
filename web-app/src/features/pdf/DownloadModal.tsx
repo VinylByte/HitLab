@@ -19,8 +19,8 @@ import { pdf } from "@react-pdf/renderer";
 import type { Card, BackgroundConfig } from "./interfaces";
 import { DESIGNS } from "./HardDesigns";
 import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
-import type { Song } from "../src/types/song";
-import type { PublicDeck } from "../src/types/deck";
+import type { PublicDeck } from "../../types/deck";
+import type { Song } from "../../types/song";
 
 const getURL = ({ songId }: { songId: string }) => {
     return window.location.origin + `/play/${songId}`;

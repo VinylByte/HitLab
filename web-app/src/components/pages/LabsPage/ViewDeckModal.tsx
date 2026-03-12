@@ -22,9 +22,9 @@ import { SimpleGrid, Stack, Group, Text, Title, Center } from "@mantine/core";
 import { useState } from "react";
 import { MOBILE_BREAKPOINT } from "../../../lib/constants";
 
-import DownloadModal from "../../../../PDF/DownloadModal";
 import { useDeckSongs } from "../../../hooks/useDeckSongs";
 import type { OwnDeck, PublicDeck } from "../../../types/deck";
+import DownloadModal from "../../../features/pdf/DownloadModal";
 
 export function DeckModal({
     isOpen,
