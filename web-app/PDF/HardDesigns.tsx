@@ -4,7 +4,7 @@ export const DESIGNS: HardDesignPreset[] = [
     {
         id: "like-hitster",
         name: "Like-Hitster",
-        description: "Enthält alle Like-Hitster-Designs und wechselt diese pro Karte ab.",
+        description: "Ein Design sehr nah an dem Original-Design von Hitster, mit einem Rückseitendesign, das an die Rückseite der Original-Hitster-Karten erinnert.",
         includes: ["like-hitster-blue", "like-hitster-green", "like-hitster-yellow", "like-hitster-purple", "like-hitster-red", "like-hitster-teal"],
     },
     {

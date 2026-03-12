@@ -210,10 +210,12 @@ export default function DownloadModal(props: DownloadModalProps) {
                                 {selectableDesigns.map(design => (
                                     <SelectItem key={design.id}>
                                         <div className="flex items-start gap-3 py-1">
-                                            <DesignPreview design={design} allDesigns={DESIGNS} />
-                                            <div>
+                                            <div className="shrink-0">
+                                                <DesignPreview design={design} allDesigns={DESIGNS} />
+                                            </div>
+                                            <div className="min-w-0">
                                                 <Text fw={"600"}>{design.name}</Text>
-                                                <div className="text-sm text-gray-500">
+                                                <div className="text-sm text-gray-500 break-words">
                                                     {design.description}
                                                 </div>
                                             </div>
