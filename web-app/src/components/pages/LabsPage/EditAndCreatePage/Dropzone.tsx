@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { IconCloudUpload, IconDownload, IconX, IconCheck } from "@tabler/icons-react";
-import { Group, Loader, Stack, Text, useMantineTheme } from "@mantine/core";
+import { Group, Stack, Text, useMantineTheme } from "@mantine/core";
 import { Dropzone, MIME_TYPES } from "@mantine/dropzone";
 import classes from "./Dropzone.module.css";
 import { Spinner } from "@heroui/react";
