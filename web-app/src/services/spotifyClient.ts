@@ -129,8 +129,6 @@ async function spotifyFetch<T>(accessToken: string, path: string, init?: Request
         },
     });
 
-    console.log(response)
-
     if (!response.ok) {
         const errorBody = await response.text().catch(() => "");
         throw {
@@ -214,8 +212,6 @@ export async function getPlaylistTracks(playlistId: string): Promise<SpotifyTrac
                 accessTokenStr,
                 `/playlists/${encodeURIComponent(trimmedPlaylistId)}/items?${params.toString()}` // /tracks}
             );
-
-            console.log(response)
 
             songs.push(
                 ...response.items

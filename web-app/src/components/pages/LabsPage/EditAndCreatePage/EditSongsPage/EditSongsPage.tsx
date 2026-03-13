@@ -51,7 +51,7 @@ export default function EditSongsPage() {
     const [loadingDeckIds, setLoadingDeckIds] = useState<Set<string>>(new Set());
 
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
-    const desktopControlsClass = isMobile ? "" : "min-h-[150px]";
+    const desktopControlsClass = isMobile ? "" : "h-[170px] flex flex-col";
 
     // Lade Songs im Deck aus der Datenbank
     useEffect(() => {
@@ -152,19 +152,18 @@ export default function EditSongsPage() {
         setSelectedTracksCache(new Map());
     }, [searchMode]);
 
-    // Angezeigte Suchergebnisse: Ausgewählte Songs oben gepinnt, restliche darunter
+    // Pin selected search rows only when they would disappear due to current filter/query.
     const displayedSearchItems = useMemo(() => {
         const selectedIds = Array.from(selectedSearchKeys as Set<string>);
-        const selectedIdSet = new Set(selectedIds);
+        const visibleIds = new Set(searchTableItems.map(song => song.id));
 
-        const pinnedItems = selectedIds
+        const pinnedMissingSelected = selectedIds
+            .filter(id => !visibleIds.has(id))
             .map(id => selectedItemsCache.get(id))
             .filter((s): s is SongTableItem => s !== undefined);
 
-        const nonSelected = searchTableItems.filter(s => !selectedIdSet.has(s.id));
-
-        return [...pinnedItems, ...nonSelected];
-    }, [selectedSearchKeys, searchTableItems, selectedItemsCache]);
+        return [...pinnedMissingSelected, ...searchTableItems];
+    }, [selectedSearchKeys, selectedItemsCache, searchTableItems]);
 
     // Deck-Songs als SongTableItems
     const deckTableItems = useMemo(() => songsInDeck.map(songToTableItem), [songsInDeck]);
@@ -182,18 +181,17 @@ export default function EditSongsPage() {
         );
     }, [deckTableItems, searchDeckValue]);
 
-    // Angezeigte Deck-Songs: Ausgewählte oben gepinnt, auch wenn sie nicht zur Query passen
+    // Pin selected deck rows only when they would disappear due to the local search filter.
     const displayedDeckItems = useMemo(() => {
         const selectedIds = Array.from(selectedDeckKeys as Set<string>);
-        const selectedIdSet = new Set(selectedIds);
+        const visibleIds = new Set(filteredDeckItems.map(song => song.id));
 
-        const pinnedItems = selectedIds
-            .map(itemId => deckTableItems.find(s => s.id === itemId))
+        const pinnedMissingSelected = selectedIds
+            .filter(id => !visibleIds.has(id))
+            .map(itemId => deckTableItems.find(song => song.id === itemId))
             .filter((s): s is SongTableItem => s !== undefined);
 
-        const nonSelected = filteredDeckItems.filter(s => !selectedIdSet.has(s.id));
-
-        return [...pinnedItems, ...nonSelected];
+        return [...pinnedMissingSelected, ...filteredDeckItems];
     }, [selectedDeckKeys, filteredDeckItems, deckTableItems]);
 
     const handleDeckSelectionChange = useCallback(
@@ -288,7 +286,7 @@ export default function EditSongsPage() {
     }, [selectedDeckKeys, songsInDeck, id]);
 
     const SongsSearchTable = (
-        <div className="w-full min-w-0">
+        <div className="w-full min-w-0 flex flex-col h-full">
             <div className={desktopControlsClass}>
                 <Center className="w-full">
                     <Title order={4} mb="sm" hidden={isMobile}>
@@ -305,7 +303,7 @@ export default function EditSongsPage() {
                     onSelectionChange={key => {
                         setSearchMode(String(key) as SearchMode);
                     }}
-                    className="mb-4"
+                    className="mt-auto"
                 >
                     <Tab key="song" title="Song suchen">
                         <Input
@@ -329,11 +327,15 @@ export default function EditSongsPage() {
                     </Tab>
                 </Tabs>
             </div>
-            {searchError && (
-                <Text c="red" size="sm" mb="sm">
-                    Spotify-Fehler: {searchError.message}
-                </Text>
-            )}
+            <div className="min-h-[20px] mb-2">
+                {searchError && (
+                    <Center>
+                        <Text c="red" size="sm">
+                            Fehler: {searchError.message}
+                        </Text>
+                    </Center>
+                )}
+            </div>
             <SongTable
                 songs={displayedSearchItems}
                 color="secondary"
@@ -355,7 +357,7 @@ export default function EditSongsPage() {
     );
 
     const SongsInDeckTable = (
-        <div className="w-full min-w-0">
+        <div className="w-full min-w-0 flex flex-col h-full">
             <div className={desktopControlsClass}>
                 <Center className="w-full">
                     <Title order={4} mb="sm" hidden={isMobile}>
@@ -365,10 +367,10 @@ export default function EditSongsPage() {
                         </Center>
                     </Title>
                 </Center>
-                <div className={isMobile ? "" : "pt-[44px]"}>
+                <div className={isMobile ? "" : "pt-14"}>
                     <Input
                         isClearable
-                        className="w-full mb-4"
+                        className="w-full"
                         placeholder="Nach Songs, Künstlern oder Jahr suchen..."
                         startContent={<IconSearch />}
                         value={searchDeckValue}
@@ -376,6 +378,7 @@ export default function EditSongsPage() {
                     />
                 </div>
             </div>
+            <div className="min-h-[20px] mb-2"></div>
             <SongTable
                 songs={displayedDeckItems}
                 color="primary"
