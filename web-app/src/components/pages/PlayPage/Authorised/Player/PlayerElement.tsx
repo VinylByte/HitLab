@@ -145,7 +145,7 @@ export default function PlayerElement({
                             src="/UnknownSong.png"
                             alt="Track cover"
                             className={
-                                "cover-image w-50 h-50 object-cover transition-[filter,opacity] duration-500 " +
+                                "cover-image w-70 h-70 object-cover transition-[filter,opacity] duration-500 " +
                                 (isPlaying ? "cover-soft-pulse" : "")
                             }
                         />
