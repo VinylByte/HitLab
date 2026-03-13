@@ -43,7 +43,7 @@ export type SpotifySearchResponse = {
 };
 
 export type SpotifyPlaylistTrackItem = {
-    track: SpotifyTrackApi | null;
+    item: SpotifyTrackApi | null;
 };
 
 export type SpotifyPlaylistTracksResponse = {
