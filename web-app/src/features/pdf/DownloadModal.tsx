@@ -19,11 +19,57 @@ import { pdf } from "@react-pdf/renderer";
 import type { Card, BackgroundConfig } from "./interfaces";
 import { DESIGNS } from "./HardDesigns";
 import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
+import type { HardDesignPreset } from "./DesignResolver";
 import type { PublicDeck } from "../../types/deck";
 import type { Song } from "../../types/song";
 
 const getURL = ({ songId }: { songId: string }) => {
     return window.location.origin + `/play/${songId}`;
+};
+
+const getBackgroundCss = (bg: BackgroundConfig | undefined): string => {
+    if (!bg) return "transparent";
+    if (bg.type === "solid") return bg.color;
+    if (bg.type === "image") return `url(${bg.url}) center/cover`;
+    if (bg.type === "gradient")
+        return (bg.css ?? "").replace(/^background:\s*/i, "").replace(/;+$/, "");
+    return "transparent";
+};
+
+const DesignPreview = ({
+    design,
+    allDesigns,
+}: {
+    design: HardDesignPreset;
+    allDesigns: HardDesignPreset[];
+}) => {
+    const designById = new Map(allDesigns.map(d => [d.id, d]));
+    const leafDesigns = design.includes
+        ? design.includes
+              .map(id => designById.get(id))
+              .filter((d): d is HardDesignPreset => Boolean(d))
+        : [design];
+
+    return (
+        <div className="grid grid-cols-3 gap-2">
+            {leafDesigns.map(leaf => {
+                const frontBg = leaf.frontBackground ?? leaf.background;
+                const backBg = leaf.backBackground ?? leaf.background;
+                return (
+                    <div key={leaf.id} className="flex" title={leaf.name}>
+                        <div
+                            className="rounded-sm w-7 h-7 shrink-0"
+                            style={{ background: getBackgroundCss(frontBg) }}
+                        />
+                        <div
+                            className="rounded-sm w-7 h-7 shrink-0"
+                            style={{ background: getBackgroundCss(backBg) }}
+                        />
+                    </div>
+                );
+            })}
+        </div>
+    );
 };
 
 export interface DownloadModalProps {
@@ -137,7 +183,7 @@ export default function DownloadModal(props: DownloadModalProps) {
                         <DrawerBody>
                             <Select
                                 label="Design auswählen"
-                                description="Wenn du mehrere Designs auswählst, wechseln sich die designs pro Karte ab."
+                                description="Wenn du mehrere Designs auswählst, wechseln sich die Designs pro Karte ab."
                                 selectedKeys={selectedDesign}
                                 selectionMode="multiple"
                                 isMultiline={true}
@@ -165,10 +211,16 @@ export default function DownloadModal(props: DownloadModalProps) {
                             >
                                 {selectableDesigns.map(design => (
                                     <SelectItem key={design.id}>
-                                        <div className="flex items-center gap-3">
-                                            <div>
+                                        <div className="flex items-start gap-3 py-1">
+                                            <div className="shrink-0">
+                                                <DesignPreview
+                                                    design={design}
+                                                    allDesigns={DESIGNS}
+                                                />
+                                            </div>
+                                            <div className="min-w-0">
                                                 <Text fw={"600"}>{design.name}</Text>
-                                                <div className="text-sm text-gray-500">
+                                                <div className="text-sm text-gray-500 break-words">
                                                     {design.description}
                                                 </div>
                                             </div>
