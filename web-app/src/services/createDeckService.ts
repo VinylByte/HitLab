@@ -84,25 +84,18 @@ export async function addDeckSong(
     onSongSettled: (spotifyTrackId: string) => void
 ): Promise<void> {
     const addedTracks = await addSong(tracks);
-    // const { error } = await supabase.from("deck_songs").upsert(
-    //     addedTracks.map(t => ({
-    //         deck_id: deckId,
-    //         song_id: t.id,
-    //     })),
-    //     { onConflict: "deck_id,song_id" }
-    // );
+    const rows = addedTracks.map(t => ({
+        deck_id: deckId,
+        song_id: t.id,
+    }));
 
-    // if (error) throw error;
+    const { error } = await supabase.from("deck_songs").upsert(rows, {
+        onConflict: "deck_id,song_id",
+    });
 
-    await Promise.allSettled(
-        addedTracks.map(async t => {
-            const { error } = await supabase
-                .from("deck_songs")
-                .upsert({ deck_id: deckId, song_id: t.id }, { onConflict: "deck_id,song_id" });
-            if (error) throw error;
-            onSongSettled(t.spotify_track_id);
-        })
-    );
+    if (error) throw error;
+
+    addedTracks.forEach(t => onSongSettled(t.spotify_track_id));
 }
 
 async function addSong(
