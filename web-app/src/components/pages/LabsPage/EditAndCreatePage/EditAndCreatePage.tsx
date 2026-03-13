@@ -235,6 +235,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         currentBlob={coverBlob}
                         currentFileName={isExistingCover ? "existing" : null}
                         onFileUpload={handleFileUpload}
+                        isBusy={loadingDeck || submitting}
                     />
 
                     <Group justify="space-between" mt="xl">
