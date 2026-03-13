@@ -53,6 +53,42 @@ type AuthSession = {
     expiresIn: number;
 };
 
+/**
+ * Refresh Spotify token using the Edge Function
+ * Calls the secure refresh-spotify-token edge function
+ */
+async function refreshSpotifyTokenViaEdgeFunction(
+    refreshToken: string
+): Promise<{ access_token: string; expires_in: number }> {
+    const supabaseUrl = supabase.supabaseUrl;
+    const functionUrl = `${supabaseUrl}/functions/v1/refresh-spotify-token`;
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    const response = await fetch(functionUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("[spotify] Edge function error:", response.status, errorBody);
+        throw new Error(`Edge function error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.error) {
+        console.error("[spotify] Spotify error from edge function:", data.error);
+        throw new Error(data.error);
+    }
+
+    return data;
+}
+
 async function getSpotifyAuthSession(): Promise<AuthSession> {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
@@ -89,26 +125,43 @@ async function getSpotifyAuthSession(): Promise<AuthSession> {
 
         if (expiresIn <= 30) {
             console.warn(
-                "[spotify] stored token expired or near expiry, trying supabase session refresh"
+                "[spotify] stored token expired or near expiry (expiresIn: " + expiresIn + "s), attempting refresh"
             );
-            const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
-            if (refreshErr) {
-                console.error("[spotify] supabase session refresh failed", refreshErr);
-                throw new Error("Spotify Token abgelaufen. Bitte erneut einloggen.");
+            
+            try {
+                // Try to refresh via edge function using refresh_token
+                const refreshData = await refreshSpotifyTokenViaEdgeFunction(refreshTokenStr);
+                accessTokenStr = refreshData.access_token;
+                expiresIn = refreshData.expires_in;
+                
+                // Update stored token in database with Unix timestamp (seconds)
+                const expiresAtUnix = Math.floor(Date.now() / 1000) + refreshData.expires_in;
+                await persistSpotifyToken(accessTokenStr, refreshTokenStr, expiresAtUnix);
+                
+                console.debug("[spotify] token refreshed successfully via edge function", { expiresIn: refreshData.expires_in });
+            } catch (refreshError) {
+                console.warn("[spotify] edge function refresh failed, trying supabase session refresh", refreshError);
+                
+                // Fallback: try supabase session refresh
+                const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+                if (refreshErr) {
+                    console.error("[spotify] supabase session refresh failed", refreshErr);
+                    throw new Error("Spotify Token abgelaufen. Bitte erneut einloggen.");
+                }
+
+                const refreshedSession = refreshed.session;
+                if (!refreshedSession?.provider_token) {
+                    throw new Error("Spotify Token abgelaufen. Bitte erneut mit Spotify einloggen.");
+                }
+
+                accessTokenStr = refreshedSession.provider_token;
+                refreshTokenStr = refreshedSession.provider_refresh_token ?? refreshTokenStr;
+                expiresIn = refreshedSession.expires_at
+                    ? Math.max(0, refreshedSession.expires_at - Math.floor(Date.now() / 1000))
+                    : 3600;
+
+                await persistSpotifyToken(accessTokenStr, refreshTokenStr, refreshedSession.expires_at);
             }
-
-            const refreshedSession = refreshed.session;
-            if (!refreshedSession?.provider_token) {
-                throw new Error("Spotify Token abgelaufen. Bitte erneut mit Spotify einloggen.");
-            }
-
-            accessTokenStr = refreshedSession.provider_token;
-            refreshTokenStr = refreshedSession.provider_refresh_token ?? refreshTokenStr;
-            expiresIn = refreshedSession.expires_at
-                ? Math.max(0, refreshedSession.expires_at - Math.floor(Date.now() / 1000))
-                : 3600;
-
-            await persistSpotifyToken(accessTokenStr, refreshTokenStr, refreshedSession.expires_at);
         }
     }
 
