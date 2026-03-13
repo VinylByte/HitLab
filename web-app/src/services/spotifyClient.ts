@@ -60,7 +60,7 @@ type AuthSession = {
 async function refreshSpotifyTokenViaEdgeFunction(
     refreshToken: string
 ): Promise<{ access_token: string; expires_in: number }> {
-    const supabaseUrl = supabase.supabaseUrl;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const functionUrl = `${supabaseUrl}/functions/v1/refresh-spotify-token`;
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
