@@ -1,0 +1,638 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export type Database = {
+    graphql_public: {
+        Tables: {
+            [_ in never]: never;
+        };
+        Views: {
+            [_ in never]: never;
+        };
+        Functions: {
+            graphql: {
+                Args: {
+                    extensions?: Json;
+                    operationName?: string;
+                    query?: string;
+                    variables?: Json;
+                };
+                Returns: Json;
+            };
+        };
+        Enums: {
+            [_ in never]: never;
+        };
+        CompositeTypes: {
+            [_ in never]: never;
+        };
+    };
+    public: {
+        Tables: {
+            deck_collaborators: {
+                Row: {
+                    created_at: string;
+                    deck_id: string;
+                    deleted_at: string | null;
+                    id: string;
+                    role: Database["public"]["Enums"]["collaborator_role"];
+                    user_id: string;
+                };
+                Insert: {
+                    created_at?: string;
+                    deck_id: string;
+                    deleted_at?: string | null;
+                    id?: string;
+                    role?: Database["public"]["Enums"]["collaborator_role"];
+                    user_id: string;
+                };
+                Update: {
+                    created_at?: string;
+                    deck_id?: string;
+                    deleted_at?: string | null;
+                    id?: string;
+                    role?: Database["public"]["Enums"]["collaborator_role"];
+                    user_id?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "deck_collaborators_deck_id_fkey";
+                        columns: ["deck_id"];
+                        isOneToOne: false;
+                        referencedRelation: "decks";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "deck_collaborators_user_id_fkey";
+                        columns: ["user_id"];
+                        isOneToOne: false;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    },
+                ];
+            };
+            deck_songs: {
+                Row: {
+                    card_note: string | null;
+                    created_at: string;
+                    deck_id: string;
+                    deleted_at: string | null;
+                    id: string;
+                    song_id: string;
+                };
+                Insert: {
+                    card_note?: string | null;
+                    created_at?: string;
+                    deck_id: string;
+                    deleted_at?: string | null;
+                    id?: string;
+                    song_id: string;
+                };
+                Update: {
+                    card_note?: string | null;
+                    created_at?: string;
+                    deck_id?: string;
+                    deleted_at?: string | null;
+                    id?: string;
+                    song_id?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "deck_songs_deck_id_fkey";
+                        columns: ["deck_id"];
+                        isOneToOne: false;
+                        referencedRelation: "decks";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "deck_songs_song_id_fkey";
+                        columns: ["song_id"];
+                        isOneToOne: false;
+                        referencedRelation: "songs";
+                        referencedColumns: ["id"];
+                    },
+                ];
+            };
+            deck_tags: {
+                Row: {
+                    deck_id: string;
+                    tag_id: string;
+                };
+                Insert: {
+                    deck_id: string;
+                    tag_id: string;
+                };
+                Update: {
+                    deck_id?: string;
+                    tag_id?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "deck_tags_deck_id_fkey";
+                        columns: ["deck_id"];
+                        isOneToOne: false;
+                        referencedRelation: "decks";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "deck_tags_tag_id_fkey";
+                        columns: ["tag_id"];
+                        isOneToOne: false;
+                        referencedRelation: "tags";
+                        referencedColumns: ["id"];
+                    },
+                ];
+            };
+            decks: {
+                Row: {
+                    cover_url: string | null;
+                    created_at: string;
+                    deleted_at: string | null;
+                    description: string | null;
+                    id: string;
+                    name: string;
+                    owner_id: string;
+                    share_token: string | null;
+                    updated_at: string;
+                    visibility: Database["public"]["Enums"]["deck_visibility"];
+                };
+                Insert: {
+                    cover_url?: string | null;
+                    created_at?: string;
+                    deleted_at?: string | null;
+                    description?: string | null;
+                    id?: string;
+                    name: string;
+                    owner_id: string;
+                    share_token?: string | null;
+                    updated_at?: string;
+                    visibility?: Database["public"]["Enums"]["deck_visibility"];
+                };
+                Update: {
+                    cover_url?: string | null;
+                    created_at?: string;
+                    deleted_at?: string | null;
+                    description?: string | null;
+                    id?: string;
+                    name?: string;
+                    owner_id?: string;
+                    share_token?: string | null;
+                    updated_at?: string;
+                    visibility?: Database["public"]["Enums"]["deck_visibility"];
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "decks_owner_id_fkey";
+                        columns: ["owner_id"];
+                        isOneToOne: false;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    },
+                ];
+            };
+            pdf_exports: {
+                Row: {
+                    created_at: string;
+                    deck_id: string;
+                    deleted_at: string | null;
+                    file_size: number | null;
+                    format: string;
+                    id: string;
+                    storage_path: string;
+                };
+                Insert: {
+                    created_at?: string;
+                    deck_id: string;
+                    deleted_at?: string | null;
+                    file_size?: number | null;
+                    format?: string;
+                    id?: string;
+                    storage_path: string;
+                };
+                Update: {
+                    created_at?: string;
+                    deck_id?: string;
+                    deleted_at?: string | null;
+                    file_size?: number | null;
+                    format?: string;
+                    id?: string;
+                    storage_path?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "pdf_exports_deck_id_fkey";
+                        columns: ["deck_id"];
+                        isOneToOne: false;
+                        referencedRelation: "decks";
+                        referencedColumns: ["id"];
+                    },
+                ];
+            };
+            play_events: {
+                Row: {
+                    created_at: string;
+                    deck_id: string;
+                    id: string;
+                    ip_address: unknown;
+                    play_token_id: string | null;
+                    scanned_by: string | null;
+                    song_id: string | null;
+                    user_agent: string | null;
+                };
+                Insert: {
+                    created_at?: string;
+                    deck_id: string;
+                    id?: string;
+                    ip_address?: unknown;
+                    play_token_id?: string | null;
+                    scanned_by?: string | null;
+                    song_id?: string | null;
+                    user_agent?: string | null;
+                };
+                Update: {
+                    created_at?: string;
+                    deck_id?: string;
+                    id?: string;
+                    ip_address?: unknown;
+                    play_token_id?: string | null;
+                    scanned_by?: string | null;
+                    song_id?: string | null;
+                    user_agent?: string | null;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "play_events_deck_id_fkey";
+                        columns: ["deck_id"];
+                        isOneToOne: false;
+                        referencedRelation: "decks";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "play_events_play_token_id_fkey";
+                        columns: ["play_token_id"];
+                        isOneToOne: false;
+                        referencedRelation: "play_tokens";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "play_events_scanned_by_fkey";
+                        columns: ["scanned_by"];
+                        isOneToOne: false;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "play_events_song_id_fkey";
+                        columns: ["song_id"];
+                        isOneToOne: false;
+                        referencedRelation: "songs";
+                        referencedColumns: ["id"];
+                    },
+                ];
+            };
+            play_tokens: {
+                Row: {
+                    created_at: string;
+                    deck_id: string;
+                    deck_song_id: string | null;
+                    deleted_at: string | null;
+                    expires_at: string | null;
+                    id: string;
+                    token: string;
+                };
+                Insert: {
+                    created_at?: string;
+                    deck_id: string;
+                    deck_song_id?: string | null;
+                    deleted_at?: string | null;
+                    expires_at?: string | null;
+                    id?: string;
+                    token?: string;
+                };
+                Update: {
+                    created_at?: string;
+                    deck_id?: string;
+                    deck_song_id?: string | null;
+                    deleted_at?: string | null;
+                    expires_at?: string | null;
+                    id?: string;
+                    token?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "play_tokens_deck_id_fkey";
+                        columns: ["deck_id"];
+                        isOneToOne: false;
+                        referencedRelation: "decks";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "play_tokens_deck_song_id_fkey";
+                        columns: ["deck_song_id"];
+                        isOneToOne: false;
+                        referencedRelation: "deck_songs";
+                        referencedColumns: ["id"];
+                    },
+                ];
+            };
+            profiles: {
+                Row: {
+                    avatar_url: string | null;
+                    created_at: string;
+                    deleted_at: string | null;
+                    display_name: string | null;
+                    id: string;
+                    spotify_user_id: string | null;
+                    updated_at: string;
+                };
+                Insert: {
+                    avatar_url?: string | null;
+                    created_at?: string;
+                    deleted_at?: string | null;
+                    display_name?: string | null;
+                    id: string;
+                    spotify_user_id?: string | null;
+                    updated_at?: string;
+                };
+                Update: {
+                    avatar_url?: string | null;
+                    created_at?: string;
+                    deleted_at?: string | null;
+                    display_name?: string | null;
+                    id?: string;
+                    spotify_user_id?: string | null;
+                    updated_at?: string;
+                };
+                Relationships: [];
+            };
+            songs: {
+                Row: {
+                    album: string | null;
+                    artist: string;
+                    created_at: string;
+                    deleted_at: string | null;
+                    duration_ms: number | null;
+                    id: string;
+                    spotify_track_id: string;
+                    thumbnail_url: string | null;
+                    title: string;
+                    updated_at: string;
+                    year: number;
+                };
+                Insert: {
+                    album?: string | null;
+                    artist: string;
+                    created_at?: string;
+                    deleted_at?: string | null;
+                    duration_ms?: number | null;
+                    id?: string;
+                    spotify_track_id: string;
+                    thumbnail_url?: string | null;
+                    title: string;
+                    updated_at?: string;
+                    year: number;
+                };
+                Update: {
+                    album?: string | null;
+                    artist?: string;
+                    created_at?: string;
+                    deleted_at?: string | null;
+                    duration_ms?: number | null;
+                    id?: string;
+                    spotify_track_id?: string;
+                    thumbnail_url?: string | null;
+                    title?: string;
+                    updated_at?: string;
+                    year?: number;
+                };
+                Relationships: [];
+            };
+            spotify_tokens: {
+                Row: {
+                    access_token: string;
+                    created_at: string;
+                    expires_at: string;
+                    id: string;
+                    refresh_token: string;
+                    scope: string | null;
+                    token_type: string;
+                    updated_at: string;
+                    user_id: string;
+                };
+                Insert: {
+                    access_token: string;
+                    created_at?: string;
+                    expires_at: string;
+                    id?: string;
+                    refresh_token: string;
+                    scope?: string | null;
+                    token_type?: string;
+                    updated_at?: string;
+                    user_id: string;
+                };
+                Update: {
+                    access_token?: string;
+                    created_at?: string;
+                    expires_at?: string;
+                    id?: string;
+                    refresh_token?: string;
+                    scope?: string | null;
+                    token_type?: string;
+                    updated_at?: string;
+                    user_id?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "spotify_tokens_user_id_fkey";
+                        columns: ["user_id"];
+                        isOneToOne: true;
+                        referencedRelation: "profiles";
+                        referencedColumns: ["id"];
+                    },
+                ];
+            };
+            tags: {
+                Row: {
+                    created_at: string;
+                    id: string;
+                    name: string;
+                };
+                Insert: {
+                    created_at?: string;
+                    id?: string;
+                    name: string;
+                };
+                Update: {
+                    created_at?: string;
+                    id?: string;
+                    name?: string;
+                };
+                Relationships: [];
+            };
+        };
+        Views: {
+            [_ in never]: never;
+        };
+        Functions: {
+            get_own_spotify_token: {
+                Args: Record<PropertyKey, never>;
+                Returns: {
+                    access_token: string;
+                    refresh_token: string;
+                    expires_at: string;
+                }[];
+            };
+            has_deck_access: {
+                Args: {
+                    p_deck_id: string;
+                    p_min_role?: Database["public"]["Enums"]["collaborator_role"];
+                };
+                Returns: boolean;
+            };
+            upsert_own_spotify_token: {
+                Args: {
+                    p_access_token: string;
+                    p_refresh_token: string;
+                    p_expires_at: string;
+                    p_scope?: string;
+                };
+                Returns: undefined;
+            };
+        };
+        Enums: {
+            collaborator_role: "owner" | "editor" | "viewer";
+            deck_visibility: "private" | "public";
+        };
+        CompositeTypes: {
+            [_ in never]: never;
+        };
+    };
+};
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+
+export type Tables<
+    DefaultSchemaTableNameOrOptions extends
+        | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+        | { schema: keyof DatabaseWithoutInternals },
+    TableName extends DefaultSchemaTableNameOrOptions extends {
+        schema: keyof DatabaseWithoutInternals;
+    }
+        ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+              DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+        : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+}
+    ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+          DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+          Row: infer R;
+      }
+        ? R
+        : never
+    : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+            DefaultSchema["Views"])
+      ? (DefaultSchema["Tables"] &
+            DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+            Row: infer R;
+        }
+          ? R
+          : never
+      : never;
+
+export type TablesInsert<
+    DefaultSchemaTableNameOrOptions extends
+        | keyof DefaultSchema["Tables"]
+        | { schema: keyof DatabaseWithoutInternals },
+    TableName extends DefaultSchemaTableNameOrOptions extends {
+        schema: keyof DatabaseWithoutInternals;
+    }
+        ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+        : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+}
+    ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+          Insert: infer I;
+      }
+        ? I
+        : never
+    : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+      ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+            Insert: infer I;
+        }
+          ? I
+          : never
+      : never;
+
+export type TablesUpdate<
+    DefaultSchemaTableNameOrOptions extends
+        | keyof DefaultSchema["Tables"]
+        | { schema: keyof DatabaseWithoutInternals },
+    TableName extends DefaultSchemaTableNameOrOptions extends {
+        schema: keyof DatabaseWithoutInternals;
+    }
+        ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+        : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+}
+    ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+          Update: infer U;
+      }
+        ? U
+        : never
+    : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+      ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+            Update: infer U;
+        }
+          ? U
+          : never
+      : never;
+
+export type Enums<
+    DefaultSchemaEnumNameOrOptions extends
+        | keyof DefaultSchema["Enums"]
+        | { schema: keyof DatabaseWithoutInternals },
+    EnumName extends DefaultSchemaEnumNameOrOptions extends {
+        schema: keyof DatabaseWithoutInternals;
+    }
+        ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+        : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+}
+    ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+    : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+      ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+      : never;
+
+export type CompositeTypes<
+    PublicCompositeTypeNameOrOptions extends
+        | keyof DefaultSchema["CompositeTypes"]
+        | { schema: keyof DatabaseWithoutInternals },
+    CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+        schema: keyof DatabaseWithoutInternals;
+    }
+        ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+        : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+}
+    ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+    : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+      ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+      : never;
+
+export const Constants = {
+    graphql_public: {
+        Enums: {},
+    },
+    public: {
+        Enums: {
+            collaborator_role: ["owner", "editor", "viewer"],
+            deck_visibility: ["private", "public"],
+        },
+    },
+} as const;

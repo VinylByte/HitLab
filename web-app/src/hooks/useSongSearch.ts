@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef } from "react";
-import { searchTracks, type SpotifyTrack } from "../services/spotifyClient";
+import { searchTracks } from "../services/spotifyClient";
+import type { SpotifyTrack } from "../types/spotify";
 
 type State = {
     songs: SpotifyTrack[];

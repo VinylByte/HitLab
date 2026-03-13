@@ -1,13 +1,13 @@
-import HeaderNav from "./components/elements/header/Header";
+import HeaderNav from "../components/elements/Header";
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router";
-import { Pages, ProtectedPages } from "./components/pages/Settings";
-import LoginPage from "./components/pages/LoginPage";
+import { Pages, ProtectedPages } from "./routes";
+import LoginPage from "../components/pages/LoginPage";
 //import { FooterSocial } from "./components/elements/Footer/Footer";
-import { useSession } from "./hooks/useSession";
-import { useAppTheme } from "./hooks/useAppTheme";
+import { useSession } from "../hooks/useSession";
+import { useAppTheme } from "../hooks/useAppTheme";
 import { Center, Loader } from "@mantine/core";
-import Error404Page from "./components/pages/404ErrorPage/404ErrorPage";
-import GeneralPlayPage from "./components/pages/PlayPage/GeneralPlayPage";
+import Error404Page from "../components/pages/404ErrorPage/404ErrorPage";
+import GeneralPlayPage from "../components/pages/PlayPage/GeneralPlayPage";
 
 function App() {
     useAppTheme(); // Initialize theme hook

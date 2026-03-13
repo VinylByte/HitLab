@@ -20,11 +20,11 @@ import {
 } from "@heroui/react";
 import { SimpleGrid, Stack, Group, Text, Title, Center } from "@mantine/core";
 import { useState } from "react";
-import { MOBILE_BREAKPOINT } from "../Settings";
+import { MOBILE_BREAKPOINT } from "../../../lib/constants";
 
-import type { OwnDeckDTO, PublicDeckDTO } from "../../../services/deckService";
-import DownloadModal from "../../../../PDF/DownloadModal";
 import { useDeckSongs } from "../../../hooks/useDeckSongs";
+import type { OwnDeck, PublicDeck } from "../../../types/deck";
+import DownloadModal from "../../../features/pdf/DownloadModal";
 
 export function DeckModal({
     isOpen,
@@ -33,7 +33,7 @@ export function DeckModal({
 }: {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
-    deck: OwnDeckDTO | PublicDeckDTO | null;
+    deck: OwnDeck | PublicDeck | null;
 }) {
     const activeDeck = deck;
     const deckId = activeDeck?.id ?? "";
@@ -43,7 +43,7 @@ export function DeckModal({
 
     if (!activeDeck) return null;
 
-    const downloadDeck: PublicDeckDTO = {
+    const downloadDeck: PublicDeck = {
         id: activeDeck.id,
         name: activeDeck.name,
         description: activeDeck.description,

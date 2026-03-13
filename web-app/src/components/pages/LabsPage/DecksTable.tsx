@@ -21,9 +21,9 @@ import { IconDotsVertical, IconEdit, IconEye, IconPlus, IconTrash } from "@table
 import { Center, Group } from "@mantine/core";
 import SearchBar from "../PublicDecksPage/SearchBarProp";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../Settings";
+import { MOBILE_BREAKPOINT } from "../../../lib/constants";
 import { useSearchParams } from "react-router";
-import type { OwnDeckDTO } from "../../../services/deckService";
+import type { OwnDeck } from "../../../types/deck";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
     private: "success",
@@ -37,11 +37,11 @@ export default function DecksTable({
     createDeck,
     deleteDeck,
 }: {
-    decks: OwnDeckDTO[];
-    viewDeck: (deck: OwnDeckDTO) => void;
+    decks: OwnDeck[];
+    viewDeck: (deck: OwnDeck) => void;
     createDeck: () => void;
-    editDeck: (deck: OwnDeckDTO) => void;
-    deleteDeck: (deck: OwnDeckDTO) => void;
+    editDeck: (deck: OwnDeck) => void;
+    deleteDeck: (deck: OwnDeck) => void;
 }) {
     const [sortKey, setSortKey] = useState<string>("created_at");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -89,7 +89,7 @@ export default function DecksTable({
     );
 
     const renderCell = React.useCallback(
-        (deck: OwnDeckDTO, columnKey: React.Key) => {
+        (deck: OwnDeck, columnKey: React.Key) => {
             switch (columnKey) {
                 case "title":
                     return (
@@ -188,7 +188,7 @@ export default function DecksTable({
                                             className="text-lg text-danger cursor-pointer active:opacity-50"
                                             onClick={() => deleteDeck(deck)}
                                         >
-                                            <IconTrash/>
+                                            <IconTrash />
                                         </span>
                                     </Tooltip>
                                 </Group>

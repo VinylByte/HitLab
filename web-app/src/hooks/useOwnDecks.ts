@@ -1,15 +1,16 @@
 import { useEffect, useReducer } from "react";
-import { fetchOwnDecks, type OwnDeckDTO } from "../services/deckService";
+import { fetchOwnDecks } from "../services/deckService";
+import type { OwnDeck } from "../types/deck";
 
 type State = {
-    ownDecks: OwnDeckDTO[];
+    ownDecks: OwnDeck[];
     loading: boolean;
     error: Error | null;
 };
 
 type Action =
     | { type: "fetch" }
-    | { type: "success"; ownDecks: OwnDeckDTO[] }
+    | { type: "success"; ownDecks: OwnDeck[] }
     | { type: "error"; error: Error }
     | { type: "removeDeck"; deckId: string };
 

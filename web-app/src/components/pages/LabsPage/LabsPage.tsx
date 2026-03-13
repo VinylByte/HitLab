@@ -5,8 +5,9 @@ import { DeckModal } from "./ViewDeckModal";
 import { useEffect, useState } from "react";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-import { deleteDeckById, type OwnDeckDTO } from "../../../services/deckService";
+import { deleteDeckById } from "../../../services/deckService";
 import { useOwnDecks } from "../../../hooks/useOwnDecks";
+import type { OwnDeck } from "../../../types/deck";
 
 const ViewDeckModal = ({
     isDeckModalOpen,
@@ -15,7 +16,7 @@ const ViewDeckModal = ({
 }: {
     isDeckModalOpen: boolean;
     setIsDeckModalOpen: (open: boolean) => void;
-    selectedDeck: OwnDeckDTO | null;
+    selectedDeck: OwnDeck | null;
 }) => {
     return (
         <div>
@@ -32,7 +33,7 @@ export default function LabsPage() {
     const { ownDecks, loading, error, removeDeck } = useOwnDecks();
     const [searchParams] = useSearchParams();
     const { deckId } = useParams();
-    const [selectedDeck, setSelectedDeck] = useState<OwnDeckDTO | null>(null);
+    const [selectedDeck, setSelectedDeck] = useState<OwnDeck | null>(null);
     const [isDeckModalOpen, setIsDeckModalOpen] = useState(false);
 
     const [isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen] = useState(false);
@@ -49,14 +50,14 @@ export default function LabsPage() {
         }
     };
 
-    const viewDeck = (deck: OwnDeckDTO) => {
+    const viewDeck = (deck: OwnDeck) => {
         navigate({
             pathname: `/lab/${deck.id}/view`,
             search: searchParams.toString() ? `?${searchParams.toString()}` : "",
         });
     };
 
-    const editDeck = (deck: OwnDeckDTO) => {
+    const editDeck = (deck: OwnDeck) => {
         // console.log("Editing deck:", deck);
         navigate(`/decks/${deck.id}/edit`);
     };
@@ -66,7 +67,7 @@ export default function LabsPage() {
         navigate("/decks/new");
     };
 
-    const deleteDeck = (deck: OwnDeckDTO) => {
+    const deleteDeck = (deck: OwnDeck) => {
         setSelectedDeck(deck);
         setIsConfirmDeleteModalOpen(true);
         // console.log("Deleting deck:", deck);

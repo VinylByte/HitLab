@@ -1,15 +1,16 @@
 import { useEffect, useReducer } from "react";
-import { fetchDeckSongs, type DeckSongsDTO } from "../services/deckService";
+import { fetchDeckSongs } from "../services/deckService";
+import type { DeckSong } from "../types/song";
 
 type State = {
-    deck_songs: DeckSongsDTO[];
+    deck_songs: DeckSong[];
     loading: boolean;
     error: Error | null;
 };
 
 type Action =
     | { type: "fetch" }
-    | { type: "success"; deck_songs: DeckSongsDTO[] }
+    | { type: "success"; deck_songs: DeckSong[] }
     | { type: "error"; error: Error };
 
 function reduce(state: State, action: Action): State {

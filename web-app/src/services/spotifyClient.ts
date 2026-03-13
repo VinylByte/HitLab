@@ -1,4 +1,12 @@
 import supabase from "../supabase";
+import type {
+    PlaybackState,
+    SpotifyDevice,
+    SpotifyDevicesResponse,
+    SpotifySearchResponse,
+    SpotifyTrack,
+    SpotifyTrackApi,
+} from "../types/spotify";
 import { mapSpotifyError } from "./spotifyErrorMapper";
 
 /**
@@ -20,27 +28,6 @@ export async function persistSpotifyToken(
     });
     if (error) console.warn("Failed to persist Spotify token:", error);
 }
-
-type SpotifyTrackApi = {
-    id: string;
-    name: string;
-    artists: Array<{ name: string }>;
-    album: {
-        name: string;
-        release_date?: string;
-        images: Array<{ url: string }>;
-    };
-};
-
-type SpotifyDevicesResponse = {
-    devices: SpotifyDevice[];
-};
-
-type SpotifySearchResponse = {
-    tracks: {
-        items: SpotifyTrackApi[];
-    };
-};
 
 type AuthSession = {
     accessTokenStr: string;
@@ -181,15 +168,6 @@ export async function searchTracks(query: string): Promise<SpotifyTrack[]> {
         throw mapSpotifyError(error);
     }
 }
-export type SpotifyDevice = {
-    id: string;
-    is_active: boolean;
-    is_private_session?: boolean;
-    is_restricted?: boolean;
-    name: string;
-    type: string;
-    volume_percent?: number | null;
-};
 
 export async function getDevices(): Promise<SpotifyDevice[]> {
     const { accessTokenStr } = await getSpotifyAuthSession();
@@ -257,13 +235,6 @@ export async function resumePlayback(): Promise<void> {
     }
 }
 
-export type PlaybackState = {
-    is_playing: boolean;
-    progress_ms: number;
-    duration_ms: number;
-    item: SpotifyTrackApi | null;
-};
-
 export async function getPlaybackState(): Promise<PlaybackState | null> {
     const { accessTokenStr } = await getSpotifyAuthSession();
     try {
@@ -288,12 +259,3 @@ export async function getTrack(trackId: string): Promise<SpotifyTrack> {
         throw mapSpotifyError(error);
     }
 }
-
-export type SpotifyTrack = {
-    spotify_track_id: string;
-    title: string;
-    artist: string;
-    album: string;
-    year: number;
-    thumbnail_url: string | null;
-};

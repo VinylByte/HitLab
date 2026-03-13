@@ -2,7 +2,7 @@ import { Button } from "@heroui/react";
 import QRScannerModal from "./QRScanner/QRScannerElement";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../Settings";
+import { MOBILE_BREAKPOINT } from "../../../../lib/constants";
 import PlayerElement from "./Player/PlayerElement";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { IconScan } from "@tabler/icons-react";

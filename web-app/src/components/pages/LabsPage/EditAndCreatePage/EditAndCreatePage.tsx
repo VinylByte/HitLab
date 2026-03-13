@@ -21,9 +21,9 @@ import {
     fetchAllTags,
     setDeckTags,
     updateDeckCover,
-    type DeckTag,
 } from "../../../../services/deckService";
 import { createDeck } from "../../../../services/createDeckService";
+import type { DeckTag } from "../../../../types/deck";
 
 interface DeckFormData {
     name: string;

@@ -3,11 +3,11 @@ import classes from "./DeckCard.module.css";
 
 import { Card, Image, Avatar, CardBody, Skeleton, Chip } from "@heroui/react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../Settings";
-import type { PublicDeckDTO } from "../../../services/deckService";
+import { MOBILE_BREAKPOINT } from "../../../lib/constants";
 import { useNavigate, useSearchParams } from "react-router";
+import type { PublicDeck } from "../../../types/deck";
 
-export function DeckCard({ data }: { data: PublicDeckDTO }) {
+export function DeckCard({ data }: { data: PublicDeck }) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();

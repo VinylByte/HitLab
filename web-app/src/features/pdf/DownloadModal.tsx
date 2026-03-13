@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo } from "react";
-import type { PublicDeckDTO, Song } from "../src/services/deckService";
 import {
     Button,
     Drawer,
@@ -21,6 +20,8 @@ import type { Card, BackgroundConfig } from "./interfaces";
 import { DESIGNS } from "./HardDesigns";
 import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
 import type { HardDesignPreset } from "./DesignResolver";
+import type { PublicDeck } from "../../types/deck";
+import type { Song } from "../../types/song";
 
 const getURL = ({ songId }: { songId: string }) => {
     return window.location.origin + `/play/${songId}`;
@@ -30,7 +31,8 @@ const getBackgroundCss = (bg: BackgroundConfig | undefined): string => {
     if (!bg) return "transparent";
     if (bg.type === "solid") return bg.color;
     if (bg.type === "image") return `url(${bg.url}) center/cover`;
-    if (bg.type === "gradient") return (bg.css ?? "").replace(/^background:\s*/i, "").replace(/;+$/, "");
+    if (bg.type === "gradient")
+        return (bg.css ?? "").replace(/^background:\s*/i, "").replace(/;+$/, "");
     return "transparent";
 };
 
@@ -74,7 +76,7 @@ export interface DownloadModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     songs: Song[];
-    deck: PublicDeckDTO;
+    deck: PublicDeck;
 }
 
 export default function DownloadModal(props: DownloadModalProps) {
@@ -211,7 +213,10 @@ export default function DownloadModal(props: DownloadModalProps) {
                                     <SelectItem key={design.id}>
                                         <div className="flex items-start gap-3 py-1">
                                             <div className="shrink-0">
-                                                <DesignPreview design={design} allDesigns={DESIGNS} />
+                                                <DesignPreview
+                                                    design={design}
+                                                    allDesigns={DESIGNS}
+                                                />
                                             </div>
                                             <div className="min-w-0">
                                                 <Text fw={"600"}>{design.name}</Text>
