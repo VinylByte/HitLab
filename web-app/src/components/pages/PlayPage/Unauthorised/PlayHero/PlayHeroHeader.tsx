@@ -6,6 +6,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../../../../lib/constants";
 import { useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
+import playHeroBackground from "/PeoplePlayingHitLab2.png";
 
 export default function PlayHeroHeader() {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
@@ -26,7 +27,12 @@ export default function PlayHeroHeader() {
     }, []);
 
     return (
-        <div className={classes.rootHero}>
+        <div
+            className={classes.rootHero}
+            style={{
+                backgroundImage: `linear-gradient(250deg, rgba(130, 201, 30, 0) 0%, #062343 70%), url(${playHeroBackground})`,
+            }}
+        >
             <Container size="lg" h="calc(100vh - 16rem)">
                 <Center w={isMobile ? "100%" : "50%"} h={"100%"}>
                     <div className={classes.content}>
