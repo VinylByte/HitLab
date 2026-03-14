@@ -41,3 +41,14 @@ export type SpotifySearchResponse = {
         items: SpotifyTrackApi[];
     };
 };
+
+export type SpotifyPlaylistTrackItem = {
+    item: SpotifyTrackApi | null;
+};
+
+export type SpotifyPlaylistTracksResponse = {
+    items: SpotifyPlaylistTrackItem[];
+    total: number;
+    limit: number;
+    offset: number;
+};

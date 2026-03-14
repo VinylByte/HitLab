@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { IconCloudUpload, IconDownload, IconX, IconCheck } from "@tabler/icons-react";
-import { Group, Text, useMantineTheme } from "@mantine/core";
+import { Group, Stack, Text, useMantineTheme } from "@mantine/core";
 import { Dropzone, MIME_TYPES } from "@mantine/dropzone";
 import classes from "./Dropzone.module.css";
+import { Spinner } from "@heroui/react";
 
 export function DropzoneField({
     onFileUpload,
     currentBlob,
     currentFileName,
+    isBusy,
 }: {
     onFileUpload: (blob: Blob) => void;
     currentBlob?: Blob | null;
     currentFileName?: string | null;
+    isBusy?: boolean;
 }) {
     const theme = useMantineTheme();
     const openRef = useRef<() => void>(null);
@@ -83,6 +86,7 @@ export function DropzoneField({
                 onDrop={handleDrop}
                 className={classes.dropzone}
                 radius="md"
+                disabled={isBusy}
                 accept={[
                     MIME_TYPES.webp,
                     MIME_TYPES.jpeg,
@@ -158,6 +162,18 @@ export function DropzoneField({
                     </div>
                 )}
             </Dropzone>
+
+            {isBusy && (
+                <div className={classes.loadingOverlay} aria-live="polite" aria-busy="true">
+                    <Stack align="center" gap="xs">
+                        <Spinner size="md" />
+                        <Text fw={600}>Cover wird verarbeitet...</Text>
+                        <Text size="sm" c="dimmed">
+                            Bitte warten, bis der Vorgang abgeschlossen ist.
+                        </Text>
+                    </Stack>
+                </div>
+            )}
         </div>
     );
 }

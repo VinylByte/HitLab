@@ -3,11 +3,29 @@ import type {
     PlaybackState,
     SpotifyDevice,
     SpotifyDevicesResponse,
+    SpotifyPlaylistTracksResponse,
     SpotifySearchResponse,
     SpotifyTrack,
     SpotifyTrackApi,
 } from "../types/spotify";
 import { mapSpotifyError } from "./spotifyErrorMapper";
+
+export function extractSpotifyPlaylistId(input: string): string | null {
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return null;
+
+    const uriMatch = /^spotify:playlist:([A-Za-z0-9]+)$/i.exec(trimmedInput);
+    if (uriMatch) return uriMatch[1];
+
+    try {
+        const url = new URL(trimmedInput);
+        const pathMatch = /^\/playlist\/([A-Za-z0-9]+)$/.exec(url.pathname);
+        if (!pathMatch) return null;
+        return pathMatch[1];
+    } catch {
+        return null;
+    }
+}
 
 /**
  * Persists the Spotify OAuth token in the database so it survives page refreshes.
@@ -165,6 +183,50 @@ export async function searchTracks(query: string): Promise<SpotifyTrack[]> {
         return response.tracks.items.map(toSpotifyTrack);
     } catch (error) {
         console.error("[spotify] searchTracks failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
+export async function getPlaylistTracks(playlistId: string): Promise<SpotifyTrack[]> {
+    const trimmedPlaylistId = playlistId.trim();
+    if (!trimmedPlaylistId) {
+        throw new Error("Ungueltige Spotify-Playlist-ID");
+    }
+
+    const { accessTokenStr } = await getSpotifyAuthSession();
+
+    try {
+        const songs: SpotifyTrack[] = [];
+        let offset = 0;
+        const limit = 100;
+        let total = 0;
+
+        do {
+            const params = new URLSearchParams({
+                market: "DE",
+                limit: String(limit),
+                offset: String(offset),
+            });
+
+            const response = await spotifyFetch<SpotifyPlaylistTracksResponse>(
+                accessTokenStr,
+                `/playlists/${encodeURIComponent(trimmedPlaylistId)}/items?${params.toString()}` // /tracks}
+            );
+
+            songs.push(
+                ...response.items
+                    .map(item => item.item)
+                    .filter((track): track is SpotifyTrackApi => Boolean(track))
+                    .map(toSpotifyTrack)
+            );
+
+            total = response.total;
+            offset += response.limit;
+        } while (offset < total);
+
+        return songs;
+    } catch (error) {
+        console.error("[spotify] getPlaylistTracks failed", { playlistId: trimmedPlaylistId, error });
         throw mapSpotifyError(error);
     }
 }

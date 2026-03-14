@@ -7,12 +7,15 @@ import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../../../../lib/constants";
 import SongTable from "./SongTable";
 import type { SongTableItem } from "./SongTable";
-import { IconSearch, IconPlus, IconTrash, IconCheck } from "@tabler/icons-react";
+import { IconSearch, IconPlus, IconTrash, IconCheck, IconLink } from "@tabler/icons-react";
 import { useSongSearch } from "../../../../../hooks/useSongSearch";
+import { usePlaylist } from "../../../../../hooks/usePlaylist";
 import { fetchDeckSongs, removeDeckSongs } from "../../../../../services/deckService";
 import { addDeckSong } from "../../../../../services/createDeckService";
 import type { SpotifyTrack } from "../../../../../types/spotify";
 import type { Song } from "../../../../../types/song";
+
+type SearchMode = "song" | "playlist";
 
 function songToTableItem(song: Song): SongTableItem {
     return {
@@ -40,12 +43,15 @@ export default function EditSongsPage() {
     const [songsInDeck, setSongsInDeck] = useState<Song[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchDeckValue, setSearchDeckValue] = useState("");
-    const [searchResultsValue, setSearchResultsValue] = useState("");
+    const [songSearchValue, setSongSearchValue] = useState("");
+    const [playlistLinkValue, setPlaylistLinkValue] = useState("");
+    const [searchMode, setSearchMode] = useState<SearchMode>("song");
     const [selectedSearchKeys, setSelectedSearchKeys] = useState<Selection>(new Set());
     const [selectedDeckKeys, setSelectedDeckKeys] = useState<Selection>(new Set());
     const [loadingDeckIds, setLoadingDeckIds] = useState<Set<string>>(new Set());
 
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
+    const desktopControlsClass = isMobile ? "" : "h-[170px] flex flex-col";
 
     // Lade Songs im Deck aus der Datenbank
     useEffect(() => {
@@ -58,15 +64,29 @@ export default function EditSongsPage() {
 
     // Spotify-Suche via useSongSearch Hook (debounced, min. 2 Zeichen)
     const {
-        songs: spotifyResults,
-        loading: searchLoading,
-        error: searchError,
-    } = useSongSearch(searchResultsValue);
+        songs: songSearchResults,
+        loading: songSearchLoading,
+        error: songSearchError,
+    } = useSongSearch(searchMode === "song" ? songSearchValue : "");
+
+    const {
+        songs: playlistResults,
+        loading: playlistLoading,
+        error: playlistError,
+    } = usePlaylist(searchMode === "playlist" ? playlistLinkValue : "");
+
+    const activeSpotifyResults = useMemo(
+        () => (searchMode === "song" ? songSearchResults : playlistResults),
+        [searchMode, songSearchResults, playlistResults]
+    );
+
+    const searchLoading = searchMode === "song" ? songSearchLoading : playlistLoading;
+    const searchError = searchMode === "song" ? songSearchError : playlistError;
 
     // Konvertiere Spotify-Ergebnisse zu SongTableItems
     const searchTableItems = useMemo(
-        () => spotifyResults.map(spotifyTrackToTableItem),
-        [spotifyResults]
+        () => activeSpotifyResults.map(spotifyTrackToTableItem),
+        [activeSpotifyResults]
     );
 
     // Caches für ausgewählte Songs (nur in Event-Handlern aktualisiert)
@@ -114,29 +134,36 @@ export default function EditSongsPage() {
                     if (cached) {
                         next.set(id, cached);
                     } else {
-                        const fromResults = spotifyResults.find(s => s.spotify_track_id === id);
+                        const fromResults = activeSpotifyResults.find(
+                            s => s.spotify_track_id === id
+                        );
                         if (fromResults) next.set(id, fromResults);
                     }
                 }
                 return next;
             });
         },
-        [searchTableItems, loadingDeckIds, spotifyResults]
+        [searchTableItems, loadingDeckIds, activeSpotifyResults]
     );
 
-    // Angezeigte Suchergebnisse: Ausgewählte Songs oben gepinnt, restliche darunter
+    useEffect(() => {
+        setSelectedSearchKeys(new Set());
+        setSelectedItemsCache(new Map());
+        setSelectedTracksCache(new Map());
+    }, [searchMode]);
+
+    // Pin selected search rows only when they would disappear due to current filter/query.
     const displayedSearchItems = useMemo(() => {
         const selectedIds = Array.from(selectedSearchKeys as Set<string>);
-        const selectedIdSet = new Set(selectedIds);
+        const visibleIds = new Set(searchTableItems.map(song => song.id));
 
-        const pinnedItems = selectedIds
+        const pinnedMissingSelected = selectedIds
+            .filter(id => !visibleIds.has(id))
             .map(id => selectedItemsCache.get(id))
             .filter((s): s is SongTableItem => s !== undefined);
 
-        const nonSelected = searchTableItems.filter(s => !selectedIdSet.has(s.id));
-
-        return [...pinnedItems, ...nonSelected];
-    }, [selectedSearchKeys, searchTableItems, selectedItemsCache]);
+        return [...pinnedMissingSelected, ...searchTableItems];
+    }, [selectedSearchKeys, selectedItemsCache, searchTableItems]);
 
     // Deck-Songs als SongTableItems
     const deckTableItems = useMemo(() => songsInDeck.map(songToTableItem), [songsInDeck]);
@@ -154,18 +181,17 @@ export default function EditSongsPage() {
         );
     }, [deckTableItems, searchDeckValue]);
 
-    // Angezeigte Deck-Songs: Ausgewählte oben gepinnt, auch wenn sie nicht zur Query passen
+    // Pin selected deck rows only when they would disappear due to the local search filter.
     const displayedDeckItems = useMemo(() => {
         const selectedIds = Array.from(selectedDeckKeys as Set<string>);
-        const selectedIdSet = new Set(selectedIds);
+        const visibleIds = new Set(filteredDeckItems.map(song => song.id));
 
-        const pinnedItems = selectedIds
-            .map(itemId => deckTableItems.find(s => s.id === itemId))
+        const pinnedMissingSelected = selectedIds
+            .filter(id => !visibleIds.has(id))
+            .map(itemId => deckTableItems.find(song => song.id === itemId))
             .filter((s): s is SongTableItem => s !== undefined);
 
-        const nonSelected = filteredDeckItems.filter(s => !selectedIdSet.has(s.id));
-
-        return [...pinnedItems, ...nonSelected];
+        return [...pinnedMissingSelected, ...filteredDeckItems];
     }, [selectedDeckKeys, filteredDeckItems, deckTableItems]);
 
     const handleDeckSelectionChange = useCallback(
@@ -260,28 +286,56 @@ export default function EditSongsPage() {
     }, [selectedDeckKeys, songsInDeck, id]);
 
     const SongsSearchTable = (
-        <div className="w-full min-w-0">
-            <Center className="w-full">
-                <Title order={4} mb="sm" hidden={isMobile}>
-                    Songs hinzufügen
+        <div className="w-full min-w-0 flex flex-col h-full">
+            <div className={desktopControlsClass}>
+                <Center className="w-full">
+                    <Title order={4} mb="sm" hidden={isMobile}>
+                        Songs hinzufügen
+                        <Center>
+                            <Text c={"dimmed"}>(Spotify)</Text>
+                        </Center>
+                    </Title>
+                </Center>
+                <Tabs
+                    fullWidth
+                    color="secondary"
+                    selectedKey={searchMode}
+                    onSelectionChange={key => {
+                        setSearchMode(String(key) as SearchMode);
+                    }}
+                    className="mt-auto"
+                >
+                    <Tab key="song" title="Song suchen">
+                        <Input
+                            isClearable
+                            className="w-full"
+                            placeholder="Nach Song-Namen suchen..."
+                            startContent={<IconSearch />}
+                            value={songSearchValue}
+                            onValueChange={setSongSearchValue}
+                        />
+                    </Tab>
+                    <Tab key="playlist" title="Playlist importieren">
+                        <Input
+                            isClearable
+                            className="w-full"
+                            placeholder="Spotify-Playlist-Link eingeben..."
+                            startContent={<IconLink />}
+                            value={playlistLinkValue}
+                            onValueChange={setPlaylistLinkValue}
+                        />
+                    </Tab>
+                </Tabs>
+            </div>
+            <div className="min-h-[20px] mb-2">
+                {searchError && (
                     <Center>
-                        <Text c={"dimmed"}>(Spotify)</Text>
+                        <Text c="red" size="sm">
+                            Fehler: {searchError.message}
+                        </Text>
                     </Center>
-                </Title>
-            </Center>
-            <Input
-                isClearable
-                className="w-full mb-4"
-                placeholder="Nach Song-Namen suchen..."
-                startContent={<IconSearch />}
-                value={searchResultsValue}
-                onValueChange={setSearchResultsValue}
-            />
-            {searchError && (
-                <Text c="red" size="sm" mb="sm">
-                    Spotify-Fehler: {searchError.message}
-                </Text>
-            )}
+                )}
+            </div>
             <SongTable
                 songs={displayedSearchItems}
                 color="secondary"
@@ -303,23 +357,28 @@ export default function EditSongsPage() {
     );
 
     const SongsInDeckTable = (
-        <div className="w-full min-w-0">
-            <Center className="w-full">
-                <Title order={4} mb="sm" hidden={isMobile}>
-                    Songs im Deck
-                    <Center>
-                        <Text c={"dimmed"}>(Lokal)</Text>
-                    </Center>
-                </Title>
-            </Center>
-            <Input
-                isClearable
-                className="w-full mb-4"
-                placeholder="Nach Songs, Künstlern oder Jahr suchen..."
-                startContent={<IconSearch />}
-                value={searchDeckValue}
-                onValueChange={setSearchDeckValue}
-            />
+        <div className="w-full min-w-0 flex flex-col h-full">
+            <div className={desktopControlsClass}>
+                <Center className="w-full">
+                    <Title order={4} mb="sm" hidden={isMobile}>
+                        Songs im Deck
+                        <Center>
+                            <Text c={"dimmed"}>(Lokal)</Text>
+                        </Center>
+                    </Title>
+                </Center>
+                <div className={isMobile ? "" : "pt-14"}>
+                    <Input
+                        isClearable
+                        className="w-full"
+                        placeholder="Nach Songs, Künstlern oder Jahr suchen..."
+                        startContent={<IconSearch />}
+                        value={searchDeckValue}
+                        onValueChange={setSearchDeckValue}
+                    />
+                </div>
+            </div>
+            <div className="min-h-[20px] mb-2"></div>
             <SongTable
                 songs={displayedDeckItems}
                 color="primary"
