@@ -97,12 +97,38 @@ export const PDFFactory = ({
     bindingMode = "long-edge",
     frontBackground,
     backBackground,
+    onProgress,
 }: PDFFactoryProps) => {
     const cardsWithGlobalBackgrounds = applyGlobalAlternatingBackgrounds(
         cards,
         frontBackground,
         backBackground
     );
+
+    const totalRenderSteps =
+        type === "double-sided"
+            ? cardsWithGlobalBackgrounds.length * 2
+            : cardsWithGlobalBackgrounds.length;
+
+    let processedSteps = 0;
+    let lastReportedProgress = -1;
+
+    const reportCardProcessed = () => {
+        if (!onProgress || totalRenderSteps <= 0) {
+            return;
+        }
+
+        processedSteps += 1;
+        const percent = Math.min(100, Math.round((processedSteps / totalRenderSteps) * 100));
+        if (percent !== lastReportedProgress) {
+            lastReportedProgress = percent;
+            onProgress(percent);
+        }
+    };
+
+    if (onProgress) {
+        onProgress(totalRenderSteps > 0 ? 0 : 100);
+    }
 
     // ONE-SIDED: Faltkarten auf einem Blatt
     if (type === "one-sided") {
@@ -111,6 +137,7 @@ export const PDFFactory = ({
                 <Page size="A4" style={OnePageStyles.page}>
                     <View style={OnePageStyles.grid}>
                         {cardsWithGlobalBackgrounds.map((card, index) => {
+                            reportCardProcessed();
                             const cardFrontBg = card.frontBackground;
                             const cardBackBg = card.backBackground;
 
@@ -166,11 +193,13 @@ export const PDFFactory = ({
                             cards={chunk}
                             styles={DoublePageStyles}
                             chunkIndex={chunkIndex}
+                            onCardProcessed={reportCardProcessed}
                         />
                         <CardBackPage
                             cards={flippedChunk}
                             styles={DoublePageStyles}
                             chunkIndex={chunkIndex}
+                            onCardProcessed={reportCardProcessed}
                         />
                     </React.Fragment>
                 );

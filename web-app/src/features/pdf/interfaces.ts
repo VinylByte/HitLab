@@ -44,6 +44,7 @@ export interface PageComponentProps {
     chunkIndex: number;
     frontBackground?: BackgroundConfig;
     backBackground?: BackgroundConfig;
+    onCardProcessed?: () => void;
 }
 
 export interface CardComponentProps {
@@ -61,6 +62,7 @@ export interface PDFFactoryProps {
     bindingMode?: BindingMode;
     frontBackground?: BackgroundConfig | BackgroundConfig[];
     backBackground?: BackgroundConfig | BackgroundConfig[];
+    onProgress?: (percent: number) => void;
 }
 
 export interface PDFQRCodeProps {

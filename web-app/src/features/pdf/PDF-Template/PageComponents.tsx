@@ -99,10 +99,12 @@ export const CardFrontPage = ({
     styles,
     chunkIndex,
     frontBackground,
+    onCardProcessed,
 }: PageComponentProps) => (
     <Page size="A4" style={styles.page}>
         <View style={styles.grid}>
             {cards.map((card, i) => {
+                onCardProcessed?.();
                 const cardBackground = card.frontBackground ?? frontBackground;
                 return (
                     <CardWithBackground
@@ -120,10 +122,17 @@ export const CardFrontPage = ({
     </Page>
 );
 
-export const CardBackPage = ({ cards, styles, chunkIndex, backBackground }: PageComponentProps) => (
+export const CardBackPage = ({
+    cards,
+    styles,
+    chunkIndex,
+    backBackground,
+    onCardProcessed,
+}: PageComponentProps) => (
     <Page size="A4" style={styles.page}>
         <View style={styles.grid}>
             {cards.map((card, i) => {
+                onCardProcessed?.();
                 const cardBackground = card.backBackground ?? backBackground;
                 return (
                     <CardWithBackground
