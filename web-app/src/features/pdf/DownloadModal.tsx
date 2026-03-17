@@ -27,6 +27,16 @@ const getURL = ({ songId }: { songId: string }) => {
     return window.location.origin + `/play/${songId}`;
 };
 
+const yieldToMainThread = async () => {
+    await new Promise<void>(resolve => {
+        if (typeof requestAnimationFrame === "function") {
+            requestAnimationFrame(() => resolve());
+            return;
+        }
+        setTimeout(resolve, 0);
+    });
+};
+
 const getBackgroundCss = (bg: BackgroundConfig | undefined): string => {
     if (!bg) return "transparent";
     if (bg.type === "solid") return bg.color;
@@ -91,7 +101,9 @@ export default function DownloadModal(props: DownloadModalProps) {
 
     const [downloadStarted, setDownloadStarted] = React.useState(false);
     const [downloadProgress, setDownloadProgress] = React.useState(0);
-    const [downloadPhase, setDownloadPhase] = React.useState<"qr" | "render" | null>(null);
+    const [downloadPhase, setDownloadPhase] = React.useState<"qr" | "render" | "download" | null>(
+        null
+    );
 
     const selectableDesigns = useMemo(() => getSelectableDesigns(DESIGNS), []);
 
@@ -130,12 +142,18 @@ export default function DownloadModal(props: DownloadModalProps) {
         }
 
         const result = new Array<Card>(items.length);
-        const concurrency = Math.max(1, Math.min(options?.concurrency ?? 8, items.length));
+        const concurrency = Math.max(1, Math.min(options?.concurrency ?? 4, items.length));
         let nextIndex = 0;
         let completed = 0;
+        let lastReported = -1;
+
         const reportProgress = () => {
             const percent = (completed / items.length) * 100;
-            options?.onProgress?.(percent);
+            const rounded = Math.floor(percent);
+            if (rounded !== lastReported) {
+                lastReported = rounded;
+                options?.onProgress?.(percent);
+            }
         };
 
         options?.onProgress?.(0);
@@ -163,6 +181,11 @@ export default function DownloadModal(props: DownloadModalProps) {
 
                 completed += 1;
                 reportProgress();
+
+                // Let browser process input/paint regularly while generating many QRs.
+                if (completed % 4 === 0) {
+                    await yieldToMainThread();
+                }
             }
         };
 
@@ -179,8 +202,12 @@ export default function DownloadModal(props: DownloadModalProps) {
 
         try {
             setDownloadPhase("qr");
+
+            // Ensure loading UI is painted before heavy work starts.
+            await yieldToMainThread();
+
             const sourceCards = await generateQRCodes(cards, {
-                concurrency: 8,
+                concurrency: 4,
                 onProgress: percent => {
                     const weighted = percent * 0.5;
                     setDownloadProgress(prev => Math.max(prev, weighted));
@@ -210,6 +237,12 @@ export default function DownloadModal(props: DownloadModalProps) {
             });
 
             setDownloadProgress(100);
+            setDownloadPhase("download");
+
+            // Give the user one visual frame for the completed render progress
+            // before switching to indeterminate browser-download mode.
+            await yieldToMainThread();
+
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
@@ -266,7 +299,10 @@ export default function DownloadModal(props: DownloadModalProps) {
                                 }
                             >
                                 {selectableDesigns.map(design => (
-                                    <SelectItem key={design.id}>
+                                    <SelectItem
+                                        key={design.id}
+                                        textValue={`${design.name} ${design.description ?? ""}`.trim()}
+                                    >
                                         <div className="flex items-start gap-3 py-1">
                                             <div className="shrink-0">
                                                 <DesignPreview
@@ -324,19 +360,26 @@ export default function DownloadModal(props: DownloadModalProps) {
                             )}
                         </DrawerBody>
                         <DrawerFooter className="flex flex-col gap-3">
-                            {downloadStarted && (
-                                <Progress
-                                    label={
-                                        downloadPhase === "qr"
-                                            ? "QR-Codes werden generiert …"
-                                            : "PDF wird gerendert …"
-                                    }
-                                    value={downloadProgress}
-                                    showValueLabel
-                                    disableAnimation
-                                    className="w-full"
-                                />
-                            )}
+                            {downloadStarted &&
+                                (downloadPhase === "download" ? (
+                                    <Progress
+                                        label="PDF wird heruntergeladen …"
+                                        isIndeterminate
+                                        className="w-full"
+                                    />
+                                ) : (
+                                    <Progress
+                                        label={
+                                            downloadPhase === "qr"
+                                                ? "QR-Codes werden generiert …"
+                                                : "PDF wird gerendert …"
+                                        }
+                                        value={downloadProgress}
+                                        showValueLabel
+                                        disableAnimation
+                                        className="w-full"
+                                    />
+                                ))}
                             <div className="flex w-full justify-end gap-2">
                                 <Button color="danger" variant="light" onPress={onClose}>
                                     Abbrechen
