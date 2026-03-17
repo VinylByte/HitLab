@@ -356,8 +356,8 @@ export default function DownloadModal(props: DownloadModalProps) {
                                         showStartAnimation
                                             ? "PDF-Generierung startet …"
                                             : downloadPhase === "qr"
-                                            ? "QR-Codes werden generiert …"
-                                            : "PDF wird gerendert …"
+                                              ? "QR-Codes werden generiert …"
+                                              : "PDF wird gerendert …"
                                     }
                                     value={downloadProgress}
                                     showValueLabel={!showStartAnimation}
