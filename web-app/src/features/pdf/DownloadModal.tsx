@@ -17,9 +17,9 @@ import { Center, Title, Text } from "@mantine/core";
 import QRCode from "qrcode";
 import type { Card, BackgroundConfig } from "./interfaces";
 import { generateDeckPdfBlob } from "./pdf-lib/pdfLibGenerator";
-import { DESIGNS } from "./HardDesigns";
-import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
-import type { HardDesignPreset } from "./DesignResolver";
+import { DESIGNS } from "./Design/HardDesigns";
+import { getSelectableDesigns, resolveDesignSelection } from "./Design/DesignResolver";
+import type { HardDesignPreset } from "./Design/DesignResolver";
 import type { PublicDeck } from "../../types/deck";
 import type { Song } from "../../types/song";
 

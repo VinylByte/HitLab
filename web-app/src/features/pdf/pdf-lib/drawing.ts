@@ -11,7 +11,7 @@ import {
     ROWS_PER_PAGE_DOUBLE,
 } from "./constants";
 import { clamp01 } from "./helpers";
-import { resolveGradientBackground, createGradientDataUrl } from "../PDF-Template/BackgroundConfig";
+import { resolveGradientBackground, createGradientDataUrl } from "../Design/BackgroundConfig";
 
 type EmbeddedImageLoader = (sourceUrl: string) => Promise<any>;
 

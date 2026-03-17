@@ -3,9 +3,9 @@ export interface HardDesignPreset {
     name: string;
     description: string;
     selectable?: boolean;
-    background?: import("./interfaces").BackgroundConfig;
-    frontBackground?: import("./interfaces").BackgroundConfig;
-    backBackground?: import("./interfaces").BackgroundConfig;
+    background?: import("../interfaces").BackgroundConfig;
+    frontBackground?: import("../interfaces").BackgroundConfig;
+    backBackground?: import("../interfaces").BackgroundConfig;
     includes?: string[];
 }
 

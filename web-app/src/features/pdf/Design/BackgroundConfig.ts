@@ -1,4 +1,9 @@
-﻿import type { GradientBackground, GradientColorStop, SolidBackground, BackgroundConfig } from "../interfaces";
+import type {
+    GradientBackground,
+    GradientColorStop,
+    SolidBackground,
+    BackgroundConfig,
+} from "../interfaces";
 
 type ResolvedGradientType = "linear" | "radial";
 
@@ -28,7 +33,9 @@ const parseGradientTypeFromCss = (css: string): ResolvedGradientType => {
     return "linear";
 };
 
-const parseRadialCenterFromCss = (css: string): { centerX: number; centerY: number } | undefined => {
+const parseRadialCenterFromCss = (
+    css: string
+): { centerX: number; centerY: number } | undefined => {
     const atMatch = css.match(/\bat\s*(-?\d+(?:\.\d+)?)%\s+(-?\d+(?:\.\d+)?)%/i);
     if (!atMatch) {
         return undefined;
@@ -86,13 +93,8 @@ export const resolveGradientBackground = (
     };
 };
 
-// Cache für generierte Gradient-URLs
 const gradientCache = new Map<string, string>();
 
-/**
- * Erstellt einen Gradient als Canvas-basiertes PNG-Bild (Data-URL)
- * Funktioniert nur im Browser-Kontext
- */
 export const createGradientDataUrl = (gradient: {
     type: ResolvedGradientType;
     angle: number;
@@ -100,15 +102,12 @@ export const createGradientDataUrl = (gradient: {
     centerX?: number;
     centerY?: number;
 }): string => {
-    // Erstelle einen Cache-Key
     const cacheKey = `${gradient.type}-${gradient.angle}-${gradient.centerX ?? 50}-${gradient.centerY ?? 50}-${gradient.colorStops.map(s => `${s.color}@${s.position}`).join("-")}`;
-    
-    // Prüfe Cache
+
     if (gradientCache.has(cacheKey)) {
         return gradientCache.get(cacheKey)!;
     }
 
-    // Fallback für nicht-Browser-Umgebungen
     if (typeof document === "undefined") {
         return "";
     }
@@ -135,9 +134,15 @@ export const createGradientDataUrl = (gradient: {
                 Math.hypot(canvas.width - centerX, canvas.height - centerY)
             );
 
-            gradientObj = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxCornerDistance);
+            gradientObj = ctx.createRadialGradient(
+                centerX,
+                centerY,
+                0,
+                centerX,
+                centerY,
+                maxCornerDistance
+            );
         } else {
-            // Berechne Gradient-Richtung basierend auf dem Winkel
             const angleInRadians = (gradient.angle * Math.PI) / 180;
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
@@ -151,7 +156,6 @@ export const createGradientDataUrl = (gradient: {
             gradientObj = ctx.createLinearGradient(x0, y0, x1, y1);
         }
 
-        // Füge alle Color-Stops hinzu
         gradient.colorStops.forEach(stop => {
             gradientObj.addColorStop(stop.position / 100, stop.color);
         });
@@ -159,12 +163,9 @@ export const createGradientDataUrl = (gradient: {
         ctx.fillStyle = gradientObj;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Konvertiere zu PNG Data-URL
         const dataUrl = canvas.toDataURL("image/png");
-        
-        // Speichere im Cache
         gradientCache.set(cacheKey, dataUrl);
-        
+
         return dataUrl;
     } catch (error) {
         console.error("Fehler beim Erstellen des Gradient-Images:", error);
@@ -172,9 +173,6 @@ export const createGradientDataUrl = (gradient: {
     }
 };
 
-/**
- * Erstellt ein Style-Objekt basierend auf der Background-Konfiguration
- */
 export const createBackgroundStyle = (config?: BackgroundConfig) => {
     if (!config || config.type === "image") {
         return { backgroundColor: "#fdfdfd" };
@@ -188,9 +186,6 @@ export const createBackgroundStyle = (config?: BackgroundConfig) => {
     return { backgroundColor: config.color };
 };
 
-/**
- * Standard-Hintergründe als Presets
- */
 export const BackgroundPresets = {
     white: { type: "solid", color: "#ffffff" } as SolidBackground,
     lightGray: { type: "solid", color: "#fdfdfd" } as SolidBackground,
