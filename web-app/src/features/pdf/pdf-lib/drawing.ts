@@ -19,9 +19,8 @@ const HEX_SHORT = /^#([0-9a-fA-F]{3})$/;
 const HEX_LONG = /^#([0-9a-fA-F]{6})$/;
 
 /**
- * Sanitizes text to remove diacritics/accents and special Latin characters for PDF rendering.
- * Helvetica font in pdf-lib doesn't support extended Unicode characters.
- * é → e, ç → c, ö → o, Ł → L, Ñ → N, etc.
+ * Sanitizes text for StandardFonts.Helvetica (WinAnsi encoding).
+ * Removes/normalizes Unicode that cannot be encoded (e.g. Hebrew "כ").
  */
 const sanitizeTextForPdf = (text: string): string => {
     // First, handle special latin characters that don't decompose via NFD
@@ -49,10 +48,19 @@ const sanitizeTextForPdf = (text: string): string => {
         result = result.split(char).join(replacement);
     }
 
-    // Then decompose and remove combining diacritical marks (é → e + accent → e)
-    return result
-        .normalize("NFD") // Decompose characters
-        .replace(/[\u0300-\u036f]/g, ""); // Remove combining diacritical marks
+    // Then decompose and remove combining diacritical marks (é -> e + accent -> e)
+    result = result
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    // Keep only safe printable ASCII for WinAnsi-based standard fonts.
+    // This avoids runtime crashes on unsupported scripts/symbols.
+    result = result
+        .replace(/[^\x20-\x7E]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    return result;
 };
 
 const hexToRgb = (hex: string) => {
