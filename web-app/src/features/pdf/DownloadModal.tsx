@@ -15,9 +15,8 @@ import {
 import { IconDownload } from "@tabler/icons-react";
 import { Center, Title, Text } from "@mantine/core";
 import QRCode from "qrcode";
-import { PDFFactory } from "./PDF-Creator/PDFFactory";
-import { pdf } from "@react-pdf/renderer";
 import type { Card, BackgroundConfig } from "./interfaces";
+import { generateDeckPdfBlob } from "./pdfLibGenerator";
 import { DESIGNS } from "./HardDesigns";
 import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
 import type { HardDesignPreset } from "./DesignResolver";
@@ -205,23 +204,21 @@ export default function DownloadModal(props: DownloadModalProps) {
                 .filter((background): background is BackgroundConfig => Boolean(background));
 
             setDownloadPhase("render");
-            const renderer = pdf(
-                <PDFFactory
-                    frontBackground={frontBackgrounds}
-                    backBackground={backBackgrounds}
-                    cards={sourceCards}
-                    type={selectedPrintType}
-                    bindingMode={selectedBindingMode}
-                    onProgress={percent => {
-                        const weighted = 70 + Math.round(percent * 0.28);
-                        setDownloadProgress(prev => Math.max(prev, weighted));
-                    }}
-                />
-            );
-
-            setDownloadPhase("finalizing");
-            setDownloadProgress(prev => Math.max(prev, 99));
-            const blob = await renderer.toBlob();
+            const blob = await generateDeckPdfBlob({
+                cards: sourceCards,
+                type: selectedPrintType,
+                bindingMode: selectedBindingMode,
+                frontBackgrounds,
+                backBackgrounds,
+                onProgress: percent => {
+                    const weighted = 70 + Math.round(percent * 0.28);
+                    setDownloadProgress(prev => Math.max(prev, weighted));
+                },
+                onBeforeFinalize: () => {
+                    setDownloadPhase("finalizing");
+                    setDownloadProgress(prev => Math.max(prev, 99));
+                },
+            });
 
             setDownloadProgress(100);
             const url = URL.createObjectURL(blob);
