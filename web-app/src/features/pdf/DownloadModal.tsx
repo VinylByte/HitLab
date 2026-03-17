@@ -92,8 +92,6 @@ export default function DownloadModal(props: DownloadModalProps) {
     const [downloadStarted, setDownloadStarted] = React.useState(false);
     const [downloadProgress, setDownloadProgress] = React.useState(0);
     const [downloadPhase, setDownloadPhase] = React.useState<"qr" | "render" | null>(null);
-    const [showStartAnimation, setShowStartAnimation] = React.useState(false);
-    const startAnimationTimeoutRef = React.useRef<number | null>(null);
 
     const selectableDesigns = useMemo(() => getSelectableDesigns(DESIGNS), []);
 
@@ -102,12 +100,6 @@ export default function DownloadModal(props: DownloadModalProps) {
         setDownloadStarted(false);
         setDownloadProgress(0);
         setDownloadPhase(null);
-        setShowStartAnimation(false);
-
-        if (startAnimationTimeoutRef.current !== null) {
-            window.clearTimeout(startAnimationTimeoutRef.current);
-            startAnimationTimeoutRef.current = null;
-        }
     }, [isOpen]);
 
     // QR codes are generated on-demand in startDownload
@@ -189,14 +181,6 @@ export default function DownloadModal(props: DownloadModalProps) {
     const startDownload = async () => {
         setDownloadStarted(true);
         setDownloadProgress(0);
-        setShowStartAnimation(true);
-        if (startAnimationTimeoutRef.current !== null) {
-            window.clearTimeout(startAnimationTimeoutRef.current);
-        }
-        startAnimationTimeoutRef.current = window.setTimeout(() => {
-            setShowStartAnimation(false);
-            startAnimationTimeoutRef.current = null;
-        }, 900);
 
         try {
             setDownloadPhase("qr");
@@ -242,11 +226,6 @@ export default function DownloadModal(props: DownloadModalProps) {
         } finally {
             setDownloadStarted(false);
             setDownloadPhase(null);
-            setShowStartAnimation(false);
-            if (startAnimationTimeoutRef.current !== null) {
-                window.clearTimeout(startAnimationTimeoutRef.current);
-                startAnimationTimeoutRef.current = null;
-            }
         }
     };
 
@@ -353,16 +332,13 @@ export default function DownloadModal(props: DownloadModalProps) {
                             {downloadStarted && (
                                 <Progress
                                     label={
-                                        showStartAnimation
-                                            ? "PDF-Generierung startet …"
-                                            : downloadPhase === "qr"
-                                              ? "QR-Codes werden generiert …"
-                                              : "PDF wird gerendert …"
+                                        downloadPhase === "qr"
+                                            ? "QR-Codes werden generiert …"
+                                            : "PDF wird gerendert …"
                                     }
                                     value={downloadProgress}
-                                    showValueLabel={!showStartAnimation}
-                                    isIndeterminate={showStartAnimation}
-                                    disableAnimation={!showStartAnimation}
+                                    showValueLabel
+                                    disableAnimation
                                     className="w-full"
                                 />
                             )}
