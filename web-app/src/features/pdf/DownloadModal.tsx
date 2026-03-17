@@ -209,7 +209,7 @@ export default function DownloadModal(props: DownloadModalProps) {
             const sourceCards = await generateQRCodes(cards, {
                 concurrency: 4,
                 onProgress: percent => {
-                    const weighted = percent * 0.5;
+                    const weighted = percent * 0.3;
                     setDownloadProgress(prev => Math.max(prev, weighted));
                 },
             });
@@ -231,7 +231,7 @@ export default function DownloadModal(props: DownloadModalProps) {
                 frontBackgrounds,
                 backBackgrounds,
                 onProgress: percent => {
-                    const weighted = 50 + percent * 0.5;
+                    const weighted = 30 + percent * 0.7;
                     setDownloadProgress(prev => Math.max(prev, weighted));
                 },
             });
