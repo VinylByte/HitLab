@@ -126,19 +126,12 @@ export default function EditSongsPage() {
                 return next;
             });
 
-            // SpotifyTrack-Cache: Für spätere addDeckSong-Aufrufe
-            setSelectedTracksCache(prev => {
+            // SpotifyTrack-Cache: populate with tracks from activeSpotifyResults at time of selection
+            setSelectedTracksCache(() => {
                 const next = new Map<string, SpotifyTrack>();
                 for (const id of Array.from(newKeySet)) {
-                    const cached = prev.get(id);
-                    if (cached) {
-                        next.set(id, cached);
-                    } else {
-                        const fromResults = activeSpotifyResults.find(
-                            s => s.spotify_track_id === id
-                        );
-                        if (fromResults) next.set(id, fromResults);
-                    }
+                    const fromResults = activeSpotifyResults.find(t => t.spotify_track_id === id);
+                    if (fromResults) next.set(id, fromResults);
                 }
                 return next;
             });
@@ -153,16 +146,20 @@ export default function EditSongsPage() {
     }, [searchMode]);
 
     // Pin selected search rows only when they would disappear due to current filter/query.
+    // Short-circuit to stable reference when no pinning is needed (avoids re-rendering SongTable).
     const displayedSearchItems = useMemo(() => {
-        const selectedIds = Array.from(selectedSearchKeys as Set<string>);
-        const visibleIds = new Set(searchTableItems.map(song => song.id));
+        if (!(selectedSearchKeys instanceof Set) || selectedSearchKeys.size === 0)
+            return searchTableItems;
 
-        const pinnedMissingSelected = selectedIds
+        const visibleIds = new Set(searchTableItems.map(s => s.id));
+        const pinnedMissing = Array.from(selectedSearchKeys as Set<string>)
             .filter(id => !visibleIds.has(id))
             .map(id => selectedItemsCache.get(id))
             .filter((s): s is SongTableItem => s !== undefined);
 
-        return [...pinnedMissingSelected, ...searchTableItems];
+        return pinnedMissing.length === 0
+            ? searchTableItems
+            : [...pinnedMissing, ...searchTableItems];
     }, [selectedSearchKeys, selectedItemsCache, searchTableItems]);
 
     // Deck-Songs als SongTableItems
@@ -182,16 +179,20 @@ export default function EditSongsPage() {
     }, [deckTableItems, searchDeckValue]);
 
     // Pin selected deck rows only when they would disappear due to the local search filter.
+    // Short-circuit to stable reference when no pinning is needed (avoids re-rendering SongTable).
     const displayedDeckItems = useMemo(() => {
-        const selectedIds = Array.from(selectedDeckKeys as Set<string>);
-        const visibleIds = new Set(filteredDeckItems.map(song => song.id));
+        if (!(selectedDeckKeys instanceof Set) || selectedDeckKeys.size === 0)
+            return filteredDeckItems;
 
-        const pinnedMissingSelected = selectedIds
+        const visibleIds = new Set(filteredDeckItems.map(s => s.id));
+        const pinnedMissing = Array.from(selectedDeckKeys as Set<string>)
             .filter(id => !visibleIds.has(id))
-            .map(itemId => deckTableItems.find(song => song.id === itemId))
+            .map(itemId => deckTableItems.find(s => s.id === itemId))
             .filter((s): s is SongTableItem => s !== undefined);
 
-        return [...pinnedMissingSelected, ...filteredDeckItems];
+        return pinnedMissing.length === 0
+            ? filteredDeckItems
+            : [...pinnedMissing, ...filteredDeckItems];
     }, [selectedDeckKeys, filteredDeckItems, deckTableItems]);
 
     const handleDeckSelectionChange = useCallback(
@@ -213,10 +214,31 @@ export default function EditSongsPage() {
 
     const handleAddToDeck = useCallback(async () => {
         const keysToAdd = Array.from(selectedSearchKeys as Set<string>);
+        if (keysToAdd.length === 0) return;
 
+        // Get tracks from cache (populated at selection time)
         const tracksToAdd = keysToAdd
-            .map(spotifyId => selectedTracksCache.get(spotifyId))
-            .filter((t): t is SpotifyTrack => t !== undefined);
+            .map(spotifyId => {
+                const track = selectedTracksCache.get(spotifyId);
+                if (!track) {
+                    console.warn(`Track not found in cache for ID: ${spotifyId}`);
+                    console.warn("Cached IDs:", Array.from(selectedTracksCache.keys()));
+                }
+                return track;
+            })
+            .filter((t): t is SpotifyTrack => {
+                if (!t) return false;
+                if (!t.spotify_track_id) {
+                    console.warn("Track has no spotify_track_id:", t);
+                    return false;
+                }
+                return true;
+            });
+
+        if (tracksToAdd.length === 0) {
+            console.error("No valid tracks in cache");
+            return;
+        }
 
         // Nur Songs einfügen, die noch nicht im Deck sind
         const existingSpotifyIds = new Set(songsInDeck.map(s => s.spotify_track_id));

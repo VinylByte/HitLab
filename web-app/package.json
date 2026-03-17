@@ -22,6 +22,7 @@
         "@supabase/supabase-js": "^2.97.0",
         "@tabler/icons-react": "^3.37.1",
         "@tailwindcss/vite": "^4.2.1",
+        "@tanstack/react-virtual": "^3.13.23",
         "embla-carousel": "^8.5.2",
         "embla-carousel-autoplay": "^8.6.0",
         "embla-carousel-react": "^8.5.2",
