@@ -262,13 +262,21 @@ export async function fetchOwnDecks(): Promise<OwnDeck[]> {
 }
 
 export async function removeDeckSongs(deckId: string, songIds: string[]) {
-    const { error } = await supabase
-        .from("deck_songs")
-        .delete()
-        .eq("deck_id", deckId)
-        .in("song_id", songIds);
+    const validSongIds = songIds.filter(id => id && !id.startsWith("temp-"));
+    if (validSongIds.length === 0) return;
 
-    if (error) throw error;
+    // Chunk deletes to avoid oversized query strings that can fail at network/proxy level.
+    const CHUNK_SIZE = 100;
+    for (let i = 0; i < validSongIds.length; i += CHUNK_SIZE) {
+        const chunk = validSongIds.slice(i, i + CHUNK_SIZE);
+        const { error } = await supabase
+            .from("deck_songs")
+            .delete()
+            .eq("deck_id", deckId)
+            .in("song_id", chunk);
+
+        if (error) throw error;
+    }
 }
 
 /** Fetches all available tags from the database. */
