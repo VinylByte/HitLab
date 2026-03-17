@@ -35,7 +35,6 @@ type GeneratePdfLibParams = {
     frontBackgrounds: BackgroundConfig[];
     backBackgrounds: BackgroundConfig[];
     onProgress?: (percent: number) => void;
-    onBeforeFinalize?: () => void;
 };
 
 export const generateDeckPdfBlob = async ({
@@ -45,7 +44,6 @@ export const generateDeckPdfBlob = async ({
     frontBackgrounds,
     backBackgrounds,
     onProgress,
-    onBeforeFinalize,
 }: GeneratePdfLibParams): Promise<Blob> => {
     const pdfDoc = await PDFDocument.create();
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -90,6 +88,17 @@ export const generateDeckPdfBlob = async ({
         }
     };
 
+    const yieldToBrowser = async () => {
+        await new Promise<void>(resolve => {
+            if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+                window.requestAnimationFrame(() => resolve());
+                return;
+            }
+
+            setTimeout(() => resolve(), 0);
+        });
+    };
+
     onProgress?.(0);
 
     if (type === "double-sided") {
@@ -131,6 +140,9 @@ export const generateDeckPdfBlob = async ({
 
                 completedSteps += 1;
                 reportProgress();
+                if (completedSteps % 3 === 0) {
+                    await yieldToBrowser();
+                }
             }
 
             drawDoubleSidedSeparators(frontPage);
@@ -175,6 +187,9 @@ export const generateDeckPdfBlob = async ({
 
                 completedSteps += 1;
                 reportProgress();
+                if (completedSteps % 3 === 0) {
+                    await yieldToBrowser();
+                }
             }
 
             drawDoubleSidedSeparators(backPage);
@@ -245,11 +260,13 @@ export const generateDeckPdfBlob = async ({
 
                 completedSteps += 1;
                 reportProgress();
+                if (completedSteps % 3 === 0) {
+                    await yieldToBrowser();
+                }
             }
         }
     }
 
-    onBeforeFinalize?.();
     const bytes = await pdfDoc.save();
     const safeBytes = new Uint8Array(bytes.byteLength);
     safeBytes.set(bytes);
