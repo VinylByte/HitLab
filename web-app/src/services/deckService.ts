@@ -94,24 +94,52 @@ export async function fetchPublicDeckById(deckId: string): Promise<PublicDeck | 
  * Fetches songs for a public deck and transforms into properly typed DTOs.
  */
 export async function fetchDeckSongs(deckId: string): Promise<DeckSong[]> {
-    const { data, error } = await supabase
-        .from("deck_songs")
-        .select(
+    const pageSize = 1000;
+    let from = 0;
+    const allRows: Array<{
+        id: string;
+        deck_id: string;
+        songs: {
+            id: string;
+            spotify_track_id: string;
+            title: string;
+            artist: string;
+            album: string | null;
+            year: number;
+            thumbnail_url: string | null;
+        };
+        card_note: string | null;
+        created_at: string;
+    }> = [];
+
+    while (true) {
+        const to = from + pageSize - 1;
+        const { data, error } = await supabase
+            .from("deck_songs")
+            .select(
+                `
+            id,
+            deck_id,
+            songs!song_id ( id, spotify_track_id, title, artist, album, year, thumbnail_url ),
+            card_note,
+            created_at
             `
-        id,
-        deck_id,
-        songs!song_id ( id, spotify_track_id, title, artist, album, year, thumbnail_url ),
-        card_note,
-        created_at
-        `
-        )
-        .eq("deck_id", deckId)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+            )
+            .eq("deck_id", deckId)
+            .is("deleted_at", null)
+            .order("created_at", { ascending: false })
+            .range(from, to);
 
-    if (error) throw error;
+        if (error) throw error;
 
-    return (data ?? []).map(row => ({
+        const rows = (data ?? []) as typeof allRows;
+        allRows.push(...rows);
+
+        if (rows.length < pageSize) break;
+        from += pageSize;
+    }
+
+    return allRows.map(row => ({
         id: row.id,
         deck_id: row.deck_id,
         song: {
@@ -227,21 +255,20 @@ export async function fetchOwnDecks(): Promise<OwnDeck[]> {
 
     const deckIds = (data ?? []).map(row => row.id);
 
-    let songCountByDeckId = new Map<string, number>();
-    if (deckIds.length > 0) {
-        const { data: deckSongs, error: deckSongsError } = await supabase
-            .from("deck_songs")
-            .select("deck_id")
-            .in("deck_id", deckIds)
-            .is("deleted_at", null);
+    const songCountEntries = await Promise.all(
+        deckIds.map(async currentDeckId => {
+            const { count, error: countError } = await supabase
+                .from("deck_songs")
+                .select("id", { count: "exact", head: true })
+                .eq("deck_id", currentDeckId)
+                .is("deleted_at", null);
 
-        if (deckSongsError) throw deckSongsError;
+            if (countError) throw countError;
+            return [currentDeckId, count ?? 0] as const;
+        })
+    );
 
-        songCountByDeckId = (deckSongs ?? []).reduce((acc, row) => {
-            acc.set(row.deck_id, (acc.get(row.deck_id) ?? 0) + 1);
-            return acc;
-        }, new Map<string, number>());
-    }
+    const songCountByDeckId = new Map<string, number>(songCountEntries);
 
     return (data ?? []).map(row => ({
         id: row.id,
