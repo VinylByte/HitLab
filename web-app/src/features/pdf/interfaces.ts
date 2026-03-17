@@ -38,33 +38,5 @@ export interface Card {
     qrDataUri?: string; // optional vor-generierte QR-Code Data-URL
 }
 
-export interface PageComponentProps {
-    cards: Card[];
-    styles: any;
-    chunkIndex: number;
-    frontBackground?: BackgroundConfig;
-    backBackground?: BackgroundConfig;
-    onCardProcessed?: () => void;
-}
-
-export interface CardComponentProps {
-    card: Card;
-    styles: any;
-    background?: BackgroundConfig;
-}
-
 export type PDFType = "one-sided" | "double-sided";
 export type BindingMode = "short-edge" | "long-edge";
-
-export interface PDFFactoryProps {
-    cards: Card[];
-    type: PDFType;
-    bindingMode?: BindingMode;
-    frontBackground?: BackgroundConfig | BackgroundConfig[];
-    backBackground?: BackgroundConfig | BackgroundConfig[];
-    onProgress?: (percent: number) => void;
-}
-
-export interface PDFQRCodeProps {
-    url: string;
-}

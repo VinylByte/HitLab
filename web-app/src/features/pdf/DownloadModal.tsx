@@ -16,7 +16,7 @@ import { IconDownload } from "@tabler/icons-react";
 import { Center, Title, Text } from "@mantine/core";
 import QRCode from "qrcode";
 import type { Card, BackgroundConfig } from "./interfaces";
-import { generateDeckPdfBlob } from "./pdfLibGenerator";
+import { generateDeckPdfBlob } from "./pdf-lib/pdfLibGenerator";
 import { DESIGNS } from "./HardDesigns";
 import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
 import type { HardDesignPreset } from "./DesignResolver";
