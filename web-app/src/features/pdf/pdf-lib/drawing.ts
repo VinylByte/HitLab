@@ -18,6 +18,43 @@ type EmbeddedImageLoader = (sourceUrl: string) => Promise<any>;
 const HEX_SHORT = /^#([0-9a-fA-F]{3})$/;
 const HEX_LONG = /^#([0-9a-fA-F]{6})$/;
 
+/**
+ * Sanitizes text to remove diacritics/accents and special Latin characters for PDF rendering.
+ * Helvetica font in pdf-lib doesn't support extended Unicode characters.
+ * é → e, ç → c, ö → o, Ł → L, Ñ → N, etc.
+ */
+const sanitizeTextForPdf = (text: string): string => {
+    // First, handle special latin characters that don't decompose via NFD
+    const specialCharMap: Record<string, string> = {
+        'Ł': 'L',
+        'ł': 'l',
+        'Ø': 'O',
+        'ø': 'o',
+        'Ð': 'D',
+        'ð': 'd',
+        'Þ': 'Th',
+        'þ': 'th',
+        'ß': 'ss',
+        'æ': 'ae',
+        'Æ': 'AE',
+        'œ': 'oe',
+        'Œ': 'OE',
+        'ƒ': 'f',
+    };
+
+    let result = text;
+    
+    // Replace special characters
+    for (const [char, replacement] of Object.entries(specialCharMap)) {
+        result = result.split(char).join(replacement);
+    }
+
+    // Then decompose and remove combining diacritical marks (é → e + accent → e)
+    return result
+        .normalize("NFD") // Decompose characters
+        .replace(/[\u0300-\u036f]/g, ""); // Remove combining diacritical marks
+};
+
 const hexToRgb = (hex: string) => {
     const short = hex.match(HEX_SHORT);
     if (short) {
@@ -202,7 +239,12 @@ export const drawFrontText = (
     const artistLineHeight = 14;
     const titleLineHeight = 12;
 
-    const artistLines = wrapText(card.artist ?? "", fontBold, artistSize, maxTextWidth, 2);
+    // Sanitize all text to remove diacritics that Helvetica can't encode
+    const sanitizedArtist = sanitizeTextForPdf(card.artist ?? "");
+    const sanitizedTitle = sanitizeTextForPdf(card.title ?? "");
+    const sanitizedYear = sanitizeTextForPdf(String(card.year ?? ""));
+
+    const artistLines = wrapText(sanitizedArtist, fontBold, artistSize, maxTextWidth, 2);
     const artistStartY = y + height - 40;
     artistLines.forEach((line, index) => {
         const lineWidth = fontBold.widthOfTextAtSize(line, artistSize);
@@ -215,9 +257,8 @@ export const drawFrontText = (
         });
     });
 
-    const yearText = String(card.year ?? "");
-    const yearWidth = fontBold.widthOfTextAtSize(yearText, yearSize);
-    page.drawText(yearText, {
+    const yearWidth = fontBold.widthOfTextAtSize(sanitizedYear, yearSize);
+    page.drawText(sanitizedYear, {
         x: centerX - yearWidth / 2,
         y: y + height / 2 - 6,
         size: yearSize,
@@ -225,7 +266,7 @@ export const drawFrontText = (
         color: rgb(0, 0, 0),
     });
 
-    const titleLines = wrapText(card.title ?? "", fontItalic, titleSize, maxTextWidth, 2);
+    const titleLines = wrapText(sanitizedTitle, fontItalic, titleSize, maxTextWidth, 2);
     const titleStartY = y + 36;
     titleLines.forEach((line, index) => {
         const lineWidth = fontItalic.widthOfTextAtSize(line, titleSize);
