@@ -8,6 +8,7 @@ import { useAppTheme } from "../hooks/useAppTheme";
 import { Center, Loader } from "@mantine/core";
 import Error404Page from "../components/pages/404ErrorPage/404ErrorPage";
 import GeneralPlayPage from "../components/pages/PlayPage/GeneralPlayPage";
+import { useEffect } from "react";
 
 function App() {
     useAppTheme(); // Initialize theme hook
@@ -17,6 +18,20 @@ function App() {
             <Router />
         </main>
     );
+}
+
+function RouteUiGuards() {
+    const location = useLocation();
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+        // Defensive reset in case a previous page locked global scrolling.
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+    }, [location.pathname, location.search]);
+
+    return null;
 }
 
 function Layout() {
@@ -59,6 +74,7 @@ function ProtectedRoute() {
 function Router() {
     return (
         <BrowserRouter>
+            <RouteUiGuards />
             <Routes>
                 <Route element={<Layout />}>
                     {Pages.map(page => (
