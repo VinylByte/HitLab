@@ -1,15 +1,14 @@
 import { rgb } from "pdf-lib";
 import type { BackgroundConfig, Card } from "../interfaces";
 import {
-    A4_HEIGHT,
     CARD_HEIGHT,
     CARD_WIDTH,
     CARDS_PER_ROW_DOUBLE,
     DOUBLE_SIDED_COLUMN_GAP,
     DOUBLE_SIDED_ROW_GAP,
-    PAGE_PADDING,
     ROWS_PER_PAGE_DOUBLE,
 } from "./constants";
+import { getDoubleSidedGridBounds } from "./layout";
 import { clamp01 } from "./helpers";
 import { resolveGradientBackground, createGradientDataUrl } from "../Design/BackgroundConfig";
 
@@ -319,14 +318,7 @@ export const drawBackQr = async (
 
 export const drawDoubleSidedSeparators = (page: any) => {
     const separatorColor = rgb(0.6, 0.6, 0.6);
-    const left = PAGE_PADDING;
-    const top = A4_HEIGHT - PAGE_PADDING;
-    const gridWidth =
-        CARDS_PER_ROW_DOUBLE * CARD_WIDTH +
-        (CARDS_PER_ROW_DOUBLE - 1) * DOUBLE_SIDED_COLUMN_GAP;
-    const gridHeight =
-        ROWS_PER_PAGE_DOUBLE * CARD_HEIGHT +
-        (ROWS_PER_PAGE_DOUBLE - 1) * DOUBLE_SIDED_ROW_GAP;
+    const { left, top, gridWidth, gridHeight } = getDoubleSidedGridBounds();
     const right = left + gridWidth;
     const bottom = top - gridHeight;
 
