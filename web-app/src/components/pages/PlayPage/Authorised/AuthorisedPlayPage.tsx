@@ -232,93 +232,80 @@ export default function AuthorisedPlayPage() {
         >
             <QRScannerModal onScan={onScan} isOpen={scannerOpen} onOpenChange={setScannerOpen} />
             <Stack h={"100%"} align="stretch" justify="center" style={{ width: "100%" }}>
-                {currentTrackId ? (
-                    <>
-                        <Paper
-                            p={isMobile ? "sm" : "md"}
-                            mx="auto"
-                            mt="md"
-                            w={isMobile ? "88%" : "68%"}
-                            maw={560}
+                <Paper p={isMobile ? "sm" : "md"} mx="auto" mt="md" w={isMobile ? "88%" : "68%"} maw={560}>
+                    <Stack gap="sm">
+                        <Accordion
+                            variant="splitted"
+                            selectionMode="single"
+                            defaultExpandedKeys={["game-mode"]}
                         >
-                            <Stack gap="sm">
-                                <Accordion
-                                    variant="splitted"
-                                    selectionMode="single"
-                                    defaultExpandedKeys={["game-mode"]}
-                                >
-                                    <AccordionItem
-                                        key="game-mode"
+                            <AccordionItem
+                                key="game-mode"
+                                aria-label="Spielmodus"
+                                title={
+                                    <Group>
+                                        Spielmodus <Text c={"dimmed"}>Aktiv: {activeMode.label}</Text>
+                                    </Group>
+                                }
+                            >
+                                <Stack gap="sm">
+                                    <Select
                                         aria-label="Spielmodus"
-                                        title={
-                                            <Group>
-                                                Spielmodus{" "}
-                                                <Text c={"dimmed"}>Aktiv: {activeMode.label}</Text>
-                                            </Group>
-                                        }
+                                        selectedKeys={new Set([gameMode])}
+                                        onSelectionChange={keys => {
+                                            const selectedKey =
+                                                keys instanceof Set ? Array.from(keys)[0] : keys;
+                                            const selectedMode = String(selectedKey ?? "");
+                                            if (isGameMode(selectedMode)) {
+                                                setGameMode(selectedMode);
+                                            }
+                                        }}
+                                        disallowEmptySelection
                                     >
-                                        <Stack gap="sm">
-                                            <Select
-                                                aria-label="Spielmodus"
-                                                selectedKeys={new Set([gameMode])}
-                                                onSelectionChange={keys => {
-                                                    const selectedKey =
-                                                        keys instanceof Set
-                                                            ? Array.from(keys)[0]
-                                                            : keys;
-                                                    const selectedMode = String(selectedKey ?? "");
-                                                    if (isGameMode(selectedMode)) {
-                                                        setGameMode(selectedMode);
-                                                    }
-                                                }}
-                                                disallowEmptySelection
-                                            >
-                                                {MODE_DEFINITIONS.map(mode => (
-                                                    <SelectItem key={mode.key}>
-                                                        {mode.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </Select>
-                                            {activeMode.fields.length > 0 && (
-                                                <Group grow>
-                                                    {activeMode.fields.map(field => (
-                                                        <NumberInput
-                                                            key={field.key}
-                                                            label={field.label}
-                                                            min={field.min}
-                                                            step={field.step}
-                                                            value={modeParams[field.key]}
-                                                            onChange={value => {
-                                                                const numericValue =
-                                                                    typeof value === "number"
-                                                                        ? value
-                                                                        : field.fallback;
-                                                                setModeParams(prev => ({
-                                                                    ...prev,
-                                                                    [field.key]: field.sanitize(
-                                                                        Math.floor(numericValue)
-                                                                    ),
-                                                                }));
-                                                            }}
-                                                        />
-                                                    ))}
-                                                </Group>
-                                            )}
-                                        </Stack>
-                                    </AccordionItem>
-                                </Accordion>
-                            </Stack>
-                        </Paper>
-                        <PlayerElement
-                            currentTrackId={currentTrackId}
-                            onError={onPlayerError}
-                            startAtSeconds={activePlayerOptions.startAtSeconds}
-                            playDurationSeconds={activePlayerOptions.playDurationSeconds}
-                            startAtMiddle={activePlayerOptions.startAtMiddle}
-                        />
-                    </>
+                                        {MODE_DEFINITIONS.map(mode => (
+                                            <SelectItem key={mode.key}>{mode.label}</SelectItem>
+                                        ))}
+                                    </Select>
+                                    {activeMode.fields.length > 0 && (
+                                        <Group grow>
+                                            {activeMode.fields.map(field => (
+                                                <NumberInput
+                                                    key={field.key}
+                                                    label={field.label}
+                                                    min={field.min}
+                                                    step={field.step}
+                                                    value={modeParams[field.key]}
+                                                    onChange={value => {
+                                                        const numericValue =
+                                                            typeof value === "number"
+                                                                ? value
+                                                                : field.fallback;
+                                                        setModeParams(prev => ({
+                                                            ...prev,
+                                                            [field.key]: field.sanitize(
+                                                                Math.floor(numericValue)
+                                                            ),
+                                                        }));
+                                                    }}
+                                                />
+                                            ))}
+                                        </Group>
+                                    )}
+                                </Stack>
+                            </AccordionItem>
+                        </Accordion>
+                    </Stack>
+                </Paper>
+                {currentTrackId ? (
+                    <PlayerElement
+                        currentTrackId={currentTrackId}
+                        onError={onPlayerError}
+                        startAtSeconds={activePlayerOptions.startAtSeconds}
+                        playDurationSeconds={activePlayerOptions.playDurationSeconds}
+                        startAtMiddle={activePlayerOptions.startAtMiddle}
+                    />
                 ) : (
-                    <Center style={{ flex: 1, width: "100%", minHeight: "70vh" }}>
+                    <Center style={{ width: "100%", justifyContent: "flex-start", paddingTop: "0.5rem" }}>
                         <Stack align="center" gap="md" w="100%">
                             <Alert
                                 variant="flat"
