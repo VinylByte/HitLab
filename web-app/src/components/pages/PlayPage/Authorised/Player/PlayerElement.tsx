@@ -7,6 +7,7 @@ import {
     pausePlayback,
     resumePlayback,
     getPlaybackState,
+    getTrack,
 } from "../../../../../services/spotifyClient";
 import { SpotifyApiError } from "../../../../../services/spotifyErrorMapper";
 import "./PlayerElement.css";
@@ -140,12 +141,33 @@ export default function PlayerElement({
             setAutoPausedLocked(false);
 
             autoStopAtMsRef.current = null;
-            const baseStartOffsetMs = Math.max(0, Math.floor(startAtSeconds * 1000));
+
             const dynamicStart = startAtMiddle || startAtRandom;
-            const initialStartMs = dynamicStart ? 0 : baseStartOffsetMs;
+            let initialStartMs = Math.max(0, Math.floor(startAtSeconds * 1000));
+            let knownDurationMs = 0;
+
+            if (dynamicStart) {
+                try {
+                    const track = await getTrack(currentTrackId);
+                    knownDurationMs = track.duration_ms ?? 0;
+                    if (startAtMiddle) {
+                        initialStartMs = Math.floor(knownDurationMs / 2);
+                    } else if (startAtRandom) {
+                        const minDistanceMs = Math.max(
+                            0,
+                            Math.floor(minDistanceFromEndSeconds * 1000)
+                        );
+                        const maxRandomStartMs = Math.max(0, knownDurationMs - minDistanceMs);
+                        initialStartMs = Math.floor(Math.random() * (maxRandomStartMs + 1));
+                    }
+                } catch (err) {
+                    reportError(err);
+                    initialStartMs = 0;
+                }
+            }
 
             setProgressMs(initialStartMs);
-            setDurationMs(0);
+            setDurationMs(dynamicStart ? knownDurationMs : 0);
             clearAutoPauseTimeout();
 
             try {

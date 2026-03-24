@@ -225,6 +225,7 @@ function toSpotifyTrack(item: SpotifyTrackApi): SpotifyTrack {
         album: item.album.name,
         year: Number((item.album.release_date ?? "1900").slice(0, 4)),
         thumbnail_url: item.album.images[0]?.url ?? null,
+        duration_ms: item.duration_ms,
     };
 }
 
