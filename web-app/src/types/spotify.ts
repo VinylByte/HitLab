@@ -15,7 +15,6 @@ export type SpotifyDevice = {
 export type PlaybackState = {
     is_playing: boolean;
     progress_ms: number;
-    duration_ms: number;
     item: SpotifyTrackApi | null;
 };
 
@@ -24,6 +23,7 @@ export type PlaybackState = {
 export type SpotifyTrackApi = {
     id: string;
     name: string;
+    duration_ms: number;
     artists: Array<{ name: string }>;
     album: {
         name: string;

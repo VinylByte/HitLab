@@ -160,19 +160,20 @@ export default function PlayerElement({
                 if (cancelled) return;
 
                 if (state) {
+                    const currentDurationMs = state.item?.duration_ms ?? 0;
                     let effectiveProgressMs = Math.max(initialStartMs, state.progress_ms);
 
-                    if (dynamicStart && state.duration_ms > 0) {
+                    if (dynamicStart && currentDurationMs > 0) {
                         let desiredStartMs = initialStartMs;
 
                         if (startAtMiddle) {
-                            desiredStartMs = Math.floor(state.duration_ms / 2);
+                            desiredStartMs = Math.floor(currentDurationMs / 2);
                         } else if (startAtRandom) {
                             const minDistanceMs = Math.max(
                                 0,
                                 Math.floor(minDistanceFromEndSeconds * 1000)
                             );
-                            const maxRandomStartMs = Math.max(0, state.duration_ms - minDistanceMs);
+                            const maxRandomStartMs = Math.max(0, currentDurationMs - minDistanceMs);
                             desiredStartMs = Math.floor(Math.random() * (maxRandomStartMs + 1));
                         }
 
@@ -189,10 +190,10 @@ export default function PlayerElement({
 
                     autoStopAtMsRef.current = resolveAutoStopAtMs(
                         effectiveProgressMs,
-                        state.duration_ms
+                        currentDurationMs
                     );
 
-                    setDurationMs(state.duration_ms);
+                    setDurationMs(currentDurationMs);
                     setProgressMs(effectiveProgressMs);
                     scheduleAutoPause(effectiveProgressMs);
                 } else {
@@ -248,9 +249,10 @@ export default function PlayerElement({
             try {
                 const state = await getPlaybackState();
                 if (state) {
+                    const currentDurationMs = state.item?.duration_ms ?? 0;
                     setIsPlaying(state.is_playing);
                     setProgressMs(state.progress_ms);
-                    setDurationMs(state.duration_ms);
+                    setDurationMs(currentDurationMs);
 
                     if (state.is_playing) {
                         scheduleAutoPause(state.progress_ms);
@@ -290,8 +292,10 @@ export default function PlayerElement({
                 const state = await getPlaybackState();
                 if (!state) return;
 
+                const currentDurationMs = state.item?.duration_ms ?? 0;
+
                 setProgressMs(state.progress_ms);
-                setDurationMs(state.duration_ms);
+                setDurationMs(currentDurationMs);
                 setIsPlaying(state.is_playing);
 
                 if (state.is_playing) {
