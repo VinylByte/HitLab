@@ -1,4 +1,13 @@
-import { Accordion, AccordionItem, Button, Alert, Input, Select, SelectItem } from "@heroui/react";
+import {
+    Accordion,
+    AccordionItem,
+    Button,
+    Alert,
+    Input,
+    Select,
+    SelectItem,
+    Slider,
+} from "@heroui/react";
 import QRScannerModal from "./QRScanner/QRScannerElement";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { useMediaQuery } from "@mantine/hooks";
@@ -322,7 +331,49 @@ export default function AuthorisedPlayPage() {
                                             <SelectItem key={mode.key}>{mode.label}</SelectItem>
                                         ))}
                                     </Select>
-                                    {activeMode.fields.length > 0 && (
+                                    {gameMode === "timed" && (
+                                        <Stack gap="xs">
+                                            <Slider
+                                                label="Zeitfenster (Sek.)"
+                                                minValue={0}
+                                                maxValue={Math.max(
+                                                    300,
+                                                    modeParams.endAtSeconds + 30
+                                                )}
+                                                step={5}
+                                                value={[
+                                                    modeParams.startAtSeconds,
+                                                    Math.max(
+                                                        modeParams.startAtSeconds + 1,
+                                                        modeParams.endAtSeconds
+                                                    ),
+                                                ]}
+                                                onChange={value => {
+                                                    if (!Array.isArray(value)) return;
+                                                    const start = Math.max(0, Math.floor(value[0]));
+                                                    const end = Math.max(
+                                                        start + 1,
+                                                        Math.floor(value[1])
+                                                    );
+                                                    setModeParams(prev => ({
+                                                        ...prev,
+                                                        startAtSeconds: start,
+                                                        endAtSeconds: end,
+                                                    }));
+                                                }}
+                                                showTooltip={true}
+                                                formatOptions={{
+                                                    style: "unit",
+                                                    unit: "second",
+                                                }}
+                                            />
+                                            <Text size="sm" c="dimmed">
+                                                Start: {modeParams.startAtSeconds}s, Ende:{" "}
+                                                {modeParams.endAtSeconds}s
+                                            </Text>
+                                        </Stack>
+                                    )}
+                                    {activeMode.fields.length > 0 && gameMode !== "timed" && (
                                         <Group grow>
                                             {activeMode.fields.map(field => (
                                                 <Input
