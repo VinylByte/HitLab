@@ -150,7 +150,9 @@ export default function PlayerElement({
             clearAutoPauseTimeout();
 
             try {
-                await startPlayback(currentTrackId, { positionMs: initialStartMs });
+                const { deviceId } = await startPlayback(currentTrackId, {
+                    positionMs: initialStartMs,
+                });
                 if (cancelled) return;
 
                 setIsPlaying(true);
@@ -161,11 +163,20 @@ export default function PlayerElement({
                 if (state) {
                     let effectiveProgressMs = state.progress_ms;
 
+                    const seekWithRetry = async (targetMs: number) => {
+                        try {
+                            await seekPlayback(targetMs, { deviceId });
+                        } catch {
+                            await new Promise(resolve => window.setTimeout(resolve, 250));
+                            await seekPlayback(targetMs, { deviceId });
+                        }
+                    };
+
                     if (state.duration_ms > 0) {
                         if (startAtMiddle) {
                             const middleMs = Math.floor(state.duration_ms / 2);
                             try {
-                                await seekPlayback(middleMs);
+                                await seekWithRetry(middleMs);
                                 effectiveProgressMs = middleMs;
                             } catch {
                                 // Keep current playback position if seek fails.
@@ -180,7 +191,7 @@ export default function PlayerElement({
                                 Math.random() * (maxRandomStartMs + 1)
                             );
                             try {
-                                await seekPlayback(randomStartMs);
+                                await seekWithRetry(randomStartMs);
                                 effectiveProgressMs = randomStartMs;
                             } catch {
                                 // Keep current playback position if seek fails.

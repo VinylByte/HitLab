@@ -320,7 +320,14 @@ type StartPlaybackOptions = {
     positionMs?: number;
 };
 
-export async function startPlayback(trackId: string, options?: StartPlaybackOptions) {
+type StartPlaybackResult = {
+    deviceId?: string;
+};
+
+export async function startPlayback(
+    trackId: string,
+    options?: StartPlaybackOptions
+): Promise<StartPlaybackResult> {
     const { accessTokenStr } = await getSpotifyAuthSession();
     try {
         let targetDevice = options?.deviceId;
@@ -349,6 +356,8 @@ export async function startPlayback(trackId: string, options?: StartPlaybackOpti
                 ...(positionMs !== undefined ? { position_ms: positionMs } : {}),
             }),
         });
+
+        return { deviceId: targetDevice };
     } catch (error) {
         console.error("[spotify] startPlayback failed", error);
         throw mapSpotifyError(error);
@@ -379,19 +388,32 @@ export async function resumePlayback(): Promise<void> {
     }
 }
 
-export async function seekPlayback(positionMs: number): Promise<void> {
-    // springt an gewünschte Position in der aktuell spielenden Spotify-Track (positionMs in Millisekunden)
+export async function seekPlayback(
+    positionMs: number,
+    options?: { deviceId?: string }
+): Promise<void> {
+    // Springt an die gewuenschte Position in der aktuell spielenden Spotify-Track (positionMs in Millisekunden).
     const { accessTokenStr } = await getSpotifyAuthSession();
     const safePositionMs = Math.max(0, Math.floor(positionMs));
 
     try {
-        await spotifyFetch<void>(
-            accessTokenStr,
-            `/me/player/seek?position_ms=${encodeURIComponent(String(safePositionMs))}`,
-            {
-                method: "PUT",
-            }
-        );
+        let targetDevice = options?.deviceId;
+
+        if (!targetDevice) {
+            const { devices } = await spotifyFetch<SpotifyDevicesResponse>(
+                accessTokenStr,
+                "/me/player/devices"
+            );
+            targetDevice = devices.find(d => d.is_active)?.id ?? devices[0]?.id ?? undefined;
+        }
+
+        const seekPath = targetDevice
+            ? `/me/player/seek?position_ms=${encodeURIComponent(String(safePositionMs))}&device_id=${encodeURIComponent(targetDevice)}`
+            : `/me/player/seek?position_ms=${encodeURIComponent(String(safePositionMs))}`;
+
+        await spotifyFetch<void>(accessTokenStr, seekPath, {
+            method: "PUT",
+        });
     } catch (error) {
         console.error("[spotify] seekPlayback failed", error);
         throw mapSpotifyError(error);
