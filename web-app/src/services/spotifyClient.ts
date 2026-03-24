@@ -388,38 +388,6 @@ export async function resumePlayback(): Promise<void> {
     }
 }
 
-export async function seekPlayback(
-    positionMs: number,
-    options?: { deviceId?: string }
-): Promise<void> {
-    // Springt an die gewuenschte Position in der aktuell spielenden Spotify-Track (positionMs in Millisekunden).
-    const { accessTokenStr } = await getSpotifyAuthSession();
-    const safePositionMs = Math.max(0, Math.floor(positionMs));
-
-    try {
-        let targetDevice = options?.deviceId;
-
-        if (!targetDevice) {
-            const { devices } = await spotifyFetch<SpotifyDevicesResponse>(
-                accessTokenStr,
-                "/me/player/devices"
-            );
-            targetDevice = devices.find(d => d.is_active)?.id ?? devices[0]?.id ?? undefined;
-        }
-
-        const seekPath = targetDevice
-            ? `/me/player/seek?position_ms=${encodeURIComponent(String(safePositionMs))}&device_id=${encodeURIComponent(targetDevice)}`
-            : `/me/player/seek?position_ms=${encodeURIComponent(String(safePositionMs))}`;
-
-        await spotifyFetch<void>(accessTokenStr, seekPath, {
-            method: "PUT",
-        });
-    } catch (error) {
-        console.error("[spotify] seekPlayback failed", error);
-        throw mapSpotifyError(error);
-    }
-}
-
 export async function getPlaybackState(): Promise<PlaybackState | null> {
     const { accessTokenStr } = await getSpotifyAuthSession();
     try {

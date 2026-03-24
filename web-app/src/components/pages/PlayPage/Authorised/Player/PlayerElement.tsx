@@ -7,7 +7,6 @@ import {
     pausePlayback,
     resumePlayback,
     getPlaybackState,
-    seekPlayback,
 } from "../../../../../services/spotifyClient";
 import { SpotifyApiError } from "../../../../../services/spotifyErrorMapper";
 import "./PlayerElement.css";
@@ -161,41 +160,30 @@ export default function PlayerElement({
                 if (cancelled) return;
 
                 if (state) {
-                    let effectiveProgressMs = state.progress_ms;
+                    let effectiveProgressMs = Math.max(initialStartMs, state.progress_ms);
 
-                    const seekWithRetry = async (targetMs: number) => {
-                        try {
-                            await seekPlayback(targetMs, { deviceId });
-                        } catch {
-                            await new Promise(resolve => window.setTimeout(resolve, 250));
-                            await seekPlayback(targetMs, { deviceId });
-                        }
-                    };
+                    if (dynamicStart && state.duration_ms > 0) {
+                        let desiredStartMs = initialStartMs;
 
-                    if (state.duration_ms > 0) {
                         if (startAtMiddle) {
-                            const middleMs = Math.floor(state.duration_ms / 2);
-                            try {
-                                await seekWithRetry(middleMs);
-                                effectiveProgressMs = middleMs;
-                            } catch {
-                                // Keep current playback position if seek fails.
-                            }
+                            desiredStartMs = Math.floor(state.duration_ms / 2);
                         } else if (startAtRandom) {
                             const minDistanceMs = Math.max(
                                 0,
                                 Math.floor(minDistanceFromEndSeconds * 1000)
                             );
                             const maxRandomStartMs = Math.max(0, state.duration_ms - minDistanceMs);
-                            const randomStartMs = Math.floor(
-                                Math.random() * (maxRandomStartMs + 1)
-                            );
-                            try {
-                                await seekWithRetry(randomStartMs);
-                                effectiveProgressMs = randomStartMs;
-                            } catch {
-                                // Keep current playback position if seek fails.
-                            }
+                            desiredStartMs = Math.floor(Math.random() * (maxRandomStartMs + 1));
+                        }
+
+                        try {
+                            await startPlayback(currentTrackId, {
+                                deviceId,
+                                positionMs: desiredStartMs,
+                            });
+                            effectiveProgressMs = desiredStartMs;
+                        } catch (restartErr) {
+                            reportError(restartErr);
                         }
                     }
 
