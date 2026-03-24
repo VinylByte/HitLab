@@ -39,7 +39,11 @@ type ModeNumberField = {
     key: keyof ModeParams;
     queryKey: string;
     label: string;
+    control: "input" | "slider" | "range-slider";
+    rangeEndKey?: keyof ModeParams;
+    renderInUi?: boolean;
     min: number;
+    max?: number;
     step: number;
     fallback: number;
     sanitize: (value: number) => number;
@@ -73,8 +77,11 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
             {
                 key: "startAtSeconds",
                 queryKey: "startAt",
-                label: "Start bei (Sek.)",
+                label: "Zeitfenster (Sek.)",
+                control: "range-slider",
+                rangeEndKey: "endAtSeconds",
                 min: 0,
+                max: 300,
                 step: 5,
                 fallback: 0,
                 sanitize: value => Math.max(0, value),
@@ -83,7 +90,10 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
                 key: "endAtSeconds",
                 queryKey: "endAt",
                 label: "Ende bei (Sek.)",
+                control: "slider",
+                renderInUi: false,
                 min: 1,
+                max: 300,
                 step: 5,
                 fallback: 30,
                 sanitize: value => Math.max(1, value),
@@ -106,6 +116,7 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
                 key: "middleMaxDurationSeconds",
                 queryKey: "middleMaxDuration",
                 label: "Maximale Dauer (Sek.)",
+                control: "input",
                 min: 1,
                 step: 5,
                 fallback: 30,
@@ -123,12 +134,13 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
     },
     {
         key: "random",
-        label: "Zufaellig",
+        label: "Zufällig",
         fields: [
             {
                 key: "randomMinDistanceFromEndSeconds",
                 queryKey: "minDistanceFromEnd",
                 label: "Mindestabstand zum Ende (Sek.)",
+                control: "input",
                 min: 0,
                 step: 5,
                 fallback: 30,
@@ -331,77 +343,152 @@ export default function AuthorisedPlayPage() {
                                             <SelectItem key={mode.key}>{mode.label}</SelectItem>
                                         ))}
                                     </Select>
-                                    {gameMode === "timed" && (
-                                        <Stack gap="xs">
-                                            <Slider
-                                                label="Zeitfenster (Sek.)"
-                                                minValue={0}
-                                                maxValue={Math.max(
-                                                    300,
-                                                    modeParams.endAtSeconds + 30
-                                                )}
-                                                step={5}
-                                                value={[
-                                                    modeParams.startAtSeconds,
-                                                    Math.max(
-                                                        modeParams.startAtSeconds + 1,
-                                                        modeParams.endAtSeconds
-                                                    ),
-                                                ]}
-                                                onChange={value => {
-                                                    if (!Array.isArray(value)) return;
-                                                    const start = Math.max(0, Math.floor(value[0]));
-                                                    const end = Math.max(
-                                                        start + 1,
-                                                        Math.floor(value[1])
-                                                    );
-                                                    setModeParams(prev => ({
-                                                        ...prev,
-                                                        startAtSeconds: start,
-                                                        endAtSeconds: end,
-                                                    }));
-                                                }}
-                                                showTooltip={true}
-                                                formatOptions={{
-                                                    style: "unit",
-                                                    unit: "second",
-                                                }}
-                                            />
-                                            <Text size="sm" c="dimmed">
-                                                Start: {modeParams.startAtSeconds}s, Ende:{" "}
-                                                {modeParams.endAtSeconds}s
-                                            </Text>
-                                        </Stack>
-                                    )}
-                                    {activeMode.fields.length > 0 && gameMode !== "timed" && (
+                                    {activeMode.fields.length > 0 && (
                                         <Group grow>
-                                            {activeMode.fields.map(field => (
-                                                <Input
-                                                    key={field.key}
-                                                    label={field.label}
-                                                    type="number"
-                                                    min={field.min}
-                                                    step={field.step}
-                                                    value={String(modeParams[field.key])}
-                                                    onValueChange={value => {
-                                                        const parsedValue =
-                                                            value.trim() === ""
-                                                                ? field.fallback
-                                                                : Number(value);
-                                                        const numericValue = Number.isFinite(
-                                                            parsedValue
-                                                        )
-                                                            ? parsedValue
-                                                            : field.fallback;
-                                                        setModeParams(prev => ({
-                                                            ...prev,
-                                                            [field.key]: field.sanitize(
-                                                                Math.floor(numericValue)
-                                                            ),
-                                                        }));
-                                                    }}
-                                                />
-                                            ))}
+                                            {activeMode.fields
+                                                .filter(field => field.renderInUi !== false)
+                                                .map(field =>
+                                                    field.control === "range-slider" ? (
+                                                        <Stack key={field.key} gap="xs">
+                                                            <Slider
+                                                                label={field.label}
+                                                                minValue={field.min}
+                                                                maxValue={
+                                                                    field.max ??
+                                                                    Math.max(
+                                                                        field.min + 60,
+                                                                        modeParams[field.key] + 30
+                                                                    )
+                                                                }
+                                                                step={field.step}
+                                                                value={[
+                                                                    modeParams[field.key],
+                                                                    Math.max(
+                                                                        modeParams[field.key] + 1,
+                                                                        modeParams[
+                                                                            field.rangeEndKey ??
+                                                                                "endAtSeconds"
+                                                                        ]
+                                                                    ),
+                                                                ]}
+                                                                onChange={value => {
+                                                                    if (!Array.isArray(value))
+                                                                        return;
+                                                                    const start = field.sanitize(
+                                                                        Math.floor(value[0])
+                                                                    );
+                                                                    const rangeEndKey =
+                                                                        field.rangeEndKey ??
+                                                                        "endAtSeconds";
+                                                                    const end = Math.max(
+                                                                        start + 1,
+                                                                        Math.floor(value[1])
+                                                                    );
+                                                                    setModeParams(prev => ({
+                                                                        ...prev,
+                                                                        [field.key]: start,
+                                                                        [rangeEndKey]: end,
+                                                                    }));
+                                                                }}
+                                                                showTooltip={true}
+                                                                formatOptions={{
+                                                                    style: "unit",
+                                                                    unit: "second",
+                                                                }}
+                                                            />
+                                                            <Text size="sm" c="dimmed">
+                                                                Start: {modeParams[field.key]}s,
+                                                                Ende:{" "}
+                                                                {
+                                                                    modeParams[
+                                                                        field.rangeEndKey ??
+                                                                            "endAtSeconds"
+                                                                    ]
+                                                                }
+                                                                s
+                                                            </Text>
+                                                        </Stack>
+                                                    ) : field.control === "slider" ? (
+                                                        <Stack key={field.key} gap="xs">
+                                                            <Slider
+                                                                label={field.label}
+                                                                minValue={field.min}
+                                                                maxValue={
+                                                                    field.max ??
+                                                                    Math.max(
+                                                                        field.min + 60,
+                                                                        modeParams[field.key] + 30
+                                                                    )
+                                                                }
+                                                                step={field.step}
+                                                                value={modeParams[field.key]}
+                                                                onChange={value => {
+                                                                    if (Array.isArray(value))
+                                                                        return;
+                                                                    const nextValue =
+                                                                        field.sanitize(
+                                                                            Math.floor(value)
+                                                                        );
+                                                                    setModeParams(prev => {
+                                                                        const next = {
+                                                                            ...prev,
+                                                                            [field.key]: nextValue,
+                                                                        };
+
+                                                                        if (
+                                                                            field.key ===
+                                                                                "startAtSeconds" ||
+                                                                            field.key ===
+                                                                                "endAtSeconds"
+                                                                        ) {
+                                                                            next.endAtSeconds =
+                                                                                Math.max(
+                                                                                    next.startAtSeconds +
+                                                                                        1,
+                                                                                    next.endAtSeconds
+                                                                                );
+                                                                        }
+
+                                                                        return next;
+                                                                    });
+                                                                }}
+                                                                showTooltip={true}
+                                                                formatOptions={{
+                                                                    style: "unit",
+                                                                    unit: "second",
+                                                                }}
+                                                            />
+                                                            <Text size="sm" c="dimmed">
+                                                                {modeParams[field.key]}s
+                                                            </Text>
+                                                        </Stack>
+                                                    ) : (
+                                                        <Input
+                                                            key={field.key}
+                                                            label={field.label}
+                                                            type="number"
+                                                            min={field.min}
+                                                            step={field.step}
+                                                            value={String(modeParams[field.key])}
+                                                            onValueChange={value => {
+                                                                const parsedValue =
+                                                                    value.trim() === ""
+                                                                        ? field.fallback
+                                                                        : Number(value);
+                                                                const numericValue =
+                                                                    Number.isFinite(parsedValue)
+                                                                        ? parsedValue
+                                                                        : field.fallback;
+                                                                setModeParams(prev => ({
+                                                                    ...prev,
+                                                                    [field.key]: field.sanitize(
+                                                                        Math.floor(numericValue)
+                                                                    ),
+                                                                }));
+                                                            }}
+                                                        />
+                                                    )
+                                                )}
                                         </Group>
                                     )}
                                 </Stack>
