@@ -16,22 +16,30 @@ export default function PlayerElement({
     currentTrackId,
     onError,
     startAtSeconds = 0,
-    playDurationSeconds = null,
+    stopAtSeconds = null,
     startAtMiddle = false,
+    startAtRandom = false,
+    minDistanceFromEndSeconds = 30,
+    maxPlayDurationSeconds = null,
 }: {
     currentTrackId: string | null;
     onError?: (message: string) => void;
     startAtSeconds?: number;
-    playDurationSeconds?: number | null;
+    stopAtSeconds?: number | null;
     startAtMiddle?: boolean;
+    startAtRandom?: boolean;
+    minDistanceFromEndSeconds?: number;
+    maxPlayDurationSeconds?: number | null;
 }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [loading, setLoading] = useState(false);
     const [autoPausedLocked, setAutoPausedLocked] = useState(false);
     const [progressMs, setProgressMs] = useState(0);
     const [durationMs, setDurationMs] = useState(0);
+
     const lastPlaybackSignatureRef = useRef<string | null>(null);
     const autoPauseTimeoutRef = useRef<number | null>(null);
+    const autoStopAtMsRef = useRef<number | null>(null);
 
     const reportError = useCallback(
         (err: unknown) => {
@@ -54,13 +62,36 @@ export default function PlayerElement({
         }
     }, []);
 
+    const resolveAutoStopAtMs = useCallback(
+        (effectiveStartMs: number, currentDurationMs: number) => {
+            const candidates: number[] = [];
+
+            if (typeof stopAtSeconds === "number" && stopAtSeconds >= 0) {
+                candidates.push(Math.floor(stopAtSeconds * 1000));
+            }
+
+            if (typeof maxPlayDurationSeconds === "number" && maxPlayDurationSeconds > 0) {
+                candidates.push(effectiveStartMs + Math.floor(maxPlayDurationSeconds * 1000));
+            }
+
+            if (candidates.length === 0) return null;
+
+            const rawStopAtMs = Math.min(...candidates);
+            if (currentDurationMs > 0) {
+                return Math.min(rawStopAtMs, currentDurationMs);
+            }
+
+            return rawStopAtMs;
+        },
+        [maxPlayDurationSeconds, stopAtSeconds]
+    );
+
     const scheduleAutoPause = useCallback(
         (currentProgressMs: number) => {
             clearAutoPauseTimeout();
-            if (!playDurationSeconds || playDurationSeconds <= 0) return;
+            if (autoStopAtMsRef.current === null) return;
 
-            const startOffsetMs = Math.max(0, Math.floor(startAtSeconds * 1000));
-            const stopAtMs = startOffsetMs + Math.floor(playDurationSeconds * 1000);
+            const stopAtMs = autoStopAtMsRef.current;
             const remainingMs = stopAtMs - currentProgressMs;
 
             if (remainingMs <= 0) {
@@ -78,56 +109,96 @@ export default function PlayerElement({
                 });
             }, remainingMs);
         },
-        [clearAutoPauseTimeout, playDurationSeconds, startAtSeconds]
+        [clearAutoPauseTimeout]
     );
 
     useEffect(() => {
         return () => {
             clearAutoPauseTimeout();
+            autoStopAtMsRef.current = null;
         };
     }, [clearAutoPauseTimeout]);
 
     useEffect(() => {
-        const playbackSignature = `${currentTrackId ?? ""}:${startAtSeconds}:${playDurationSeconds ?? "full"}:${startAtMiddle ? "middle" : "start"}`;
+        const playbackSignature = [
+            currentTrackId ?? "",
+            startAtSeconds,
+            stopAtSeconds ?? "none",
+            startAtMiddle ? "middle" : "no-middle",
+            startAtRandom ? "random" : "no-random",
+            minDistanceFromEndSeconds,
+            maxPlayDurationSeconds ?? "none",
+        ].join(":");
+
         if (!currentTrackId || playbackSignature === lastPlaybackSignatureRef.current) return;
 
         let cancelled = false;
+
         const play = async () => {
             lastPlaybackSignatureRef.current = playbackSignature;
             setLoading(true);
             setIsPlaying(false);
             setAutoPausedLocked(false);
-            const startOffsetMs = Math.max(0, Math.floor(startAtSeconds * 1000));
-            setProgressMs(startAtMiddle ? 0 : startOffsetMs);
+
+            autoStopAtMsRef.current = null;
+            const baseStartOffsetMs = Math.max(0, Math.floor(startAtSeconds * 1000));
+            const dynamicStart = startAtMiddle || startAtRandom;
+            const initialStartMs = dynamicStart ? 0 : baseStartOffsetMs;
+
+            setProgressMs(initialStartMs);
             setDurationMs(0);
             clearAutoPauseTimeout();
 
             try {
-                await startPlayback(currentTrackId, {
-                    positionMs: startAtMiddle ? 0 : startOffsetMs,
-                });
+                await startPlayback(currentTrackId, { positionMs: initialStartMs });
                 if (cancelled) return;
+
                 setIsPlaying(true);
 
                 const state = await getPlaybackState();
-                if (!cancelled && state) {
+                if (cancelled) return;
+
+                if (state) {
                     let effectiveProgressMs = state.progress_ms;
 
-                    if (startAtMiddle && state.duration_ms > 0) {
-                        const middleMs = Math.floor(state.duration_ms / 2);
-                        try {
-                            await seekPlayback(middleMs);
-                            effectiveProgressMs = middleMs;
-                        } catch {
-                            // ignore seek errors and keep current progress
+                    if (state.duration_ms > 0) {
+                        if (startAtMiddle) {
+                            const middleMs = Math.floor(state.duration_ms / 2);
+                            try {
+                                await seekPlayback(middleMs);
+                                effectiveProgressMs = middleMs;
+                            } catch {
+                                // Keep current playback position if seek fails.
+                            }
+                        } else if (startAtRandom) {
+                            const minDistanceMs = Math.max(
+                                0,
+                                Math.floor(minDistanceFromEndSeconds * 1000)
+                            );
+                            const maxRandomStartMs = Math.max(0, state.duration_ms - minDistanceMs);
+                            const randomStartMs = Math.floor(
+                                Math.random() * (maxRandomStartMs + 1)
+                            );
+                            try {
+                                await seekPlayback(randomStartMs);
+                                effectiveProgressMs = randomStartMs;
+                            } catch {
+                                // Keep current playback position if seek fails.
+                            }
                         }
                     }
+
+                    autoStopAtMsRef.current = resolveAutoStopAtMs(
+                        effectiveProgressMs,
+                        state.duration_ms
+                    );
 
                     setDurationMs(state.duration_ms);
                     setProgressMs(effectiveProgressMs);
                     scheduleAutoPause(effectiveProgressMs);
-                } else if (!cancelled) {
-                    scheduleAutoPause(startAtMiddle ? 0 : startOffsetMs);
+                } else {
+                    autoStopAtMsRef.current = resolveAutoStopAtMs(initialStartMs, 0);
+                    scheduleAutoPause(initialStartMs);
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -138,20 +209,27 @@ export default function PlayerElement({
                 if (!cancelled) setLoading(false);
             }
         };
+
         void play();
+
         return () => {
             cancelled = true;
             clearAutoPauseTimeout();
+            autoStopAtMsRef.current = null;
             lastPlaybackSignatureRef.current = null;
         };
     }, [
         clearAutoPauseTimeout,
         currentTrackId,
-        playDurationSeconds,
+        maxPlayDurationSeconds,
+        minDistanceFromEndSeconds,
         reportError,
+        resolveAutoStopAtMs,
         scheduleAutoPause,
         startAtMiddle,
+        startAtRandom,
         startAtSeconds,
+        stopAtSeconds,
     ]);
 
     const togglePlay = useCallback(async () => {
@@ -174,6 +252,7 @@ export default function PlayerElement({
                     setIsPlaying(state.is_playing);
                     setProgressMs(state.progress_ms);
                     setDurationMs(state.duration_ms);
+
                     if (state.is_playing) {
                         scheduleAutoPause(state.progress_ms);
                     } else {
@@ -194,6 +273,7 @@ export default function PlayerElement({
                 const next = prev + 1000;
                 if (next >= durationMs) {
                     setIsPlaying(false);
+                    clearAutoPauseTimeout();
                     return durationMs;
                 }
                 return next;
@@ -201,7 +281,7 @@ export default function PlayerElement({
         }, 1000);
 
         return () => window.clearInterval(intervalId);
-    }, [isPlaying, durationMs]);
+    }, [clearAutoPauseTimeout, durationMs, isPlaying]);
 
     useEffect(() => {
         if (!currentTrackId) return;
@@ -209,14 +289,21 @@ export default function PlayerElement({
         const pollId = window.setInterval(async () => {
             try {
                 const state = await getPlaybackState();
-                if (state) {
-                    setProgressMs(state.progress_ms);
-                    setDurationMs(state.duration_ms);
-                    setIsPlaying(state.is_playing);
-                    if (state.is_playing) {
-                        scheduleAutoPause(state.progress_ms);
-                    } else {
-                        clearAutoPauseTimeout();
+                if (!state) return;
+
+                setProgressMs(state.progress_ms);
+                setDurationMs(state.duration_ms);
+                setIsPlaying(state.is_playing);
+
+                if (state.is_playing) {
+                    scheduleAutoPause(state.progress_ms);
+                } else {
+                    clearAutoPauseTimeout();
+                    if (
+                        autoStopAtMsRef.current !== null &&
+                        state.progress_ms >= autoStopAtMsRef.current
+                    ) {
+                        setAutoPausedLocked(true);
                     }
                 }
             } catch {
@@ -265,7 +352,7 @@ export default function PlayerElement({
                     </Center>
                     {autoPausedLocked && (
                         <Text c="dimmed" size="sm" ta="center">
-                            Zeitfenster beendet. Scanne einen neuen Song, um weiterzuspielen.
+                            Wiedergabelimit erreicht. Scanne einen neuen Song, um weiterzuspielen.
                         </Text>
                     )}
                 </Stack>

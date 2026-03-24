@@ -1,4 +1,4 @@
-import { Accordion, AccordionItem, Button, Alert, Select, SelectItem } from "@heroui/react";
+import { Accordion, AccordionItem, Button, Alert, Input, Select, SelectItem } from "@heroui/react";
 import QRScannerModal from "./QRScanner/QRScannerElement";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { useMediaQuery } from "@mantine/hooks";
@@ -6,19 +6,24 @@ import { MOBILE_BREAKPOINT } from "../../../../lib/constants";
 import PlayerElement from "./Player/PlayerElement";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { IconScan } from "@tabler/icons-react";
-import { Center, Group, NumberInput, Paper, Stack, Text } from "@mantine/core";
+import { Center, Group, Paper, Stack, Text } from "@mantine/core";
 
-type GameMode = "full" | "timed" | "middle";
+type GameMode = "full" | "timed" | "middle" | "random";
 
 type ModeParams = {
     startAtSeconds: number;
-    playDurationSeconds: number;
+    endAtSeconds: number;
+    middleMaxDurationSeconds: number;
+    randomMinDistanceFromEndSeconds: number;
 };
 
 type PlayerModeOptions = {
     startAtSeconds: number;
-    playDurationSeconds: number | null;
+    stopAtSeconds: number | null;
     startAtMiddle: boolean;
+    startAtRandom: boolean;
+    minDistanceFromEndSeconds: number;
+    maxPlayDurationSeconds: number | null;
 };
 
 type ModeNumberField = {
@@ -45,8 +50,11 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
         fields: [],
         toPlayerOptions: () => ({
             startAtSeconds: 0,
-            playDurationSeconds: null,
+            stopAtSeconds: null,
             startAtMiddle: false,
+            startAtRandom: false,
+            minDistanceFromEndSeconds: 30,
+            maxPlayDurationSeconds: null,
         }),
     },
     {
@@ -63,9 +71,9 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
                 sanitize: value => Math.max(0, value),
             },
             {
-                key: "playDurationSeconds",
-                queryKey: "playDuration",
-                label: "Abspieldauer (Sek.)",
+                key: "endAtSeconds",
+                queryKey: "endAt",
+                label: "Ende bei (Sek.)",
                 min: 1,
                 step: 5,
                 fallback: 30,
@@ -74,25 +82,66 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
         ],
         toPlayerOptions: params => ({
             startAtSeconds: Math.max(0, params.startAtSeconds),
-            playDurationSeconds: Math.max(1, params.playDurationSeconds),
+            stopAtSeconds: Math.max(Math.max(0, params.startAtSeconds) + 1, params.endAtSeconds),
             startAtMiddle: false,
+            startAtRandom: false,
+            minDistanceFromEndSeconds: 30,
+            maxPlayDurationSeconds: null,
         }),
     },
     {
         key: "middle",
         label: "Songmitte",
-        fields: [],
-        toPlayerOptions: () => ({
+        fields: [
+            {
+                key: "middleMaxDurationSeconds",
+                queryKey: "middleMaxDuration",
+                label: "Maximale Dauer (Sek.)",
+                min: 1,
+                step: 5,
+                fallback: 30,
+                sanitize: value => Math.max(1, value),
+            },
+        ],
+        toPlayerOptions: params => ({
             startAtSeconds: 0,
-            playDurationSeconds: null,
+            stopAtSeconds: null,
             startAtMiddle: true,
+            startAtRandom: false,
+            minDistanceFromEndSeconds: 30,
+            maxPlayDurationSeconds: Math.max(1, params.middleMaxDurationSeconds),
+        }),
+    },
+    {
+        key: "random",
+        label: "Zufaellig",
+        fields: [
+            {
+                key: "randomMinDistanceFromEndSeconds",
+                queryKey: "minDistanceFromEnd",
+                label: "Mindestabstand zum Ende (Sek.)",
+                min: 0,
+                step: 5,
+                fallback: 30,
+                sanitize: value => Math.max(0, value),
+            },
+        ],
+        toPlayerOptions: params => ({
+            startAtSeconds: 0,
+            stopAtSeconds: null,
+            startAtMiddle: false,
+            startAtRandom: true,
+            minDistanceFromEndSeconds: Math.max(0, params.randomMinDistanceFromEndSeconds),
+            maxPlayDurationSeconds: null,
         }),
     },
 ];
 
 const DEFAULT_MODE_PARAMS: ModeParams = {
     startAtSeconds: 0,
-    playDurationSeconds: 30,
+    endAtSeconds: 30,
+    middleMaxDurationSeconds: 30,
+    randomMinDistanceFromEndSeconds: 30,
 };
 
 const MODE_BY_KEY = MODE_DEFINITIONS.reduce<Record<GameMode, ModeDefinition>>(
@@ -232,7 +281,13 @@ export default function AuthorisedPlayPage() {
         >
             <QRScannerModal onScan={onScan} isOpen={scannerOpen} onOpenChange={setScannerOpen} />
             <Stack h={"100%"} align="stretch" justify="center" style={{ width: "100%" }}>
-                <Paper p={isMobile ? "sm" : "md"} mx="auto" mt="md" w={isMobile ? "88%" : "68%"} maw={560}>
+                <Paper
+                    p={isMobile ? "sm" : "md"}
+                    mx="auto"
+                    mt="md"
+                    w={isMobile ? "88%" : "68%"}
+                    maw={560}
+                >
                     <Stack gap="sm">
                         <Accordion
                             variant="splitted"
@@ -244,7 +299,8 @@ export default function AuthorisedPlayPage() {
                                 aria-label="Spielmodus"
                                 title={
                                     <Group>
-                                        Spielmodus <Text c={"dimmed"}>Aktiv: {activeMode.label}</Text>
+                                        Spielmodus{" "}
+                                        <Text c={"dimmed"}>Aktiv: {activeMode.label}</Text>
                                     </Group>
                                 }
                             >
@@ -269,17 +325,23 @@ export default function AuthorisedPlayPage() {
                                     {activeMode.fields.length > 0 && (
                                         <Group grow>
                                             {activeMode.fields.map(field => (
-                                                <NumberInput
+                                                <Input
                                                     key={field.key}
                                                     label={field.label}
+                                                    type="number"
                                                     min={field.min}
                                                     step={field.step}
-                                                    value={modeParams[field.key]}
-                                                    onChange={value => {
-                                                        const numericValue =
-                                                            typeof value === "number"
-                                                                ? value
-                                                                : field.fallback;
+                                                    value={String(modeParams[field.key])}
+                                                    onValueChange={value => {
+                                                        const parsedValue =
+                                                            value.trim() === ""
+                                                                ? field.fallback
+                                                                : Number(value);
+                                                        const numericValue = Number.isFinite(
+                                                            parsedValue
+                                                        )
+                                                            ? parsedValue
+                                                            : field.fallback;
                                                         setModeParams(prev => ({
                                                             ...prev,
                                                             [field.key]: field.sanitize(
@@ -301,11 +363,20 @@ export default function AuthorisedPlayPage() {
                         currentTrackId={currentTrackId}
                         onError={onPlayerError}
                         startAtSeconds={activePlayerOptions.startAtSeconds}
-                        playDurationSeconds={activePlayerOptions.playDurationSeconds}
+                        stopAtSeconds={activePlayerOptions.stopAtSeconds}
                         startAtMiddle={activePlayerOptions.startAtMiddle}
+                        startAtRandom={activePlayerOptions.startAtRandom}
+                        minDistanceFromEndSeconds={activePlayerOptions.minDistanceFromEndSeconds}
+                        maxPlayDurationSeconds={activePlayerOptions.maxPlayDurationSeconds}
                     />
                 ) : (
-                    <Center style={{ width: "100%", justifyContent: "flex-start", paddingTop: "0.5rem" }}>
+                    <Center
+                        style={{
+                            width: "100%",
+                            justifyContent: "flex-start",
+                            paddingTop: "0.5rem",
+                        }}
+                    >
                         <Stack align="center" gap="md" w="100%">
                             <Alert
                                 variant="flat"
