@@ -125,23 +125,30 @@ async function getSpotifyAuthSession(): Promise<AuthSession> {
 
         if (expiresIn <= 30) {
             console.warn(
-                "[spotify] stored token expired or near expiry (expiresIn: " + expiresIn + "s), attempting refresh"
+                "[spotify] stored token expired or near expiry (expiresIn: " +
+                    expiresIn +
+                    "s), attempting refresh"
             );
-            
+
             try {
                 // Try to refresh via edge function using refresh_token
                 const refreshData = await refreshSpotifyTokenViaEdgeFunction(refreshTokenStr);
                 accessTokenStr = refreshData.access_token;
                 expiresIn = refreshData.expires_in;
-                
+
                 // Update stored token in database with Unix timestamp (seconds)
                 const expiresAtUnix = Math.floor(Date.now() / 1000) + refreshData.expires_in;
                 await persistSpotifyToken(accessTokenStr, refreshTokenStr, expiresAtUnix);
-                
-                console.debug("[spotify] token refreshed successfully via edge function", { expiresIn: refreshData.expires_in });
+
+                console.debug("[spotify] token refreshed successfully via edge function", {
+                    expiresIn: refreshData.expires_in,
+                });
             } catch (refreshError) {
-                console.warn("[spotify] edge function refresh failed, trying supabase session refresh", refreshError);
-                
+                console.warn(
+                    "[spotify] edge function refresh failed, trying supabase session refresh",
+                    refreshError
+                );
+
                 // Fallback: try supabase session refresh
                 const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
                 if (refreshErr) {
@@ -151,7 +158,9 @@ async function getSpotifyAuthSession(): Promise<AuthSession> {
 
                 const refreshedSession = refreshed.session;
                 if (!refreshedSession?.provider_token) {
-                    throw new Error("Spotify Token abgelaufen. Bitte erneut mit Spotify einloggen.");
+                    throw new Error(
+                        "Spotify Token abgelaufen. Bitte erneut mit Spotify einloggen."
+                    );
                 }
 
                 accessTokenStr = refreshedSession.provider_token;
@@ -160,7 +169,11 @@ async function getSpotifyAuthSession(): Promise<AuthSession> {
                     ? Math.max(0, refreshedSession.expires_at - Math.floor(Date.now() / 1000))
                     : 3600;
 
-                await persistSpotifyToken(accessTokenStr, refreshTokenStr, refreshedSession.expires_at);
+                await persistSpotifyToken(
+                    accessTokenStr,
+                    refreshTokenStr,
+                    refreshedSession.expires_at
+                );
             }
         }
     }
@@ -279,7 +292,10 @@ export async function getPlaylistTracks(playlistId: string): Promise<SpotifyTrac
 
         return songs;
     } catch (error) {
-        console.error("[spotify] getPlaylistTracks failed", { playlistId: trimmedPlaylistId, error });
+        console.error("[spotify] getPlaylistTracks failed", {
+            playlistId: trimmedPlaylistId,
+            error,
+        });
         throw mapSpotifyError(error);
     }
 }
@@ -299,10 +315,15 @@ export async function getDevices(): Promise<SpotifyDevice[]> {
     }
 }
 
-export async function startPlayback(trackId: string, deviceId?: string) {
+type StartPlaybackOptions = {
+    deviceId?: string;
+    positionMs?: number;
+};
+
+export async function startPlayback(trackId: string, options?: StartPlaybackOptions) {
     const { accessTokenStr } = await getSpotifyAuthSession();
     try {
-        let targetDevice = deviceId;
+        let targetDevice = options?.deviceId;
 
         if (!targetDevice) {
             const { devices } = await spotifyFetch<SpotifyDevicesResponse>(
@@ -316,9 +337,17 @@ export async function startPlayback(trackId: string, deviceId?: string) {
             ? `/me/player/play?device_id=${encodeURIComponent(targetDevice)}`
             : "/me/player/play";
 
+        const positionMs =
+            typeof options?.positionMs === "number"
+                ? Math.max(0, Math.floor(options.positionMs))
+                : undefined;
+
         await spotifyFetch<void>(accessTokenStr, playPath, {
             method: "PUT",
-            body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
+            body: JSON.stringify({
+                uris: [`spotify:track:${trackId}`],
+                ...(positionMs !== undefined ? { position_ms: positionMs } : {}),
+            }),
         });
     } catch (error) {
         console.error("[spotify] startPlayback failed", error);
@@ -346,6 +375,25 @@ export async function resumePlayback(): Promise<void> {
         });
     } catch (error) {
         console.error("[spotify] resumePlayback failed", error);
+        throw mapSpotifyError(error);
+    }
+}
+
+export async function seekPlayback(positionMs: number): Promise<void> {
+    // springt an gewünschte Position in der aktuell spielenden Spotify-Track (positionMs in Millisekunden)
+    const { accessTokenStr } = await getSpotifyAuthSession();
+    const safePositionMs = Math.max(0, Math.floor(positionMs));
+
+    try {
+        await spotifyFetch<void>(
+            accessTokenStr,
+            `/me/player/seek?position_ms=${encodeURIComponent(String(safePositionMs))}`,
+            {
+                method: "PUT",
+            }
+        );
+    } catch (error) {
+        console.error("[spotify] seekPlayback failed", error);
         throw mapSpotifyError(error);
     }
 }
