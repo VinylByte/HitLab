@@ -165,6 +165,8 @@ const DEFAULT_MODE_PARAMS: ModeParams = {
     randomMinDistanceFromEndSeconds: 30,
 };
 
+const MODE_PARAMS_SETTLE_DELAY_MS = 400;
+
 const MODE_BY_KEY = MODE_DEFINITIONS.reduce<Record<GameMode, ModeDefinition>>(
     (acc, mode) => {
         acc[mode.key] = mode;
@@ -244,6 +246,9 @@ export default function AuthorisedPlayPage() {
         parseGameMode(searchParams.get("mode"))
     );
     const [modeParams, setModeParams] = useState<ModeParams>(() => parseModeParams(searchParams));
+    const [appliedModeParams, setAppliedModeParams] = useState<ModeParams>(() =>
+        parseModeParams(searchParams)
+    );
 
     const onScan = (result: string) => {
         setScannerOpen(false);
@@ -265,9 +270,17 @@ export default function AuthorisedPlayPage() {
 
     const activeMode = useMemo(() => MODE_BY_KEY[gameMode], [gameMode]);
 
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            setAppliedModeParams(modeParams);
+        }, MODE_PARAMS_SETTLE_DELAY_MS);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [modeParams]);
+
     const activePlayerOptions = useMemo(
-        () => activeMode.toPlayerOptions(modeParams),
-        [activeMode, modeParams]
+        () => activeMode.toPlayerOptions(appliedModeParams),
+        [activeMode, appliedModeParams]
     );
 
     useEffect(() => {
