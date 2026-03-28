@@ -5,9 +5,9 @@ import LoginPage from "../components/pages/LoginPage";
 //import { FooterSocial } from "./components/elements/Footer/Footer";
 import { useSession } from "../hooks/useSession";
 import { useAppTheme } from "../hooks/useAppTheme";
-import { Center, Loader } from "@mantine/core";
 import Error404Page from "../components/pages/404ErrorPage/404ErrorPage";
 import GeneralPlayPage from "../components/pages/PlayPage/GeneralPlayPage";
+import { Loader } from "../components/elements/PageLoader";
 
 function App() {
     useAppTheme(); // Initialize theme hook
@@ -43,9 +43,7 @@ function ProtectedRoute() {
 
     if (session === undefined) {
         return (
-            <Center style={{ height: "100vh" }}>
-                <Loader size="lg" />
-            </Center>
+            <Loader />
         );
     }
 

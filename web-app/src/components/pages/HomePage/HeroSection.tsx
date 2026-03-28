@@ -1,15 +1,24 @@
 import { motion } from "framer-motion";
-import { Button } from "@heroui/react";
-import { Container, Title, Text } from "@mantine/core";
+import { Button, Spinner } from "@heroui/react";
+import { Container, Title, Text, Center } from "@mantine/core";
 import { useNavigate, useLocation } from "react-router";
 import {
     IconPlayerPlay,
     IconCards,
 } from "@tabler/icons-react";
+import { useImagePreloader } from "../../../hooks/useImagePreloader";
+import { Loader } from "../../elements/PageLoader";
 
 export function HeroSection() {
     const navigate = useNavigate();
     const location = useLocation();
+    const isReady = useImagePreloader(["/PeoplePlayingHitLab.png"]);
+
+    if (!isReady) {
+        return (
+            <Loader />
+        );
+    }
 
     return (
         <section className="relative min-h-screen flex items-center overflow-hidden">

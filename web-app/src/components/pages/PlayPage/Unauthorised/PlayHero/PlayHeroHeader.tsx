@@ -7,11 +7,15 @@ import { MOBILE_BREAKPOINT } from "../../../../../lib/constants";
 import { useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
 import playHeroBackground from "/PeoplePlayingHitLab2.png";
+import { useImagePreloader } from "../../../../../hooks/useImagePreloader";
+import { Loader } from "../../../../elements/PageLoader";
 
 export default function PlayHeroHeader() {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const location = useLocation();
     const navigate = useNavigate();
+
+    const isReady  = useImagePreloader([playHeroBackground]);
 
     useEffect(() => {
         const previousBodyOverflow = document.body.style.overflow;
@@ -25,6 +29,10 @@ export default function PlayHeroHeader() {
             document.documentElement.style.overflow = previousHtmlOverflow;
         };
     }, []);
+
+    if (!isReady) {
+        return <Loader />;
+    }
 
     return (
         <div
