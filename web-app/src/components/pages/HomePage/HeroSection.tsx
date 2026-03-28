@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Button, Spinner } from "@heroui/react";
-import { Container, Title, Text, Center } from "@mantine/core";
+import { Button } from "@heroui/react";
+import { Container, Title, Text } from "@mantine/core";
 import { useNavigate, useLocation } from "react-router";
 import {
     IconPlayerPlay,
