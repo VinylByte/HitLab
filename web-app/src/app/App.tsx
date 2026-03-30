@@ -8,6 +8,7 @@ import { useAppTheme } from "../hooks/useAppTheme";
 import Error404Page from "../components/pages/404ErrorPage/404ErrorPage";
 import GeneralPlayPage from "../components/pages/PlayPage/GeneralPlayPage";
 import { Loader } from "../components/elements/PageLoader";
+import { useEffect } from "react";
 
 function App() {
     useAppTheme(); // Initialize theme hook
