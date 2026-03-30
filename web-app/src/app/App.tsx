@@ -19,6 +19,20 @@ function App() {
     );
 }
 
+function RouteUiGuards() {
+    const location = useLocation();
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+        // Defensive reset in case a previous page locked global scrolling.
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+    }, [location.pathname, location.search]);
+
+    return null;
+}
+
 function Layout() {
     return (
         <div>
@@ -57,6 +71,7 @@ function ProtectedRoute() {
 function Router() {
     return (
         <BrowserRouter>
+            <RouteUiGuards />
             <Routes>
                 <Route element={<Layout />}>
                     {Pages.map(page => (
