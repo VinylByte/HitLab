@@ -61,6 +61,7 @@ export default function HeaderNav() {
             isBordered
             onMenuOpenChange={setExpandedNav}
             isMenuOpen={expandedNav}
+            className="sticky top-0 z-50"
             classNames={{
                 item: [
                     "flex",
