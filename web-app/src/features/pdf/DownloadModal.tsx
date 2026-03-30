@@ -10,21 +10,31 @@ import {
     SelectItem,
     type SelectedItems,
     Chip,
+    Progress,
 } from "@heroui/react";
 import { IconDownload } from "@tabler/icons-react";
 import { Center, Title, Text } from "@mantine/core";
 import QRCode from "qrcode";
-import { PDFFactory } from "./PDF-Creator/PDFFactory";
-import { pdf } from "@react-pdf/renderer";
 import type { Card, BackgroundConfig } from "./interfaces";
-import { DESIGNS } from "./HardDesigns";
-import { getSelectableDesigns, resolveDesignSelection } from "./DesignResolver";
-import type { HardDesignPreset } from "./DesignResolver";
+import { generateDeckPdfBlob } from "./pdf-lib/pdfLibGenerator";
+import { DESIGNS } from "./Design/HardDesigns";
+import { getSelectableDesigns, resolveDesignSelection } from "./Design/DesignResolver";
+import type { HardDesignPreset } from "./Design/DesignResolver";
 import type { PublicDeck } from "../../types/deck";
 import type { Song } from "../../types/song";
 
 const getURL = ({ songId }: { songId: string }) => {
     return window.location.origin + `/play/${songId}`;
+};
+
+const yieldToMainThread = async () => {
+    await new Promise<void>(resolve => {
+        if (typeof requestAnimationFrame === "function") {
+            requestAnimationFrame(() => resolve());
+            return;
+        }
+        setTimeout(resolve, 0);
+    });
 };
 
 const getBackgroundCss = (bg: BackgroundConfig | undefined): string => {
@@ -90,12 +100,18 @@ export default function DownloadModal(props: DownloadModalProps) {
     >("long-edge");
 
     const [downloadStarted, setDownloadStarted] = React.useState(false);
+    const [downloadProgress, setDownloadProgress] = React.useState(0);
+    const [downloadPhase, setDownloadPhase] = React.useState<"qr" | "render" | "download" | null>(
+        null
+    );
 
     const selectableDesigns = useMemo(() => getSelectableDesigns(DESIGNS), []);
 
     // Reset download state when modal is opened/closed
     useEffect(() => {
         setDownloadStarted(false);
+        setDownloadProgress(0);
+        setDownloadPhase(null);
     }, [isOpen]);
 
     // QR codes are generated on-demand in startDownload
@@ -113,59 +129,132 @@ export default function DownloadModal(props: DownloadModalProps) {
     }, [songs]);
 
     // Helper to generate QR codes for an array of cards
-    const generateQRCodes = async (items: Card[]): Promise<Card[]> => {
-        const result: Card[] = [];
-        for (let i = 0; i < items.length; i++) {
-            const c = items[i];
-            try {
-                const dataUri = await QRCode.toDataURL(c.url, {
-                    margin: 1,
-                    width: 250,
-                    color: { dark: "#000000", light: "#ffffff" },
-                });
-                result.push({ ...c, qrDataUri: dataUri } as Card);
-            } catch (_err) {
-                result.push(c);
-            }
+    const generateQRCodes = async (
+        items: Card[],
+        options?: {
+            concurrency?: number;
+            onProgress?: (percent: number) => void;
         }
+    ): Promise<Card[]> => {
+        if (!items.length) {
+            options?.onProgress?.(100);
+            return [];
+        }
+
+        const result = new Array<Card>(items.length);
+        const concurrency = Math.max(1, Math.min(options?.concurrency ?? 4, items.length));
+        let nextIndex = 0;
+        let completed = 0;
+        let lastReported = -1;
+
+        const reportProgress = () => {
+            const percent = (completed / items.length) * 100;
+            const rounded = Math.floor(percent);
+            if (rounded !== lastReported) {
+                lastReported = rounded;
+                options?.onProgress?.(percent);
+            }
+        };
+
+        options?.onProgress?.(0);
+
+        const worker = async () => {
+            while (true) {
+                const currentIndex = nextIndex;
+                nextIndex += 1;
+
+                if (currentIndex >= items.length) {
+                    break;
+                }
+
+                const card = items[currentIndex];
+                try {
+                    const dataUri = await QRCode.toDataURL(card.url, {
+                        margin: 1,
+                        width: 250,
+                        color: { dark: "#000000", light: "#ffffff" },
+                    });
+                    result[currentIndex] = { ...card, qrDataUri: dataUri } as Card;
+                } catch (_err) {
+                    result[currentIndex] = card;
+                }
+
+                completed += 1;
+                reportProgress();
+
+                // Let browser process input/paint regularly while generating many QRs.
+                if (completed % 4 === 0) {
+                    await yieldToMainThread();
+                }
+            }
+        };
+
+        await Promise.all(Array.from({ length: concurrency }, () => worker()));
+        options?.onProgress?.(100);
         return result;
     };
 
     // remove async useMemo to avoid race conditions; create blob on-demand in startDownload
 
     const startDownload = async () => {
-        // Generate QR codes and create PDF blob
         setDownloadStarted(true);
-        const sourceCards = await generateQRCodes(cards);
-        const selectedDesignPresets = resolveDesignSelection(selectedDesign, DESIGNS);
+        setDownloadProgress(0);
 
-        const frontBackgrounds: BackgroundConfig[] = selectedDesignPresets
-            .map(design => design.frontBackground ?? design.background)
-            .filter((background): background is BackgroundConfig => Boolean(background));
+        try {
+            setDownloadPhase("qr");
 
-        const backBackgrounds: BackgroundConfig[] = selectedDesignPresets
-            .map(design => design.backBackground ?? design.background ?? design.frontBackground)
-            .filter((background): background is BackgroundConfig => Boolean(background));
+            // Ensure loading UI is painted before heavy work starts.
+            await yieldToMainThread();
 
-        const blob = await pdf(
-            <PDFFactory
-                frontBackground={frontBackgrounds}
-                backBackground={backBackgrounds}
-                cards={sourceCards}
-                type={selectedPrintType}
-                bindingMode={selectedBindingMode}
-            />
-        ).toBlob();
+            const sourceCards = await generateQRCodes(cards, {
+                concurrency: 4,
+                onProgress: percent => {
+                    const weighted = percent * 0.3;
+                    setDownloadProgress(prev => Math.max(prev, weighted));
+                },
+            });
+            const selectedDesignPresets = resolveDesignSelection(selectedDesign, DESIGNS);
 
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${deck.name}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        setDownloadStarted(false);
+            const frontBackgrounds: BackgroundConfig[] = selectedDesignPresets
+                .map(design => design.frontBackground ?? design.background)
+                .filter((background): background is BackgroundConfig => Boolean(background));
+
+            const backBackgrounds: BackgroundConfig[] = selectedDesignPresets
+                .map(design => design.backBackground ?? design.background ?? design.frontBackground)
+                .filter((background): background is BackgroundConfig => Boolean(background));
+
+            setDownloadPhase("render");
+            const blob = await generateDeckPdfBlob({
+                cards: sourceCards,
+                type: selectedPrintType,
+                bindingMode: selectedBindingMode,
+                frontBackgrounds,
+                backBackgrounds,
+                onProgress: percent => {
+                    const weighted = 30 + percent * 0.7;
+                    setDownloadProgress(prev => Math.max(prev, weighted));
+                },
+            });
+
+            setDownloadProgress(100);
+            setDownloadPhase("download");
+
+            // Give the user one visual frame for the completed render progress
+            // before switching to indeterminate browser-download mode.
+            await yieldToMainThread();
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${deck.name}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } finally {
+            setDownloadStarted(false);
+            setDownloadPhase(null);
+        }
     };
 
     // no background pre-generation; QR codes are generated on-demand
@@ -210,7 +299,10 @@ export default function DownloadModal(props: DownloadModalProps) {
                                 }
                             >
                                 {selectableDesigns.map(design => (
-                                    <SelectItem key={design.id}>
+                                    <SelectItem
+                                        key={design.id}
+                                        textValue={`${design.name} ${design.description ?? ""}`.trim()}
+                                    >
                                         <div className="flex items-start gap-3 py-1">
                                             <div className="shrink-0">
                                                 <DesignPreview
@@ -267,18 +359,42 @@ export default function DownloadModal(props: DownloadModalProps) {
                                 </Select>
                             )}
                         </DrawerBody>
-                        <DrawerFooter>
-                            <Button color="danger" variant="light" onPress={onClose}>
-                                Abbrechen
-                            </Button>
-                            <Button
-                                color="primary"
-                                startContent={downloadStarted ? null : <IconDownload size={18} />}
-                                onPress={() => startDownload().then(onClose)}
-                                isLoading={downloadStarted}
-                            >
-                                PDF herunterladen
-                            </Button>
+                        <DrawerFooter className="flex flex-col gap-3">
+                            {downloadStarted &&
+                                (downloadPhase === "download" ? (
+                                    <Progress
+                                        label="PDF wird heruntergeladen …"
+                                        isIndeterminate
+                                        className="w-full"
+                                    />
+                                ) : (
+                                    <Progress
+                                        label={
+                                            downloadPhase === "qr"
+                                                ? "QR-Codes werden generiert …"
+                                                : "PDF wird gerendert …"
+                                        }
+                                        value={downloadProgress}
+                                        showValueLabel
+                                        disableAnimation
+                                        className="w-full"
+                                    />
+                                ))}
+                            <div className="flex w-full justify-end gap-2">
+                                <Button color="danger" variant="light" onPress={onClose}>
+                                    Abbrechen
+                                </Button>
+                                <Button
+                                    color="primary"
+                                    startContent={
+                                        downloadStarted ? null : <IconDownload size={18} />
+                                    }
+                                    onPress={() => startDownload().then(onClose)}
+                                    isLoading={downloadStarted}
+                                >
+                                    PDF herunterladen
+                                </Button>
+                            </div>
                         </DrawerFooter>
                     </>
                 )}

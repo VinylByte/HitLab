@@ -72,6 +72,14 @@ function normalizeError(error: unknown): Error {
     return new Error("Unbekannter Fehler");
 }
 
+function chunkArray<T>(items: T[], chunkSize: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < items.length; i += chunkSize) {
+        chunks.push(items.slice(i, i + chunkSize));
+    }
+    return chunks;
+}
+
 /**
  * Adds selected songs to a deck (which is edited under a lab tab while logged in).
  * Also upserts the Tracks in the Database (persist if non existend, ignore if existend)
@@ -83,17 +91,28 @@ export async function addDeckSong(
     tracks: SpotifyTrack[],
     onSongSettled: (spotifyTrackId: string) => void
 ): Promise<void> {
-    const addedTracks = await addSong(tracks);
+    const uniqueTracks = Array.from(
+        new Map(tracks.map(track => [track.spotify_track_id, track])).values()
+    );
+
+    if (uniqueTracks.length === 0) {
+        return;
+    }
+
+    const addedTracks = await addSong(uniqueTracks);
     const rows = addedTracks.map(t => ({
         deck_id: deckId,
         song_id: t.id,
     }));
 
-    const { error } = await supabase.from("deck_songs").upsert(rows, {
-        onConflict: "deck_id,song_id",
-    });
+    const DECK_SONGS_CHUNK_SIZE = 200;
+    for (const chunk of chunkArray(rows, DECK_SONGS_CHUNK_SIZE)) {
+        const { error } = await supabase.from("deck_songs").upsert(chunk, {
+            onConflict: "deck_id,song_id",
+        });
 
-    if (error) throw error;
+        if (error) throw error;
+    }
 
     addedTracks.forEach(t => onSongSettled(t.spotify_track_id));
 }
@@ -101,22 +120,28 @@ export async function addDeckSong(
 async function addSong(
     tracks: SpotifyTrack[]
 ): Promise<{ id: string; spotify_track_id: string }[]> {
-    const { data, error } = await supabase
-        .from("songs")
-        .upsert(
-            tracks.map(t => ({
-                spotify_track_id: t.spotify_track_id,
-                title: t.title,
-                artist: t.artist,
-                album: t.album ?? null,
-                thumbnail_url: t.thumbnail_url,
-                year: t.year,
-            })),
-            { onConflict: "spotify_track_id" }
-        )
-        .select("id, spotify_track_id");
+    const SONGS_CHUNK_SIZE = 200;
+    const allInserted: { id: string; spotify_track_id: string }[] = [];
 
-    if (error) throw error;
+    for (const chunk of chunkArray(tracks, SONGS_CHUNK_SIZE)) {
+        const { data, error } = await supabase
+            .from("songs")
+            .upsert(
+                chunk.map(t => ({
+                    spotify_track_id: t.spotify_track_id,
+                    title: t.title,
+                    artist: t.artist,
+                    album: t.album ?? null,
+                    thumbnail_url: t.thumbnail_url,
+                    year: t.year,
+                })),
+                { onConflict: "spotify_track_id" }
+            )
+            .select("id, spotify_track_id");
 
-    return data;
+        if (error) throw error;
+        allInserted.push(...(data ?? []));
+    }
+
+    return allInserted;
 }
