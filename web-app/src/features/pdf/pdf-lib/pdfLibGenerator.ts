@@ -13,8 +13,8 @@ import {
     DOUBLE_SIDED_ROW_GAP,
     ONE_SIDED_COLUMN_GAP,
     ONE_SIDED_ROW_GAP,
-    PAGE_PADDING,
 } from "./constants";
+import { getDoubleSidedGridBounds, getOneSidedGridBounds } from "./layout";
 import {
     createChunks,
     dataUriToBytes,
@@ -103,6 +103,7 @@ export const generateDeckPdfBlob = async ({
 
     if (type === "double-sided") {
         const chunks = createChunks(cards, CARDS_PER_PAGE_DOUBLE);
+        const { left: doubleGridLeft, top: doubleGridTop } = getDoubleSidedGridBounds();
 
         for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
             const chunk = chunks[chunkIndex];
@@ -111,10 +112,9 @@ export const generateDeckPdfBlob = async ({
             for (let i = 0; i < chunk.length; i++) {
                 const row = Math.floor(i / CARDS_PER_ROW_DOUBLE);
                 const col = i % CARDS_PER_ROW_DOUBLE;
-                const x = PAGE_PADDING + col * (CARD_WIDTH + DOUBLE_SIDED_COLUMN_GAP);
+                const x = doubleGridLeft + col * (CARD_WIDTH + DOUBLE_SIDED_COLUMN_GAP);
                 const y =
-                    A4_HEIGHT -
-                    PAGE_PADDING -
+                    doubleGridTop -
                     row * (CARD_HEIGHT + DOUBLE_SIDED_ROW_GAP) -
                     CARD_HEIGHT;
                 const card = chunk[i];
@@ -156,10 +156,9 @@ export const generateDeckPdfBlob = async ({
             for (let i = 0; i < backCards.length; i++) {
                 const row = Math.floor(i / CARDS_PER_ROW_DOUBLE);
                 const col = i % CARDS_PER_ROW_DOUBLE;
-                const x = PAGE_PADDING + col * (CARD_WIDTH + DOUBLE_SIDED_COLUMN_GAP);
+                const x = doubleGridLeft + col * (CARD_WIDTH + DOUBLE_SIDED_COLUMN_GAP);
                 const y =
-                    A4_HEIGHT -
-                    PAGE_PADDING -
+                    doubleGridTop -
                     row * (CARD_HEIGHT + DOUBLE_SIDED_ROW_GAP) -
                     CARD_HEIGHT;
                 const card = backCards[i];
@@ -196,6 +195,7 @@ export const generateDeckPdfBlob = async ({
         }
     } else {
         const chunks = createChunks(cards, CARDS_PER_PAGE_ONE);
+        const { left: oneSidedGridLeft, top: oneSidedGridTop } = getOneSidedGridBounds();
 
         for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
             const chunk = chunks[chunkIndex];
@@ -204,10 +204,9 @@ export const generateDeckPdfBlob = async ({
             for (let i = 0; i < chunk.length; i++) {
                 const row = Math.floor(i / CARDS_PER_ROW_ONE);
                 const col = i % CARDS_PER_ROW_ONE;
-                const x = PAGE_PADDING + col * (CARD_WIDTH + ONE_SIDED_COLUMN_GAP);
+                const x = oneSidedGridLeft + col * (CARD_WIDTH + ONE_SIDED_COLUMN_GAP);
                 const yTop =
-                    A4_HEIGHT -
-                    PAGE_PADDING -
+                    oneSidedGridTop -
                     row * (CARD_HEIGHT * 2 + ONE_SIDED_ROW_GAP) -
                     CARD_HEIGHT;
                 const yBottom = yTop - CARD_HEIGHT;
