@@ -344,6 +344,7 @@ export default function AuthorisedPlayPage() {
                         <Select
                             aria-label="Spielmodus"
                             selectedKeys={new Set([gameMode])}
+                            startContent={activeMode.icon}
                             onSelectionChange={keys => {
                                 const selectedKey =
                                     keys instanceof Set ? Array.from(keys)[0] : keys;
