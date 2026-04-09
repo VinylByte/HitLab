@@ -12,7 +12,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "../../../../lib/constants";
 import PlayerElement from "./Player/PlayerElement";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
-import { IconCaretDown, IconCaretDownFilled, IconScan } from "@tabler/icons-react";
+import { IconBracketsContain, IconCaretDown, IconCaretDownFilled, IconDice, IconScan, IconTimelineEventExclamation, IconVinyl } from "@tabler/icons-react";
 import { Center, Group, Paper, Stack, Text, Transition } from "@mantine/core";
 
 type GameMode = "full" | "timed" | "middle" | "random";
@@ -51,7 +51,7 @@ type ModeNumberField = {
 type ModeDefinition = {
     key: GameMode;
     label: string;
-    icon?: React.ReactNode;
+    icon: React.ReactNode;
     fields: ModeNumberField[];
     toPlayerOptions: (params: ModeParams) => PlayerModeOptions;
 };
@@ -60,6 +60,7 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
     {
         key: "full",
         label: "Ganzer Song",
+        icon: <IconVinyl />,
         fields: [],
         toPlayerOptions: () => ({
             startAtSeconds: 0,
@@ -73,6 +74,7 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
     {
         key: "timed",
         label: "Zeitfenster",
+        icon: <IconBracketsContain />,
         fields: [
             {
                 key: "startAtSeconds",
@@ -111,6 +113,7 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
     {
         key: "middle",
         label: "Songmitte",
+        icon: <IconTimelineEventExclamation />,
         fields: [
             {
                 key: "middleMaxDurationSeconds",
@@ -135,6 +138,7 @@ const MODE_DEFINITIONS: ModeDefinition[] = [
     {
         key: "random",
         label: "Zufällig",
+        icon: <IconDice />,
         fields: [
             {
                 key: "randomMinDistanceFromEndSeconds",
@@ -340,6 +344,7 @@ export default function AuthorisedPlayPage() {
                         <Select
                             aria-label="Spielmodus"
                             selectedKeys={new Set([gameMode])}
+                            startContent={activeMode.icon}
                             onSelectionChange={keys => {
                                 const selectedKey =
                                     keys instanceof Set ? Array.from(keys)[0] : keys;
