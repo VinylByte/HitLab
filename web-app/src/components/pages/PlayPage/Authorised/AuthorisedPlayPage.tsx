@@ -344,7 +344,6 @@ export default function AuthorisedPlayPage() {
                         <Select
                             aria-label="Spielmodus"
                             selectedKeys={new Set([gameMode])}
-                            startContent={activeMode.icon}
                             onSelectionChange={keys => {
                                 const selectedKey =
                                     keys instanceof Set ? Array.from(keys)[0] : keys;
@@ -356,7 +355,9 @@ export default function AuthorisedPlayPage() {
                             disallowEmptySelection
                         >
                             {MODE_DEFINITIONS.map(mode => (
-                                <SelectItem key={mode.key}>{mode.label}</SelectItem>
+                                <SelectItem key={mode.key} startContent={mode.icon}>
+                                    {mode.label}
+                                </SelectItem>
                             ))}
                         </Select>
                         {activeMode.fields.length > 0 && (
