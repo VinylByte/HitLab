@@ -12,6 +12,17 @@ import {
 import { SpotifyApiError } from "../../../../../services/spotifyErrorMapper";
 import "./PlayerElement.css";
 
+interface PlayerElementProps {
+    currentTrackId: string | null;
+    onError?: (message: string) => void;
+    startAtSeconds?: number;
+    stopAtSeconds?: number | null;
+    startAtMiddle?: boolean;
+    startAtRandom?: boolean;
+    minDistanceFromEndSeconds?: number;
+    maxPlayDurationSeconds?: number | null;
+}
+
 export default function PlayerElement({
     currentTrackId,
     onError,
@@ -21,16 +32,7 @@ export default function PlayerElement({
     startAtRandom = false,
     minDistanceFromEndSeconds = 30,
     maxPlayDurationSeconds = null,
-}: {
-    currentTrackId: string | null;
-    onError?: (message: string) => void;
-    startAtSeconds?: number;
-    stopAtSeconds?: number | null;
-    startAtMiddle?: boolean;
-    startAtRandom?: boolean;
-    minDistanceFromEndSeconds?: number;
-    maxPlayDurationSeconds?: number | null;
-}) {
+}: PlayerElementProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [loading, setLoading] = useState(false);
     const [autoPausedLocked, setAutoPausedLocked] = useState(false);

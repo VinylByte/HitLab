@@ -51,6 +51,7 @@ type ModeNumberField = {
 type ModeDefinition = {
     key: GameMode;
     label: string;
+    icon?: React.ReactNode;
     fields: ModeNumberField[];
     toPlayerOptions: (params: ModeParams) => PlayerModeOptions;
 };
