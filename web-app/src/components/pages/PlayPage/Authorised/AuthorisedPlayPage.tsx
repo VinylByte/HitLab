@@ -9,7 +9,7 @@ import {
 import QRScannerModal from "./QRScanner/QRScannerElement";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../../../lib/constants";
+import { MOBILE_BREAKPOINT } from "@/lib/constants";
 import PlayerElement from "./Player/PlayerElement";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { IconBracketsContain, IconCaretDown, IconCaretDownFilled, IconDice, IconScan, IconTimelineEventExclamation, IconVinyl } from "@tabler/icons-react";

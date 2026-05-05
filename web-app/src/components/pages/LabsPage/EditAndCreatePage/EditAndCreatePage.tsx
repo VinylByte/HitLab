@@ -21,9 +21,13 @@ import {
     fetchAllTags,
     setDeckTags,
     updateDeckCover,
-} from "../../../../services/deckService";
-import { createDeck } from "../../../../services/createDeckService";
-import type { DeckTag } from "../../../../types/deck";
+} from "@/services/deckService";
+import { createDeck } from "@/services/createDeckService";
+import { createLogger } from "@/lib/logger";
+import { routes, routeBuilders } from "@/lib/routes";
+import type { DeckTag } from "@/types/deck";
+
+const log = createLogger("EditAndCreatePage");
 
 interface DeckFormData {
     name: string;
@@ -64,7 +68,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
     useEffect(() => {
         fetchAllTags()
             .then(tags => setAvailableTags(tags))
-            .catch(err => console.error("Fehler beim Laden der Tags:", err));
+            .catch(err => log.error("Fehler beim Laden der Tags:", err));
     }, []);
 
     // Lade Deck-Daten für Edit-Modus
@@ -87,14 +91,14 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         setCoverBlob(blob);
                         setIsExistingCover(true);
                     } catch (err) {
-                        console.error("Fehler beim Laden des Cover-Bildes:", err);
+                        log.error("Fehler beim Laden des Cover-Bildes:", err);
                     }
                 }
 
                 setDeckLoaded(true);
             })
             .catch(err => {
-                console.error("Fehler beim Laden des Decks:", err);
+                log.error("Fehler beim Laden des Decks:", err);
                 setSubmitError("Deck konnte nicht geladen werden.");
             })
             .finally(() => setLoadingDeck(false));
@@ -139,7 +143,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                     cover: coverBlob!,
                 });
                 await setDeckTags(newDeckId, selectedTags);
-                navigate(`/decks/${newDeckId}/songs`);
+                navigate(routeBuilders.deckSongs(newDeckId));
             } else if (deckId) {
                 await updateDeckInfo({
                     deckId,
@@ -151,7 +155,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                 if (coverBlob) {
                     await updateDeckCover(deckId, coverBlob);
                 }
-                navigate(`/decks/${deckId}/songs`);
+                navigate(routeBuilders.deckSongs(deckId));
             }
         } catch (error) {
             const message = error instanceof Error ? error.message : "Ein Fehler ist aufgetreten.";
@@ -242,7 +246,7 @@ export default function EditAndCreatePage({ mode, deckId }: EditAndCreatePagePro
                         <Button
                             color="danger"
                             startContent={<IconX />}
-                            onPress={() => navigate("/lab")}
+                            onPress={() => navigate(routes.lab)}
                             variant="light"
                             isDisabled={submitting}
                         >

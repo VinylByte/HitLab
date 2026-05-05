@@ -1,13 +1,13 @@
-import HeaderNav from "../components/elements/Header";
+import HeaderNav from "@/components/elements/Header";
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router";
 import { Pages, ProtectedPages } from "./routes";
-import LoginPage from "../components/pages/LoginPage";
-//import { FooterSocial } from "./components/elements/Footer/Footer";
-import { useSession } from "../hooks/useSession";
-import { useAppTheme } from "../hooks/useAppTheme";
-import Error404Page from "../components/pages/404ErrorPage/404ErrorPage";
-import GeneralPlayPage from "../components/pages/PlayPage/GeneralPlayPage";
-import { Loader } from "../components/elements/PageLoader";
+import LoginPage from "@/components/pages/LoginPage";
+import { useSession } from "@/hooks/useSession";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import Error404Page from "@/components/pages/404ErrorPage/404ErrorPage";
+import GeneralPlayPage from "@/components/pages/PlayPage/GeneralPlayPage";
+import { Loader } from "@/components/elements/PageLoader";
+import { routes, routePatterns } from "@/lib/routes";
 import { useEffect } from "react";
 
 function App() {
@@ -38,11 +38,9 @@ function Layout() {
     return (
         <div>
             <HeaderNav />
-            {/* Hier wird die jeweilige Seite "hineingeladen" */}
             <div>
                 <Outlet />
             </div>
-            {/* <FooterSocial /> */}
         </div>
     );
 }
@@ -63,7 +61,7 @@ function ProtectedRoute() {
     }
 
     if (session === null) {
-        return <Navigate to="/login" replace state={{ from: location }} />;
+        return <Navigate to={routes.login} replace state={{ from: location }} />;
     }
 
     return <Outlet />;
@@ -78,7 +76,7 @@ function Router() {
                     {Pages.map(page => (
                         <Route key={page.to} path={page.to} element={page.page} />
                     ))}
-                    <Route path="/play/:currentTrackId" element={<GeneralPlayPage />} />
+                    <Route path={routePatterns.playTrack} element={<GeneralPlayPage />} />
                     <Route element={<ProtectedRoute />}>
                         {ProtectedPages.map(page => (
                             <Route key={page.to} path={page.to} element={page.page} />
@@ -87,8 +85,8 @@ function Router() {
                     {/* Fallback-Route für alle nicht definierten Pfade, aber mit Header und Footer */}
                     <Route path="*" element={<Error404Page />} />
                 </Route>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<LoginPage />} />
+                <Route path={routes.login} element={<LoginPage />} />
+                <Route path={routes.signup} element={<LoginPage />} />
             </Routes>
         </BrowserRouter>
     );

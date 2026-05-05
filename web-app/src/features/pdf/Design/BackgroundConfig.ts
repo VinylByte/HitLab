@@ -4,6 +4,9 @@ import type {
     SolidBackground,
     BackgroundConfig,
 } from "../interfaces";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("pdf:background");
 
 type ResolvedGradientType = "linear" | "radial";
 
@@ -168,7 +171,7 @@ export const createGradientDataUrl = (gradient: {
 
         return dataUrl;
     } catch (error) {
-        console.error("Fehler beim Erstellen des Gradient-Images:", error);
+        log.error("Fehler beim Erstellen des Gradient-Images:", error);
         return "";
     }
 };

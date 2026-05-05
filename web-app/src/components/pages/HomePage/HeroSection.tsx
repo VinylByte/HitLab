@@ -6,8 +6,9 @@ import {
     IconPlayerPlay,
     IconCards,
 } from "@tabler/icons-react";
-import { useImagePreloader } from "../../../hooks/useImagePreloader";
-import { Loader } from "../../elements/PageLoader";
+import { useImagePreloader } from "@/hooks/useImagePreloader";
+import { Loader } from "@/components/elements/PageLoader";
+import { routes } from "@/lib/routes";
 
 export function HeroSection() {
     const navigate = useNavigate();
@@ -74,7 +75,7 @@ export function HeroSection() {
                             color="primary"
                             startContent={<IconPlayerPlay size={20} />}
                             className="text-lg px-8 py-6"
-                            onPress={() => navigate("/play")}
+                            onPress={() => navigate(routes.play)}
                         >
                             Jetzt Spielen
                         </Button>
@@ -84,7 +85,7 @@ export function HeroSection() {
                             startContent={<IconCards size={20} />}
                             className="text-lg px-8 py-6 !border-white/50 !text-white hover:!bg-white/10"
                             onPress={() =>
-                                navigate("/lab", { state: { from: location } })
+                                navigate(routes.lab, { state: { from: location } })
                             }
                         >
                             Deck erstellen

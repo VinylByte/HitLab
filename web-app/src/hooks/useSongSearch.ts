@@ -1,6 +1,9 @@
 import { useEffect, useReducer, useRef } from "react";
 import { searchTracks } from "../services/spotifyClient";
+import { createLogger } from "../lib/logger";
 import type { SpotifyTrack } from "../types/spotify";
+
+const log = createLogger("useSongSearch");
 
 type State = {
     songs: SpotifyTrack[];
@@ -45,7 +48,7 @@ export function useSongSearch(search_str: string) {
                         songs,
                     });
             } catch (error) {
-                console.error("[spotify] useSongSearch failed", {
+                log.error("failed", {
                     query: search_str,
                     error,
                 });

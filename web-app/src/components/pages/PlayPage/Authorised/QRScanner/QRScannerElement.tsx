@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useId, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../../../../lib/constants";
+import { MOBILE_BREAKPOINT } from "@/lib/constants";
+import { createLogger } from "@/lib/logger";
 import { Modal, ModalBody, ModalContent, Button } from "@heroui/react";
+
+const log = createLogger("qr-scanner");
 
 let globalScanner: Html5Qrcode | null = null;
 
@@ -57,7 +60,7 @@ export function QrScanner({ onScan }: { onScan: (result: string) => void }) {
         };
 
         const onScanSuccess = (decodedText: string, decodedResult: unknown) => {
-            console.log(`Code gefunden: ${decodedText}`, decodedResult);
+            log.debug("code found", { decodedText, decodedResult });
             onScanRef.current(decodedText);
         };
 
@@ -67,14 +70,14 @@ export function QrScanner({ onScan }: { onScan: (result: string) => void }) {
             if (globalScanner && globalScanner !== scanner) {
                 if (globalScanner.isScanning) {
                     await globalScanner.stop().catch((error: unknown) => {
-                        console.error("Failed to stop existing scanner", error);
+                        log.error("Failed to stop existing scanner", error);
                     });
                 }
 
                 try {
                     globalScanner.clear();
                 } catch (clearError) {
-                    console.error("Failed to clear existing scanner", clearError);
+                    log.error("Failed to clear existing scanner", clearError);
                 }
             }
 
@@ -98,14 +101,14 @@ export function QrScanner({ onScan }: { onScan: (result: string) => void }) {
                     return;
                 }
             } catch (fallbackError) {
-                console.error("Failed to start scanner with fallback camera", fallbackError);
+                log.error("Failed to start scanner with fallback camera", fallbackError);
             }
 
-            console.error("Failed to start scanner", primaryError);
+            log.error("Failed to start scanner", primaryError);
             try {
                 scanner.clear();
             } catch (clearError) {
-                console.error("Failed to clear scanner after start failure", clearError);
+                log.error("Failed to clear scanner after start failure", clearError);
             }
             if (globalScanner === scanner) {
                 globalScanner = null;
@@ -143,13 +146,13 @@ export function QrScanner({ onScan }: { onScan: (result: string) => void }) {
                     try {
                         await activeScanner.stop();
                     } catch (error) {
-                        console.error("Failed to stop scanner", error);
+                        log.error("Failed to stop scanner", error);
                     }
                 }
                 try {
                     activeScanner.clear();
                 } catch (error) {
-                    console.error("Failed to clear scanner", error);
+                    log.error("Failed to clear scanner", error);
                 }
                 clearReaderContainer();
             };

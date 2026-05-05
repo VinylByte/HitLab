@@ -8,9 +8,12 @@ import {
     resumePlayback,
     getPlaybackState,
     getTrack,
-} from "../../../../../services/spotifyClient";
-import { SpotifyApiError } from "../../../../../services/spotifyErrorMapper";
+} from "@/services/spotifyClient";
+import { SpotifyApiError } from "@/services/spotifyErrorMapper";
+import { createLogger } from "@/lib/logger";
 import "./PlayerElement.css";
+
+const log = createLogger("player");
 
 interface PlayerElementProps {
     currentTrackId: string | null;
@@ -51,7 +54,7 @@ export default function PlayerElement({
                     : err instanceof Error
                       ? err.message
                       : "Unbekannter Fehler";
-            console.error("[player]", msg);
+            log.error(msg);
             onError?.(msg);
         },
         [onError]
