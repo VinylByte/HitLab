@@ -9,9 +9,15 @@ let globalScanner: Html5Qrcode | null = null;
 
 type UseQrScannerOptions = {
     onScan: (result: string) => void;
+    isMobile?: boolean;
+    shouldStart?: boolean;
 };
 
-export function useQrScanner({ onScan }: UseQrScannerOptions) {
+export function useQrScanner({
+    onScan,
+    isMobile = false,
+    shouldStart = true,
+}: UseQrScannerOptions) {
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const onScanRef = useRef(onScan);
     const readerId = useId().replace(/:/g, "");
@@ -59,13 +65,24 @@ export function useQrScanner({ onScan }: UseQrScannerOptions) {
 
     const startScanner = useCallback(async () => {
         if (isRunningRef.current || isBusyRef.current || scannerRef.current) {
+            log.warn("Scanner blocked", {
+                isRunning: isRunningRef.current,
+                isBusy: isBusyRef.current,
+            });
             return;
         }
 
         const readerElement = document.getElementById(readerId);
         if (!readerElement) {
+            log.error("Reader element not found", { readerId });
             return;
         }
+
+        const containerSize = {
+            w: readerElement.clientWidth,
+            h: readerElement.clientHeight,
+        };
+        log.info("Starting scanner", { readerId, isMobile, containerSize });
 
         setBusyState(true);
         clearReaderContainer();
@@ -126,9 +143,21 @@ export function useQrScanner({ onScan }: UseQrScannerOptions) {
     }, [clearReaderContainer, readerId, setBusyState, setRunningState, stopActiveScanner]);
 
     useEffect(() => {
+        if (!shouldStart) {
+            log.debug("Scanner disabled", { shouldStart });
+            return;
+        }
+
+        // Reduce delay to avoid black initial frame while keeping a small
+        // buffer for modal render/animation. Mobile needs slightly longer
+        // but keep it short to show preview quickly.
+        const delay = isMobile ? 50 : 50;
+        log.info("Scheduling scanner start", { delay, isMobile });
+
         const autoStartTimeout = window.setTimeout(() => {
+            log.info("Timer fired, starting scanner");
             void startScanner();
-        }, 0);
+        }, delay);
 
         return () => {
             window.clearTimeout(autoStartTimeout);
@@ -149,7 +178,15 @@ export function useQrScanner({ onScan }: UseQrScannerOptions) {
             setRunningState(false);
             setBusyState(false);
         };
-    }, [clearReaderContainer, setBusyState, setRunningState, startScanner, stopActiveScanner]);
+    }, [
+        clearReaderContainer,
+        setBusyState,
+        setRunningState,
+        startScanner,
+        stopActiveScanner,
+        isMobile,
+        shouldStart,
+    ]);
 
     return {
         readerId,

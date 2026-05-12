@@ -331,7 +331,11 @@ export default function AuthorisedPlayPage() {
                 justifyContent: "center",
             }}
         >
-            <QRScannerModal onScan={onScan} isOpen={scannerOpen} onOpenChange={setScannerOpen} />
+            <QRScannerModal
+                onScan={onScan}
+                isOpen={scannerOpen}
+                onClose={() => setScannerOpen(false)}
+            />
             <Stack h={"100%"} align="stretch" justify="center" style={{ width: "100%" }}>
                 <Paper
                     p={isMobile ? "sm" : "md"}
