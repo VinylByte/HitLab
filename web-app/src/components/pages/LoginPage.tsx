@@ -54,7 +54,7 @@ export default function LoginPage() {
             provider: "spotify",
             options: {
                 redirectTo: `${window.location.origin}/login`,
-                scopes: SPOTIFY_SCOPES,
+                scopes: SPOTIFY_SCOPES + ' playlist-read-public',
             },
         });
     };
