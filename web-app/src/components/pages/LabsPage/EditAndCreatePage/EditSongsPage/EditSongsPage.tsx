@@ -4,16 +4,20 @@ import type { Selection } from "@heroui/react";
 import { useNavigate, useParams } from "react-router";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../../../../lib/constants";
+import { MOBILE_BREAKPOINT } from "@/lib/constants";
 import SongTable from "./SongTable";
 import type { SongTableItem } from "./SongTable";
 import { IconSearch, IconPlus, IconTrash, IconCheck, IconLink } from "@tabler/icons-react";
-import { useSongSearch } from "../../../../../hooks/useSongSearch";
-import { usePlaylist } from "../../../../../hooks/usePlaylist";
-import { fetchDeckSongs, removeDeckSongs } from "../../../../../services/deckService";
-import { addDeckSong } from "../../../../../services/createDeckService";
-import type { SpotifyTrack } from "../../../../../types/spotify";
-import type { Song } from "../../../../../types/song";
+import { useSongSearch } from "@/hooks/useSongSearch";
+import { usePlaylist } from "@/hooks/usePlaylist";
+import { fetchDeckSongs, removeDeckSongs } from "@/services/deckService";
+import { addDeckSong } from "@/services/createDeckService";
+import { createLogger } from "@/lib/logger";
+import { routes } from "@/lib/routes";
+import type { SpotifyTrack } from "@/types/spotify";
+import type { Song } from "@/types/song";
+
+const log = createLogger("EditSongsPage");
 
 type SearchMode = "song" | "playlist";
 
@@ -58,7 +62,7 @@ export default function EditSongsPage() {
         if (!id) return;
         fetchDeckSongs(id)
             .then(deckSongs => setSongsInDeck(deckSongs.map(ds => ds.song)))
-            .catch(err => console.error("Fehler beim Laden der Deck-Songs:", err))
+            .catch(err => log.error("Fehler beim Laden der Deck-Songs:", err))
             .finally(() => setLoading(false));
     }, [id]);
 
@@ -221,22 +225,23 @@ export default function EditSongsPage() {
             .map(spotifyId => {
                 const track = selectedTracksCache.get(spotifyId);
                 if (!track) {
-                    console.warn(`Track not found in cache for ID: ${spotifyId}`);
-                    console.warn("Cached IDs:", Array.from(selectedTracksCache.keys()));
+                    log.warn(`Track not found in cache for ID: ${spotifyId}`, {
+                        cachedIds: Array.from(selectedTracksCache.keys()),
+                    });
                 }
                 return track;
             })
             .filter((t): t is SpotifyTrack => {
                 if (!t) return false;
                 if (!t.spotify_track_id) {
-                    console.warn("Track has no spotify_track_id:", t);
+                    log.warn("Track has no spotify_track_id:", t);
                     return false;
                 }
                 return true;
             });
 
         if (tracksToAdd.length === 0) {
-            console.error("No valid tracks in cache");
+            log.error("No valid tracks in cache");
             return;
         }
 
@@ -283,7 +288,7 @@ export default function EditSongsPage() {
                 tempIds.forEach(tempId => next.delete(tempId));
                 return next;
             });
-            console.error("Fehler beim Hinzufügen:", error);
+            log.error("Fehler beim Hinzufügen:", error);
         }
     }, [selectedSearchKeys, selectedTracksCache, songsInDeck, id]);
 
@@ -303,7 +308,7 @@ export default function EditSongsPage() {
         } catch (error) {
             // Rollback
             setSongsInDeck(prev => [...prev, ...removedSongs]);
-            console.error("Fehler beim Entfernen:", error);
+            log.error("Fehler beim Entfernen:", error);
         }
     }, [selectedDeckKeys, songsInDeck, id]);
 
@@ -446,7 +451,7 @@ export default function EditSongsPage() {
                 <Button
                     color="primary"
                     className="w-full"
-                    onPress={() => navigate("/lab")}
+                    onPress={() => navigate(routes.lab)}
                     isLoading={loadingDeckIds.size > 0 || loading}
                     startContent={!loading && loadingDeckIds.size === 0 && <IconCheck size={18} />}
                 >

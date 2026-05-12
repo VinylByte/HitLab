@@ -1,4 +1,4 @@
-import { useSession } from "../../../hooks/useSession";
+import { useSession } from "@/hooks/useSession";
 import AuthorisedPlayPage from "./Authorised/AuthorisedPlayPage";
 import UnauthorisedPlayPage from "./Unauthorised/UnauthorisedPlayPage";
 

@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-    globalIgnores(["dist"]),
+    globalIgnores(["dist", "supabase/functions/**"]),
     {
         files: ["**/*.{ts,tsx}"],
         extends: [
@@ -26,6 +26,14 @@ export default defineConfig([
                 "error",
                 { prefer: "type-imports", fixStyle: "separate-type-imports" },
             ],
+            "no-console": "error",
+        },
+    },
+    {
+        // The logger module is the single allowed wrapper around console.
+        files: ["src/lib/logger.ts"],
+        rules: {
+            "no-console": "off",
         },
     },
 ]);

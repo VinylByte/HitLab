@@ -21,9 +21,9 @@ import { IconDotsVertical, IconEdit, IconEye, IconPlus, IconTrash } from "@table
 import { Center, Group } from "@mantine/core";
 import SearchBar from "../PublicDecksPage/SearchBarProp";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../../lib/constants";
+import { MOBILE_BREAKPOINT } from "@/lib/constants";
 import { useSearchParams } from "react-router";
-import type { OwnDeck } from "../../../types/deck";
+import type { OwnDeck } from "@/types/deck";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
     private: "success",

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
     Button,
     Drawer,
@@ -194,8 +194,6 @@ export default function DownloadModal(props: DownloadModalProps) {
         return result;
     };
 
-    // remove async useMemo to avoid race conditions; create blob on-demand in startDownload
-
     const startDownload = async () => {
         setDownloadStarted(true);
         setDownloadProgress(0);
@@ -259,8 +257,23 @@ export default function DownloadModal(props: DownloadModalProps) {
 
     // no background pre-generation; QR codes are generated on-demand
 
+    const handleOpenChange = useCallback(
+        (open: boolean) => {
+            if (downloadStarted && !open) return;
+            onOpenChange(open);
+        },
+        [downloadStarted, onOpenChange]
+    );
+
     return (
-        <Drawer size="2xl" isOpen={isOpen} onOpenChange={onOpenChange} placement="left">
+        <Drawer
+            size="2xl"
+            isOpen={isOpen}
+            onOpenChange={handleOpenChange}
+            placement="left"
+            isDismissable={!downloadStarted}
+            isKeyboardDismissDisabled={downloadStarted}
+        >
             <DrawerContent>
                 {onClose => (
                     <>
@@ -381,7 +394,15 @@ export default function DownloadModal(props: DownloadModalProps) {
                                     />
                                 ))}
                             <div className="flex w-full justify-end gap-2">
-                                <Button color="danger" variant="light" onPress={onClose}>
+                                <Button
+                                    color="danger"
+                                    variant="light"
+                                    onPress={() => {
+                                        if (downloadStarted) return;
+                                        onClose();
+                                    }}
+                                    isDisabled={downloadStarted}
+                                >
                                     Abbrechen
                                 </Button>
                                 <Button

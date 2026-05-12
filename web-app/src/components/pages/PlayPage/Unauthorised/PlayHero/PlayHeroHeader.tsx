@@ -3,15 +3,20 @@ import { Button } from "@heroui/react";
 import classes from "./PlayHeroHeader.module.css";
 import { IconBrandAppleArcade, IconCards } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../../../../lib/constants";
+import { MOBILE_BREAKPOINT } from "@/lib/constants";
 import { useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
 import playHeroBackground from "/PeoplePlayingHitLab2.png";
+import { useImagePreloader } from "@/hooks/useImagePreloader";
+import { Loader } from "@/components/elements/PageLoader";
+import { routes } from "@/lib/routes";
 
 export default function PlayHeroHeader() {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
     const location = useLocation();
     const navigate = useNavigate();
+
+    const isReady  = useImagePreloader([playHeroBackground]);
 
     useEffect(() => {
         const previousBodyOverflow = document.body.style.overflow;
@@ -25,6 +30,10 @@ export default function PlayHeroHeader() {
             document.documentElement.style.overflow = previousHtmlOverflow;
         };
     }, []);
+
+    if (!isReady) {
+        return <Loader />;
+    }
 
     return (
         <div
@@ -56,7 +65,7 @@ export default function PlayHeroHeader() {
                                 variant="shadow"
                                 className={" w-full h-12"}
                                 onPress={() => {
-                                    navigate("/login", { state: { from: location } });
+                                    navigate(routes.login, { state: { from: location } });
                                 }}
                             >
                                 <Text fw="bold">Spielen Starten</Text>
@@ -67,7 +76,7 @@ export default function PlayHeroHeader() {
                                 variant="flat"
                                 className={" w-full h-12"}
                                 onPress={() => {
-                                    navigate("/lab", { state: { from: location } });
+                                    navigate(routes.lab, { state: { from: location } });
                                 }}
                             >
                                 <Text fw="bold">Deck erstellen</Text>

@@ -11,7 +11,7 @@ import {
     Skeleton,
 } from "@heroui/react";
 import type { Selection } from "@heroui/react";
-import { MOBILE_BREAKPOINT, SMALL_BREAKPOINT } from "../../../../../lib/constants";
+import { MOBILE_BREAKPOINT, SMALL_BREAKPOINT } from "@/lib/constants";
 import { useMediaQuery } from "@mantine/hooks";
 import { useMemo } from "react";
 

@@ -2,7 +2,8 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Container, Center, Title, Text, Group } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
-import { usePublicDecks } from "../../../hooks/usePublicDecks";
+import { usePublicDecks } from "@/hooks/usePublicDecks";
+import { routes, routeBuilders } from "@/lib/routes";
 import { Image, Avatar, Chip, Skeleton } from "@heroui/react";
 import { useNavigate } from "react-router";
 import { Button } from "@heroui/react";
@@ -77,7 +78,7 @@ export function PublicDecksShowcase() {
                         : displayDecks.map(deck => (
                               <Carousel.Slide
                                   key={deck.id}
-                                  onClick={() => navigate(`/decks/${deck.id}/view`)}
+                                  onClick={() => navigate(routeBuilders.publicDeckView(deck.id))}
                                   className="cursor-pointer"
                               >
                                   <Image
@@ -135,7 +136,7 @@ export function PublicDecksShowcase() {
                         className="w-3/4"
                         endContent={<IconArrowRight size={18} />}
                         startContent={<IconCards size={18} />}
-                        onPress={() => navigate("/decks")}
+                        onPress={() => navigate(routes.decks)}
                     >
                         Alle Decks anzeigen
                     </Button>

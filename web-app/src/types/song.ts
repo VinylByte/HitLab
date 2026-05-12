@@ -6,7 +6,9 @@ export type SongRow = Tables<"songs">;
 export type Song = Pick<
     SongRow,
     "id" | "spotify_track_id" | "title" | "artist" | "album" | "year" | "thumbnail_url"
->;
+> & {
+    duration_ms?: number;
+};
 
 /** DTO returned by fetchPublicDeckSongs - holds meta info about the addition of song to a deck */
 export type DeckSong = {

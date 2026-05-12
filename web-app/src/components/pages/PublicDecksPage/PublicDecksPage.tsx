@@ -5,12 +5,13 @@ import { Center, SimpleGrid, Stack } from "@mantine/core";
 import SearchBar from "./SearchBarProp";
 import { Pagination } from "@heroui/react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT, PAGINATION_BREAKPOINT } from "../../../lib/constants";
-import { usePublicDecks } from "../../../hooks/usePublicDecks";
-import { fetchPublicDeckById } from "../../../services/deckService";
+import { MOBILE_BREAKPOINT, PAGINATION_BREAKPOINT } from "@/lib/constants";
+import { usePublicDecks } from "@/hooks/usePublicDecks";
+import { fetchPublicDeckById } from "@/services/deckService";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import { DeckModal } from "../LabsPage/ViewDeckModal";
-import type { PublicDeck } from "../../../types/deck";
+import { routes } from "@/lib/routes";
+import type { PublicDeck } from "@/types/deck";
 
 export default function PublicDecksPageWrapper() {
     const [searchParams] = useSearchParams();
@@ -27,7 +28,7 @@ export default function PublicDecksPageWrapper() {
         setIsRouteModalOpen(isOpen);
         if (!isOpen && deckId) {
             navigate({
-                pathname: "/decks",
+                pathname: routes.decks,
                 search: searchParams.toString() ? `?${searchParams.toString()}` : "",
             });
         }

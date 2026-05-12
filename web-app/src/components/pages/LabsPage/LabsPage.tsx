@@ -5,9 +5,10 @@ import { DeckModal } from "./ViewDeckModal";
 import { useEffect, useState } from "react";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { useNavigate, useParams, useSearchParams } from "react-router";
-import { deleteDeckById } from "../../../services/deckService";
-import { useOwnDecks } from "../../../hooks/useOwnDecks";
-import type { OwnDeck } from "../../../types/deck";
+import { deleteDeckById } from "@/services/deckService";
+import { useOwnDecks } from "@/hooks/useOwnDecks";
+import { routes, routeBuilders } from "@/lib/routes";
+import type { OwnDeck } from "@/types/deck";
 
 const ViewDeckModal = ({
     isDeckModalOpen,
@@ -44,7 +45,7 @@ export default function LabsPage() {
         setIsDeckModalOpen(isOpen);
         if (!isOpen && deckId) {
             navigate({
-                pathname: "/lab",
+                pathname: routes.lab,
                 search: searchParams.toString() ? `?${searchParams.toString()}` : "",
             });
         }
@@ -52,33 +53,28 @@ export default function LabsPage() {
 
     const viewDeck = (deck: OwnDeck) => {
         navigate({
-            pathname: `/lab/${deck.id}/view`,
+            pathname: routeBuilders.labDeckView(deck.id),
             search: searchParams.toString() ? `?${searchParams.toString()}` : "",
         });
     };
 
     const editDeck = (deck: OwnDeck) => {
-        // console.log("Editing deck:", deck);
-        navigate(`/decks/${deck.id}/edit`);
+        navigate(routeBuilders.deckEdit(deck.id));
     };
 
     const createDeck = () => {
-        // console.log("Creating new deck");
-        navigate("/decks/new");
+        navigate(routes.createDeck);
     };
 
     const deleteDeck = (deck: OwnDeck) => {
         setSelectedDeck(deck);
         setIsConfirmDeleteModalOpen(true);
-        // console.log("Deleting deck:", deck);
     };
 
     const deleteDeckConfirmed = () => {
-        // console.log("Deck deleted:", selectedDeck);
-        if (selectedDeck) {
-            deleteDeckById(selectedDeck.id);
-            removeDeck(selectedDeck.id);
-        } else console.error("No Deck Id is selected!");
+        if (!selectedDeck) return;
+        deleteDeckById(selectedDeck.id);
+        removeDeck(selectedDeck.id);
         setSelectedDeck(null);
     };
 

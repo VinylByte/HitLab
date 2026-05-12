@@ -8,7 +8,7 @@ import {
     Skeleton,
 } from "@heroui/react";
 import { Center } from "@mantine/core";
-import { PAGINATION_BREAKPOINT } from "../../../lib/constants";
+import { PAGINATION_BREAKPOINT } from "@/lib/constants";
 
 const skeletonColumns = ["TITLE", "SONG ANZAHL", "STATUS", "ERSTELLT AM", "ACTIONS"];
 
