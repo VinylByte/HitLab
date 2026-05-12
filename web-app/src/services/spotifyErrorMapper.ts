@@ -30,7 +30,15 @@ export function mapSpotifyError(error: unknown): SpotifyApiError {
         return new SpotifyApiError("UNAUTHORIZED", "Spotify Token ungültig oder abgelaufen.");
     }
     if (status === 403) {
-        return new SpotifyApiError("FORBIDDEN", "Premium oder Scope fehlt.");
+        let message = "Premium oder Scope fehlt.";
+        if (typeof error === "object" && error !== null) {
+            const errObj = error as any;
+            const errMsg = errObj.message || errObj.body?.error?.message || errObj.error?.message;
+            if (typeof errMsg === "string" && errMsg.toLowerCase().includes("insufficient scope")) {
+                message = "Fehlende Spotify-Berechtigungen (Scopes). Bitte erneut authentifizieren.";
+            }
+        }
+        return new SpotifyApiError("FORBIDDEN", message);
     }
     if (status === 404) {
         return new SpotifyApiError("NO_ACTIVE_DEVICE", "Kein aktives Spotify Gerät.");
