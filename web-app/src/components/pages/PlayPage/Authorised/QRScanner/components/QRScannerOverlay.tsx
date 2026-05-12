@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Button } from "@heroui/react";
 import { IconX } from "@tabler/icons-react";
 import { QrScannerView } from "./QrScannerView";
 import styles from "../styles/QRScannerElement.module.css";
