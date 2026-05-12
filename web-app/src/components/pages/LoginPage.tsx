@@ -3,7 +3,7 @@ import { Center, Group, Paper, Stack, Title } from "@mantine/core";
 import VinylLogo from "../../assets/VinylByteLogo.svg";
 import { IconArrowLeft, IconBrandSpotify } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT, SPOTIFY_SCOPES } from "../../lib/constants";
+import { MOBILE_BREAKPOINT } from "../../lib/constants";
 import supabase from "../../supabase";
 import { useSession } from "../../hooks/useSession";
 import { Link, Navigate, useLocation } from "react-router";
@@ -54,7 +54,7 @@ export default function LoginPage() {
             provider: "spotify",
             options: {
                 redirectTo: `${window.location.origin}/login`,
-                scopes: SPOTIFY_SCOPES,
+                scopes: 'playlist-read-private playlist-read-collaborative user-read-email user-read-private',
             },
         });
     };
