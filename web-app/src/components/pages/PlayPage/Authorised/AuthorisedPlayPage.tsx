@@ -1,19 +1,20 @@
-import {
-    Button,
-    Alert,
-    Input,
-    Select,
-    Slider,
-    SelectItem,
-} from "@heroui/react";
-import QRScannerModal from "./QRScanner/QRScannerElement";
+import { Button, Alert, Input, Select, Slider, SelectItem } from "@heroui/react";
+import QRScannerModal from "./QRScanner";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 import { MOBILE_BREAKPOINT } from "@/lib/constants";
 import PlayerElement from "./Player/PlayerElement";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
-import { IconBracketsContain, IconCaretDown, IconCaretDownFilled, IconDice, IconScan, IconTimelineEventExclamation, IconVinyl } from "@tabler/icons-react";
-import { Center, Group, Paper, Stack, Text, Transition } from "@mantine/core";
+import {
+    IconBracketsContain,
+    IconCaretDown,
+    IconCaretDownFilled,
+    IconDice,
+    IconScan,
+    IconTimelineEventExclamation,
+    IconVinyl,
+} from "@tabler/icons-react";
+import { Center, Group, Paper, Stack, Text, Title, Transition } from "@mantine/core";
 
 type GameMode = "full" | "timed" | "middle" | "random";
 
@@ -177,7 +178,7 @@ const DEFAULT_MODE_PARAMS: ModeParams = {
     endAtSeconds: 30,
     middleMaxDurationSeconds: 30,
     randomMinDistanceFromEndSeconds: 30,
-    randomMaxPlayDurationSeconds: 30,   
+    randomMaxPlayDurationSeconds: 30,
 };
 
 const MODE_PARAMS_SETTLE_DELAY_MS = 400;
@@ -601,12 +602,14 @@ export default function AuthorisedPlayPage() {
                 )}
                 {currentTrackId && (
                     <Button
-                        startContent={<IconScan size={20} />}
+                        startContent={<IconScan size={isMobile ? 30 : 20} />}
                         color="primary"
-                        className={isMobile ? "w-6/8 mt-10 mx-auto" : "w-4/10 mt-10 mx-auto"}
+                        className={isMobile ? "w-8/10 mx-auto h-15" : "w-4/10 mx-auto h-10"}
                         onPress={() => setScannerOpen(true)}
                     >
-                        Nächsten Song scannen
+                        <Title order={isMobile ? 4 : 5} mb={0}>
+                            Nächsten Song scannen
+                        </Title>
                     </Button>
                 )}
             </Stack>
