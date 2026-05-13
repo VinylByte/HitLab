@@ -19,12 +19,13 @@ import { Burger, Center } from "@mantine/core";
 import { IconLogin, IconLogout, IconMoon, IconSun, IconUser } from "@tabler/icons-react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 
-import VinylLogo from "../../assets/VinylByteLogo.svg";
-import { Pages, ProtectedPages } from "../../app/routes";
-import { MOBILE_BREAKPOINT } from "../../lib/constants";
-import { useSession } from "../../hooks/useSession";
-import { useAppTheme } from "../../hooks/useAppTheme";
-import supabase from "../../supabase";
+import VinylLogo from "@/assets/VinylByteLogo.svg";
+import { Pages, ProtectedPages } from "@/app/routes";
+import { MOBILE_BREAKPOINT } from "@/lib/constants";
+import { routes } from "@/lib/routes";
+import { useSession } from "@/hooks/useSession";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import supabase from "@/supabase";
 import { useMediaQuery } from "@mantine/hooks";
 
 export default function HeaderNav() {
@@ -37,7 +38,12 @@ export default function HeaderNav() {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
 
     const links = useMemo(() => {
-        let pages = Pages.map(page => ({ name: page.name, to: page.to, location: page.location }));
+        type NavLink = { name: string; to: string; location: string };
+        let pages: NavLink[] = Pages.map(page => ({
+            name: page.name,
+            to: page.to,
+            location: page.location,
+        }));
         if (session) {
             pages = pages.concat(
                 ProtectedPages.map(page => ({
@@ -53,7 +59,7 @@ export default function HeaderNav() {
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
-        navigate("/", { replace: true });
+        navigate(routes.home, { replace: true });
     };
 
     return (
@@ -61,6 +67,7 @@ export default function HeaderNav() {
             isBordered
             onMenuOpenChange={setExpandedNav}
             isMenuOpen={expandedNav}
+            className="sticky top-0 z-50"
             classNames={{
                 item: [
                     "flex",
@@ -85,7 +92,7 @@ export default function HeaderNav() {
             />
             <NavbarBrand
                 as={RouterLink}
-                to="/"
+                to={routes.home}
                 onClick={() => setExpandedNav(false)}
                 className="flex items-center"
             >
@@ -190,7 +197,7 @@ export default function HeaderNav() {
                         <Button
                             startContent={<IconLogin />}
                             color="primary"
-                            onPress={() => navigate("/login", { state: { from: location } })}
+                            onPress={() => navigate(routes.login, { state: { from: location } })}
                             variant="flat"
                         >
                             <p className="text-md">Login</p>

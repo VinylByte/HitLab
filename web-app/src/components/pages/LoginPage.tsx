@@ -1,11 +1,12 @@
 import { Alert, Button, Image } from "@heroui/react";
 import { Center, Group, Paper, Stack, Title } from "@mantine/core";
-import VinylLogo from "../../assets/VinylByteLogo.svg";
+import VinylLogo from "@/assets/VinylByteLogo.svg";
 import { IconArrowLeft, IconBrandSpotify } from "@tabler/icons-react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT, SPOTIFY_SCOPES } from "../../lib/constants";
-import supabase from "../../supabase";
-import { useSession } from "../../hooks/useSession";
+import { MOBILE_BREAKPOINT, SPOTIFY_SCOPES } from "@/lib/constants";
+import { routes } from "@/lib/routes";
+import supabase from "@/supabase";
+import { useSession } from "@/hooks/useSession";
 import { Link, Navigate, useLocation } from "react-router";
 import { useState } from "react";
 
@@ -27,7 +28,7 @@ export default function LoginPage() {
                 | { from?: { pathname?: string; search?: string; hash?: string } }
                 | undefined
         )?.from;
-        if (fromState?.pathname && fromState.pathname !== "/login") {
+        if (fromState?.pathname && fromState.pathname !== routes.login) {
             const target = `${fromState.pathname}${fromState.search ?? ""}${fromState.hash ?? ""}`;
             // Persist so it survives the OAuth redirect
             sessionStorage.setItem(REDIRECT_STORAGE_KEY, target);
@@ -36,11 +37,11 @@ export default function LoginPage() {
 
         // 2. From sessionStorage (after OAuth roundtrip)
         const stored = sessionStorage.getItem(REDIRECT_STORAGE_KEY);
-        if (stored && isSafePath(stored) && stored !== "/login") {
+        if (stored && isSafePath(stored) && stored !== routes.login) {
             return stored;
         }
 
-        return "/";
+        return routes.home;
     })();
 
     // Already logged in — redirect to original destination (or home)
@@ -62,7 +63,7 @@ export default function LoginPage() {
     return (
         <div>
             <div style={{ position: "absolute", top: "1rem", left: "1rem" }}>
-                <Button as={Link} to="/" variant="light" startContent={<IconArrowLeft />}>
+                <Button as={Link} to={routes.home} variant="light" startContent={<IconArrowLeft />}>
                     Zurück zur Startseite
                 </Button>
             </div>

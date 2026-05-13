@@ -1,6 +1,9 @@
 import { useEffect, useReducer, useRef } from "react";
 import { extractSpotifyPlaylistId, getPlaylistTracks } from "../services/spotifyClient";
+import { createLogger } from "../lib/logger";
 import type { SpotifyTrack } from "../types/spotify";
+
+const log = createLogger("usePlaylistSongs");
 
 type State = {
 	songs: SpotifyTrack[];
@@ -50,7 +53,7 @@ export function usePlaylistSongs(playlistLink: string) {
 					dispatch({ type: "success", songs });
 				}
 			} catch (error) {
-				console.error("[spotify] usePlaylist failed", {
+				log.error("failed", {
 					playlistLink,
 					error,
 				});

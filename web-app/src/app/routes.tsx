@@ -1,26 +1,27 @@
 import { lazy, Suspense } from "react";
-import { Loader } from "../components/elements/PageLoader";
+import { Loader } from "@/components/elements/PageLoader";
+import { routes, routePatterns } from "@/lib/routes";
 
-const HomePage = lazy(() => import("../components/pages/HomePage/HomePage"));
+const HomePage = lazy(() => import("@/components/pages/HomePage/HomePage"));
 const PublicDecksPageWrapper = lazy(
-    () => import("../components/pages/PublicDecksPage/PublicDecksPage")
+    () => import("@/components/pages/PublicDecksPage/PublicDecksPage")
 );
-const LabsPage = lazy(() => import("../components/pages/LabsPage/LabsPage"));
+const LabsPage = lazy(() => import("@/components/pages/LabsPage/LabsPage"));
 const CreateDeckPage = lazy(
-    () => import("../components/pages/LabsPage/EditAndCreatePage/CreateDeckPage")
+    () => import("@/components/pages/LabsPage/EditAndCreatePage/CreateDeckPage")
 );
 const EditDeckPage = lazy(
-    () => import("../components/pages/LabsPage/EditAndCreatePage/EditDeckPage")
+    () => import("@/components/pages/LabsPage/EditAndCreatePage/EditDeckPage")
 );
 const EditSongsPage = lazy(
-    () => import("../components/pages/LabsPage/EditAndCreatePage/EditSongsPage/EditSongsPage")
+    () => import("@/components/pages/LabsPage/EditAndCreatePage/EditSongsPage/EditSongsPage")
 );
-const GeneralPlayPage = lazy(() => import("../components/pages/PlayPage/GeneralPlayPage"));
+const GeneralPlayPage = lazy(() => import("@/components/pages/PlayPage/GeneralPlayPage"));
 
 export const Pages = [
     {
         name: "Home",
-        to: "/",
+        to: routes.home,
         location: "header",
         page: (
             <Suspense fallback={<Loader />}>
@@ -30,7 +31,7 @@ export const Pages = [
     },
     {
         name: "Decks",
-        to: "/decks",
+        to: routes.decks,
         location: "header",
         page: (
             <Suspense fallback={<Loader />}>
@@ -40,7 +41,7 @@ export const Pages = [
     },
     {
         name: "DecksById",
-        to: "/decks/:deckId/view",
+        to: routePatterns.publicDeckView,
         location: "none",
         page: (
             <Suspense fallback={<Loader />}>
@@ -50,7 +51,7 @@ export const Pages = [
     },
     {
         name: "Spielen",
-        to: "/play",
+        to: routes.play,
         location: "header",
         page: (
             <Suspense fallback={<Loader />}>
@@ -61,10 +62,10 @@ export const Pages = [
 ];
 
 export const ProtectedPages = [
-    { name: "Profile", to: "/profile", location: "avatar", page: <div>Profile</div> },
+    { name: "Profile", to: routes.profile, location: "avatar", page: <div>Profile</div> },
     {
         name: "Lab",
-        to: "/lab",
+        to: routes.lab,
         location: "header",
         page: (
             <Suspense fallback={<Loader />}>
@@ -74,7 +75,7 @@ export const ProtectedPages = [
     },
     {
         name: "LabDeckView",
-        to: "/lab/:deckId/view",
+        to: routePatterns.labDeckView,
         location: "none",
         page: (
             <Suspense fallback={<Loader />}>
@@ -84,7 +85,7 @@ export const ProtectedPages = [
     },
     {
         name: "Create Deck",
-        to: "/decks/new",
+        to: routes.createDeck,
         location: "none",
         page: (
             <Suspense fallback={<Loader />}>
@@ -94,7 +95,7 @@ export const ProtectedPages = [
     },
     {
         name: "Edit Deck",
-        to: "/decks/:id/edit",
+        to: routePatterns.deckEdit,
         location: "none",
         page: (
             <Suspense fallback={<Loader />}>
@@ -104,7 +105,7 @@ export const ProtectedPages = [
     },
     {
         name: "Edit Songs",
-        to: "/decks/:id/songs",
+        to: routePatterns.deckSongs,
         location: "none",
         page: (
             <Suspense fallback={<Loader />}>

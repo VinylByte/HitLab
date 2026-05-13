@@ -3,9 +3,10 @@ import classes from "./DeckCard.module.css";
 
 import { Card, Image, Avatar, CardBody, Skeleton, Chip } from "@heroui/react";
 import { useMediaQuery } from "@mantine/hooks";
-import { MOBILE_BREAKPOINT } from "../../../lib/constants";
+import { MOBILE_BREAKPOINT } from "@/lib/constants";
+import { routeBuilders } from "@/lib/routes";
 import { useNavigate, useSearchParams } from "react-router";
-import type { PublicDeck } from "../../../types/deck";
+import type { PublicDeck } from "@/types/deck";
 
 export function DeckCard({ data }: { data: PublicDeck }) {
     const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
@@ -14,7 +15,7 @@ export function DeckCard({ data }: { data: PublicDeck }) {
 
     const handleClick = () => {
         navigate({
-            pathname: `/decks/${data.id}/view`,
+            pathname: routeBuilders.publicDeckView(data.id),
             search: searchParams.toString() ? `?${searchParams.toString()}` : "",
         });
     };

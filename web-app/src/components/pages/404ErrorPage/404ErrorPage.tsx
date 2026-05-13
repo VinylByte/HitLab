@@ -4,6 +4,7 @@ import { Button } from "@heroui/react";
 import { Illustration } from "./Illustration";
 import { IconArrowBack, IconHome } from "@tabler/icons-react";
 import { Link } from "react-router";
+import { routes } from "@/lib/routes";
 
 export default function Error404Page() {
     return (
@@ -21,7 +22,7 @@ export default function Error404Page() {
                         </Text>
                     </Center>
                     <Group justify="center">
-                        <Button color="primary" as={Link} to="/" startContent={<IconHome size={16}/>} size="md">Zurück zur Startseite</Button>
+                        <Button color="primary" as={Link} to={routes.home} startContent={<IconHome size={16}/>} size="md">Zurück zur Startseite</Button>
                         <Button color="secondary" startContent={<IconArrowBack size={16}/>} onPress={() => window.history.back()} size="md">Zurück zur vorheringen Seite</Button>
                     </Group>
                 </Stack>

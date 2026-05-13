@@ -194,8 +194,6 @@ export default function DownloadModal(props: DownloadModalProps) {
         return result;
     };
 
-    // remove async useMemo to avoid race conditions; create blob on-demand in startDownload
-
     const startDownload = async () => {
         setDownloadStarted(true);
         setDownloadProgress(0);

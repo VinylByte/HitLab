@@ -1,4 +1,3 @@
-// hero.ts - Import HeroUI theme from tailwind config
 import { heroui } from "@heroui/react";
 
 export default heroui({

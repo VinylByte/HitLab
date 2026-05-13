@@ -1,4 +1,5 @@
 import supabase from "../supabase";
+import { createLogger } from "../lib/logger";
 import type {
     PlaybackState,
     SpotifyDevice,
@@ -9,6 +10,8 @@ import type {
     SpotifyTrackApi,
 } from "../types/spotify";
 import { mapSpotifyError } from "./spotifyErrorMapper";
+
+const log = createLogger("spotify");
 
 export function extractSpotifyPlaylistId(input: string): string | null {
     const trimmedInput = input.trim();
@@ -44,7 +47,7 @@ export async function persistSpotifyToken(
         p_refresh_token: refreshToken,
         p_expires_at: expiresAt,
     });
-    if (error) console.warn("Failed to persist Spotify token:", error);
+    if (error) log.warn("Failed to persist Spotify token:", error);
 }
 
 type AuthSession = {
@@ -75,14 +78,14 @@ async function refreshSpotifyTokenViaEdgeFunction(
 
     if (!response.ok) {
         const errorBody = await response.text();
-        console.error("[spotify] Edge function error:", response.status, errorBody);
+        log.error("Edge function error:", response.status, errorBody);
         throw new Error(`Edge function error: ${response.status}`);
     }
 
     const data = await response.json();
 
     if (data.error) {
-        console.error("[spotify] Spotify error from edge function:", data.error);
+        log.error("Spotify error from edge function:", data.error);
         throw new Error(data.error);
     }
 
@@ -109,7 +112,7 @@ async function getSpotifyAuthSession(): Promise<AuthSession> {
             : 3600;
     } else {
         // Fallback: read persisted token from database
-        console.debug("[spotify] provider_token missing in session, loading token from DB");
+        log.debug("provider_token missing in session, loading token from DB");
         const { data: rows, error: tokenErr } = await supabase.rpc("get_own_spotify_token");
         if (tokenErr) throw tokenErr;
         if (!rows || rows.length === 0) {
@@ -124,10 +127,8 @@ async function getSpotifyAuthSession(): Promise<AuthSession> {
         );
 
         if (expiresIn <= 30) {
-            console.warn(
-                "[spotify] stored token expired or near expiry (expiresIn: " +
-                    expiresIn +
-                    "s), attempting refresh"
+            log.warn(
+                `stored token expired or near expiry (expiresIn: ${expiresIn}s), attempting refresh`
             );
 
             try {
@@ -140,19 +141,19 @@ async function getSpotifyAuthSession(): Promise<AuthSession> {
                 const expiresAtUnix = Math.floor(Date.now() / 1000) + refreshData.expires_in;
                 await persistSpotifyToken(accessTokenStr, refreshTokenStr, expiresAtUnix);
 
-                console.debug("[spotify] token refreshed successfully via edge function", {
+                log.debug("token refreshed successfully via edge function", {
                     expiresIn: refreshData.expires_in,
                 });
             } catch (refreshError) {
-                console.warn(
-                    "[spotify] edge function refresh failed, trying supabase session refresh",
+                log.warn(
+                    "edge function refresh failed, trying supabase session refresh",
                     refreshError
                 );
 
                 // Fallback: try supabase session refresh
                 const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
                 if (refreshErr) {
-                    console.error("[spotify] supabase session refresh failed", refreshErr);
+                    log.error("supabase session refresh failed", refreshErr);
                     throw new Error("Spotify Token abgelaufen. Bitte erneut einloggen.");
                 }
 
@@ -236,7 +237,7 @@ export async function searchTracks(query: string): Promise<SpotifyTrack[]> {
     const { accessTokenStr } = await getSpotifyAuthSession();
 
     try {
-        console.debug("[spotify] searching tracks", { query: trimmedQuery });
+        log.debug("searching tracks", { query: trimmedQuery });
         const params = new URLSearchParams({
             q: trimmedQuery,
             type: "track",
@@ -249,7 +250,7 @@ export async function searchTracks(query: string): Promise<SpotifyTrack[]> {
         );
         return response.tracks.items.map(toSpotifyTrack);
     } catch (error) {
-        console.error("[spotify] searchTracks failed", error);
+        log.error("searchTracks failed", error);
         throw mapSpotifyError(error);
     }
 }
@@ -293,7 +294,7 @@ export async function getPlaylistTracks(playlistId: string): Promise<SpotifyTrac
 
         return songs;
     } catch (error) {
-        console.error("[spotify] getPlaylistTracks failed", {
+        log.error("getPlaylistTracks failed", {
             playlistId: trimmedPlaylistId,
             error,
         });
@@ -311,7 +312,7 @@ export async function getDevices(): Promise<SpotifyDevice[]> {
         );
         return response.devices;
     } catch (error) {
-        console.error("[spotify] getDevices failed", error);
+        log.error("getDevices failed", error);
         throw mapSpotifyError(error);
     }
 }
@@ -360,7 +361,7 @@ export async function startPlayback(
 
         return { deviceId: targetDevice };
     } catch (error) {
-        console.error("[spotify] startPlayback failed", error);
+        log.error("startPlayback failed", error);
         throw mapSpotifyError(error);
     }
 }
@@ -372,7 +373,7 @@ export async function pausePlayback(): Promise<void> {
             method: "PUT",
         });
     } catch (error) {
-        console.error("[spotify] pausePlayback failed", error);
+        log.error("pausePlayback failed", error);
         throw mapSpotifyError(error);
     }
 }
@@ -384,7 +385,7 @@ export async function resumePlayback(): Promise<void> {
             method: "PUT",
         });
     } catch (error) {
-        console.error("[spotify] resumePlayback failed", error);
+        log.error("resumePlayback failed", error);
         throw mapSpotifyError(error);
     }
 }
@@ -395,7 +396,7 @@ export async function getPlaybackState(): Promise<PlaybackState | null> {
         const state = await spotifyFetch<PlaybackState | undefined>(accessTokenStr, "/me/player");
         return state ?? null;
     } catch (error) {
-        console.error("[spotify] getPlaybackState failed", error);
+        log.error("getPlaybackState failed", error);
         throw mapSpotifyError(error);
     }
 }
@@ -409,7 +410,7 @@ export async function getTrack(trackId: string): Promise<SpotifyTrack> {
         );
         return toSpotifyTrack(item);
     } catch (error) {
-        console.error("[spotify] getTrack failed", error);
+        log.error("getTrack failed", error);
         throw mapSpotifyError(error);
     }
 }
